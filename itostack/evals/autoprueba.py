@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import functools
 import os
 import re
 import shutil
@@ -38,6 +39,30 @@ BANDERAS = {"i": re.IGNORECASE, "m": re.MULTILINE, "s": re.DOTALL}
 class Calificacion:
     puntaje: float
     detalle: list[tuple[str, str]]
+
+
+@functools.lru_cache(maxsize=1)
+def ubicar_bash() -> str:
+    """Bash real para los scripts de los casos.
+
+    En Windows, CreateProcess busca en System32 antes que en el PATH y encuentra el bash.exe de WSL
+    (que falla si no hay distribución). Se prefiere Git Bash: el que usa Claude Code.
+    """
+    if os.name != "nt":
+        return shutil.which("bash") or "bash"
+    candidatos = [os.environ.get("CLAUDE_CODE_GIT_BASH_PATH")]
+    git = shutil.which("git")
+    if git:
+        for ancestro in Path(git).resolve().parents:
+            candidatos += [str(ancestro / "bin" / "bash.exe"), str(ancestro / "usr" / "bin" / "bash.exe")]
+    candidatos.append(r"C:\Program Files\Git\bin\bash.exe")
+    encontrado = shutil.which("bash")
+    if encontrado and "system32" not in encontrado.lower():
+        candidatos.append(encontrado)
+    for candidato in filter(None, candidatos):
+        if Path(candidato).is_file():
+            return candidato
+    sys.exit("autoprueba requiere Git Bash en Windows (no el bash de WSL). Define CLAUDE_CODE_GIT_BASH_PATH.")
 
 
 def _texto(ruta: Path) -> str | None:
@@ -105,10 +130,13 @@ def ejecutar(caso_dir: Path, script: str, conservar: bool) -> tuple[Calificacion
     entorno.update({"PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"})
     andamiaje = datos.get("context", {}).get("scaffold_script")
     if andamiaje:
-        subprocess.run(["bash", str(caso_dir / andamiaje)], cwd=espacio, env=entorno, check=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        preparado = subprocess.run([ubicar_bash(), str(caso_dir / andamiaje)], cwd=espacio, env=entorno, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if preparado.returncode != 0:
+            detalle = (preparado.stderr or preparado.stdout).strip().splitlines()[-5:]
+            return Calificacion(0.0, [("andamiaje", "✘ preparar.sh falló: " + " | ".join(detalle))]), espacio
     mensaje_ruta = espacio.parent / f"{espacio.name}.mensaje"
     entorno.update({"PLUGIN": str(PLUGIN), "MENSAJE": str(mensaje_ruta)})
-    proceso = subprocess.run(["bash", "-x", str(caso_dir / script)], cwd=espacio, env=entorno, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
+    proceso = subprocess.run([ubicar_bash(), "-x", str(caso_dir / script)], cwd=espacio, env=entorno, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
     traza = proceso.stdout + "\n" + proceso.stderr
     mensaje = _texto(mensaje_ruta) or ""
     calificacion = calificar(datos["graders"], espacio, mensaje, traza)
