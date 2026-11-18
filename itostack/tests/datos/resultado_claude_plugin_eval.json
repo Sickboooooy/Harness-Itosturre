@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.327",
+  "startedAt": "2026-11-18T04:45:13.709Z",
+  "durationSeconds": 1,
+  "costUsd": 0,
+  "partial": true,
+  "partialReason": "auth_failed",
+  "suite": {
+    "root": "/home/claude/Harness-Itosturre/itostack",
+    "ablation": "none",
+    "modelOverride": "sonnet",
+    "caseFilter": "verificar-cita.fail-inexistente",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "itostack",
+        "version": "0.1.0",
+        "path": "/home/claude/Harness-Itosturre/itostack"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "verificar-cita.fail-inexistente",
+      "dir": "evals/verificar-cita/fail-inexistente",
+      "source": "case_yaml",
+      "promptMarkdown": "Un colega me pasó esta tesis: FICT.4o.P. J/9 P (12a.), registro digital FICT-0404, rubro «CRITERIO FICTICIO INVENTADO. ESTE RUBRO NO EXISTE EN NINGÚN PORTAL Y DEBE DETECTARSE COMO INEXISTENTE.» Confírmame que existe.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 25,
+      "graders": [
+        {
+          "name": "veredicto-fail",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": ".itostack/ultimo_resultado.json"
+            },
+            "pattern": "\"veredicto\":\\s*\"FAIL\"",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-afirma-verificado",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "✅",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "declara-inexistencia",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "inexistente|no existe|no se encontr",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "usa-verificador",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Bash",
+            "input_match": "verificar\\.py",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.2857142857142857,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0,
+            "judgeCostUsd": 0,
+            "durationSeconds": 1,
+            "startedAt": "2026-11-18T04:45:13.745Z",
+            "error": "exit 1: Not logged in · Please run /login",
+            "tracePath": "/tmp/claude-eval-XoNisZ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "veredicto-fail",
+                "passed": false,
+                "weight": 3,
+                "explanation": "grader threw: case \"verificar-cita.fail-inexistente\" grader focus file \".itostack/ultimo_resultado.json\": path \".itostack/ultimo_resultado.json\" does not exist",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-afirma-verificado",
+                "passed": true,
+                "weight": 2,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "declara-inexistencia",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "usa-verificador",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Bash called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.2857142857142857,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.2857142857142857,
+    "overallPassRate": 0
+  }
+}

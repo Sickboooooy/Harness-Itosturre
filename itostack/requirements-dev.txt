@@ -1,0 +1,5 @@
+# Solo para pruebas y evals del plugin; los scripts de uso diario usan la biblioteca estándar.
+pytest>=8
+hypothesis>=6
+pyyaml>=6
+flask>=3

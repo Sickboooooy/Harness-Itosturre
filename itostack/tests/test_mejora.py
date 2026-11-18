@@ -81,3 +81,23 @@ def test_mapa_rutas_flask():
 def test_autoprueba_de_evals_juridicos():
     resultado = subprocess.run([sys.executable, str(RAIZ / "evals" / "autoprueba.py"), "--caso", "verificar-cita/*"], capture_output=True, text=True, timeout=900)
     assert resultado.returncode == 0, resultado.stdout
+
+
+def test_compuerta_holdout_un_solo_intento(tmp_path, monkeypatch):
+    sys.path.insert(0, str(RAIZ / "evals"))
+    import compuerta_holdout as compuerta
+
+    monkeypatch.setattr(compuerta, "COMPUERTA", tmp_path)
+    monkeypatch.setattr(compuerta, "HISTORIAL", tmp_path / "historial.tsv")
+    real = json.loads((RAIZ / "tests" / "datos" / "resultado_claude_plugin_eval.json").read_text(encoding="utf-8"))
+    assert compuerta.puntajes(real) == {"verificar-cita.fail-inexistente": real["cases"][0]["aggregates"]["score"]}
+
+    desarrollo = {"cases": [{"name": n, "aggregates": {"score": 1.0}} for n in compuerta._casos("verificar-cita", "desarrollo")]}
+    (tmp_path / "dev.json").write_text(json.dumps(desarrollo), encoding="utf-8")
+    assert compuerta.congelar("verificar-cita", tmp_path / "dev.json") == 0
+
+    holdout = {"cases": [{"name": n, "aggregates": {"score": 0.5}} for n in compuerta._casos("verificar-cita", "holdout")]}
+    (tmp_path / "h.json").write_text(json.dumps(holdout), encoding="utf-8")
+    assert compuerta.holdout("verificar-cita", tmp_path / "h.json", []) == 1
+    assert compuerta.holdout("verificar-cita", tmp_path / "h.json", []) == 1
+    assert "RECHAZADA" in (tmp_path / "historial.tsv").read_text(encoding="utf-8")

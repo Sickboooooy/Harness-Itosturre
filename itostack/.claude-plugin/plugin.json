@@ -1,0 +1,13 @@
+{
+  "name": "itostack",
+  "version": "0.1.0",
+  "description": "Harness de Itosturre para agentes jurídicos y de desarrollo: verificación forense con evidencia (PASS/FAIL/BLOCKED), evals con compuerta holdout, mejora continua de skills y guardias deterministas en pirámide invertida.",
+  "author": {
+    "name": "Jorge Fabián Martínez Sánchez · Itosturre",
+    "url": "https://itosturre.com"
+  },
+  "homepage": "https://itosturre.com",
+  "repository": "https://github.com/Sickboooooy/Harness-Itosturre",
+  "license": "UNLICENSED",
+  "keywords": ["itosturre", "legaltech", "anti-alucinacion", "vvca", "harness", "evals", "guardrails", "playwright"]
+}

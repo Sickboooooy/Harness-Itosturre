@@ -44,6 +44,7 @@ REGLAS: list[tuple[str, re.Pattern, str]] = [
      "consulta a un portal oficial sin captura forense. Usa: python3 <raíz itostack>/scripts/verificar.py (tesis|url) …"),
     ("denegar", re.compile(r"\b(?:pip3?|uv\s+pip|poetry|pipenv)\s+(?:install|add)\b[^|;&]*\b(?:fastapi|psycopg2?|psycopg2-binary|supabase|pymongo)\b"),
      "dependencia fuera del stack del MVP (Flask + SQLite). Consulta al operador antes de cambiar el stack."),
+    # itostack: permitir IT002 — la regla nombra el paquete para bloquearlo, no para usarlo
     ("denegar", re.compile(r"\b(?:npm|pnpm|yarn|bun)\s+(?:i|install|add)\b[^|;&]*(?:@supabase/|\bpg\b|\bmongodb\b|\bmysql2?\b)"),
      "dependencia fuera del stack del MVP (SQLite). Consulta al operador antes de cambiar el stack."),
 ]

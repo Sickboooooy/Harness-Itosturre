@@ -1,0 +1,18 @@
+{
+  "name": "itosturre",
+  "owner": {
+    "name": "Itosturre",
+    "url": "https://itosturre.com"
+  },
+  "metadata": {
+    "description": "Plugins de Itosturre para trabajo jurídico y de desarrollo con agentes verificables."
+  },
+  "plugins": [
+    {
+      "name": "itostack",
+      "source": "./itostack",
+      "description": "Harness con Feedback Loop forense, Agent Evals, mejora continua de skills y guardias deterministas.",
+      "version": "0.1.0"
+    }
+  ]
+}

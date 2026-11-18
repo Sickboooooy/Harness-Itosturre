@@ -1,0 +1,15 @@
+{
+  "_nota": "Modelo por rol (equivalente a models.md de pstack). Claude Code respeta 'model' en el frontmatter de cada subagente; este archivo documenta la asignación y alimenta /interrogar y el juez local.",
+  "roles": {
+    "ejecutor": "inherit",
+    "revisor": "opus",
+    "auditor_citas": "sonnet",
+    "reproductor": "sonnet",
+    "jardinero": "sonnet",
+    "juez_evals": "haiku"
+  },
+  "panel_interrogar": ["revisor-adversarial", "ollama:qwen2.5:14b"],
+  "juez_otra_familia": "ollama:qwen2.5:14b",
+  "ollama_endpoint": "http://127.0.0.1:11434",
+  "regla": "El juez no debe ser el mismo modelo que el agente evaluado; para evals nativos usa --judge-model distinto de --model."
+}

@@ -1,0 +1,16 @@
+# Bucle externo de itostack (crontab -e). En WSL: sudo service cron start
+# Ajusta RAIZ (salida de `cat .itostack/raiz_plugin`) y PROYECTO. Horarios en hora local, desfasados del minuto 0.
+RAIZ=/ruta/al/plugin/itostack
+PROYECTO=/home/usuario/itosturre-core
+
+# Salud de transcripciones: días hábiles 8:44 (silencioso si no hay propuestas)
+44 8 * * 1-5  cd $PROYECTO && python3 $RAIZ/scripts/salud_transcripciones.py --dias 1 --filtro itosturre >> .itostack/mejora/cron.log 2>&1
+
+# Salud de rutinas y tokens: lunes 8:49
+49 8 * * 1    cd $PROYECTO && python3 $RAIZ/scripts/salud_rutinas.py --dias 7 --filtro itosturre >> .itostack/mejora/cron.log 2>&1
+
+# Auditoría nocturna de integridad de la evidencia forense: 3:07
+7 3 * * *     cd $PROYECTO && python3 $RAIZ/scripts/evidencia_db.py auditar >> .itostack/mejora/cron.log 2>&1
+
+# Lint de arquitectura sobre lo cambiado en el día: 3:17
+17 3 * * *    cd $PROYECTO && git diff --quiet HEAD@{1.day.ago} 2>/dev/null || python3 $RAIZ/guardias/lint_itosturre.py --diff "HEAD@{1.day.ago}" >> .itostack/mejora/cron.log 2>&1

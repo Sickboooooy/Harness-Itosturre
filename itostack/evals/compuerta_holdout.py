@@ -50,6 +50,14 @@ def huella(skill: str) -> str:
 def puntajes(datos) -> dict[str, float]:
     """Extrae {nombre_de_caso: puntaje} de la salida JSON de claude plugin eval, tolerando variaciones de esquema."""
     encontrados: dict[str, float] = {}
+    if isinstance(datos, dict) and isinstance(datos.get("cases"), list):
+        # Esquema 1 de claude plugin eval: cases[].name + cases[].aggregates.score (brazo con plugin)
+        for caso in datos["cases"]:
+            puntaje = (caso.get("aggregates") or {}).get("score")
+            if isinstance(caso.get("name"), str) and isinstance(puntaje, (int, float)):
+                encontrados[caso["name"]] = float(puntaje)
+        if encontrados:
+            return encontrados
 
     def recorrer(nodo) -> None:
         if isinstance(nodo, dict):
