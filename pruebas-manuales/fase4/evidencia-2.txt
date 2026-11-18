@@ -1,0 +1,129 @@
+=== Fase 4 · evidencia cruda (parte 2) ===
+Continúa evidencia.txt. (La parte 1 llega hasta F4-06.)
+
+--- F4-07 · subagente reproductor: reproducción doble ---
+4 veredictos en 2 corridas independientes (puertos 62003 y 49977, procesos distintos):
+  corrida 1: validar-mayusculas PASS (exit 0) · validar-minusculas FAIL (exit 1)
+  corrida 2: validar-mayusculas PASS (exit 0) · validar-minusculas FAIL (exit 1)
+Determinismo con margen: las dos fallo-paso-4.png son BYTE-IDENTICAS
+  SHA-256 6058dbab7b809643c64accd98bf9c1b9ba9825f079715a766ebaf323619ee8b5
+Estado correcto (FICT-0001): Resultado: VERIFICADO
+Estado roto (fict-0001):     Resultado: NO ENCONTRADO
+Punto de divergencia leído, no adivinado: app.py:14
+    return CRITERIOS_FICTICIOS.get(registro, "NO ENCONTRADO")
+  Las claves del diccionario están en mayúsculas (app.py:7-10); el valor del formulario
+  (app.py:24) se pasa sin normalizar. Contradice mapa-funcionalidades.md, que declara que
+  los registros no distinguen mayúsculas.
+Verificado por mí con cat -n app.py: la línea 14 es exactamente esa.
+
+--- F4-08 · reproducir-y-corregir ---
+
+Paso 1 (congelar el reporte):
+  bitacora.py registrar --tarea bug-minusculas --decision "reporte congelado" ...
+  -> .itostack/bitacora/2026-11-18.tsv, 1 fila con decision, razon, alternativas y reversible=si
+
+Paso 2 (triaje):
+  git log -- app.py  en el proyecto anidado NO devuelve nada.
+  git check-ignore -v .  ->  .git/info/exclude:9:pruebas-manuales/
+  Triaje hecho sobre el origen rastreado del archivo:
+  $ git log --oneline -- itostack/evals/fixtures/app_flask_simulada/app.py
+    2a3c782 Agrega núcleo forense, verificador Playwright y guardias deterministas
+  $ git blame -L 13,14 -- itostack/evals/fixtures/app_flask_simulada/app.py
+    ^2a3c782 (Jorge Fabián Martínez Sánchez 2026-11-17 14) return CRITERIOS_FICTICIOS.get(...)
+  No hay issue ni PR previo.
+
+Pasos 3 y 4 (reproducción doble): cubiertos por F4-05 y por el subagente (4 veredictos).
+
+Paso 5 (/tdd) — prueba agregada en tests/test_app.py:
+    def test_registro_en_minusculas_se_valida_igual():
+        cliente = app.test_client()
+        respuesta = cliente.post("/validar", data={"registro": "fict-0001"})
+        assert "VERIFICADO" in respuesta.get_data(as_text=True)
+  $ python -m pytest tests -q   ->  .F   1 failed, 1 passed   [exit=1]
+  Falla por la razón correcta (no por import ni sintaxis). Extracto del aserto:
+    assert VERIFICADO in ... <p data-testid="resultado">Resultado: NO ENCONTRADO</p> ...
+
+Paso 6 (corrección mínima) — diff contra el fixture original:
+  @@ -11,7 +11,7 @@
+   def consultar(registro: str) -> str:
+  -    return CRITERIOS_FICTICIOS.get(registro, "NO ENCONTRADO")
+  +    return CRITERIOS_FICTICIOS.get(registro.upper(), "NO ENCONTRADO")
+  Un solo cambio. Sin strip() ni limpiezas ajenas a la meta (principio pereza).
+
+Paso 6b (lint) — LA COMPUERTA PASÓ EN VACÍO:
+  $ python "$R/guardias/lint_itosturre.py" --diff   ->  lint itosturre: 0 hallazgo(s)  [exit=0]
+  Comprobación: git diff -U0 HEAD -- "*.py" en este directorio no devuelve NADA, porque
+  pruebas-manuales/ está excluido. revisar_diff() (lint_itosturre.py:148-149) parsea la salida
+  de git diff, así que examinó 0 líneas y reportó 0 hallazgos con exit 0.
+  Lint real, pasando los archivos explícitamente:
+  $ python "$R/guardias/lint_itosturre.py" app.py tests/test_app.py  ->  0 hallazgo(s)  [exit=0]
+  La corrección sí está limpia; lo que falla es la compuerta del paso 6. (defecto D-10)
+
+Paso 7 (verificación posterior):
+  $ python -m pytest tests -q   ->  2 passed   [exit=0]
+  $ verificar.py app --ruta rutas/validar-minusculas.json  ->  VEREDICTO: PASS  [exit=0]
+      evidencia ...\validar-minusculas\20261118T184712Z-d2e2\resultado.json (d78063465512bb0b...)
+  $ verificar.py app --ruta rutas/validar-mayusculas.json  ->  VEREDICTO: PASS  [exit=0]  (sin regresión)
+
+Paso 8 (PR en borrador): skip.
+  El plan supone que no hay remoto, pero SÍ lo hay:
+    origin  https://github.com/Sickboooooy/harness-itosturre  (fetch y push)
+  La razón real del skip es otra: los archivos corregidos están en pruebas-manuales/, excluido
+  del repositorio, de modo que no hay nada que confirmar ni empujar; y la regla 5 del plan
+  prohíbe commits y push.
+
+--- F4-09 · crear-skill-verificacion ---
+Paso 1 inventario: 2 rutas Flask, 3 data-testid (idéntico a F4-02).
+Paso 3 mapa completado en mapa-funcionalidades.md con los campos de la plantilla: ruta,
+  precondiciones, selectores, atajos, dueño del estado, archivos fuente, datos de prueba
+  conocidos, rutas de verificación y una sección de huecos conocidos.
+Paso 4 skill escrita en .claude/skills/verificar-app-simulada/SKILL.md
+
+Paso 5 AUTOPRUEBA, PRIMERA VUELTA: FALLÓ en el paso 1/6.
+  $ arrancar_app.py iniciar --comando "python -m flask --app app run --port {puerto}" --salud /
+  Traceback (most recent call last):
+    File ...\arrancar_app.py, line 86, in iniciar   ->  if responde(base + salud):
+    File ...\arrancar_app.py, line 65, in responde  ->  urllib.request.urlopen(url, timeout=2)
+    File C:\Python314\Lib\http\client.py, line 1283, in _validate_path
+  http.client.InvalidURL: URL can't contain control characters. '/Program Files/Git/'
+  [exit=1]
+  Causa confirmada (MSYS de Git Bash, no itostack):
+    $ python -c "import sys; print(sys.argv[1:])" --salud /
+      argv recibido: ['--salud', 'C:/Program Files/Git/']
+    $ MSYS_NO_PATHCONV=1 python -c "..." --salud /
+      argv recibido: ['--salud', '/']
+  CONSECUENCIA (defecto D-11, este sí de itostack): el traceback dejó un SERVIDOR HUÉRFANO vivo.
+    .itostack/app.json  ->  no existe, luego detener no puede matarlo
+    .itostack/app.log   ->  Running on http://127.0.0.1:50344
+    urlopen(http://127.0.0.1:50344/)  ->  HTTP 200  (proceso vivo)
+    netstat -ano -p TCP | grep 50344  ->  127.0.0.1:50344  LISTENING  380
+    Get-CimInstance Win32_Process -Filter "ProcessId=380"
+      Name: python.exe · CommandLine: python -m flask --app app run --port 50344
+    Limpiado a mano con Stop-Process -Id 380 -Force  ->  puerto 50344 liberado.
+  Corrección de la SKILL (lo que manda el paso 5: si algo falta, corrígela y repite):
+    se quitó --salud / (el valor por omisión ya es /) y se documentó la trampa de Git Bash,
+    tanto en SKILL.md como en el mapa.
+
+Paso 5 AUTOPRUEBA, SEGUNDA VUELTA: 6/6
+  1/6 iniciar   ->  {"ok": true, "base_url": "http://127.0.0.1:56874", "pid": 29416}  [exit=0]
+  2/6 estado    ->  "responde": true  [exit=0]
+  3/6 ruta      ->  VEREDICTO: PASS (validar-mayusculas)  [exit=0]
+  4/6 evidencia ->  paso-1-ir.png, resultado.png, final.png y resultado.json (a99c0c4261179037...)
+  5/6 detener   ->  {"ok": true, "detalle": "app detenida (pid 29416)"}; app.json eliminado
+  6/6 auditar   ->  Integridad: OK  [exit=0]
+
+--- F4-10 · mantener-skill-verificacion ---
+Entrada obsoleta agregada a propósito: ver-historial, con GET /historial,
+  [data-testid=boton-historial] y [data-testid=tabla-historial], más rutas/ver-historial.json.
+Paso 1, comparación inventario contra mapa:
+  rutas Flask reales: / (GET) y /validar (POST)   ->  GET /historial NO existe
+  data-testid reales: boton-validar, campo-registro, resultado  ->  los dos del historial NO existen
+Paso 4, correr la ruta modificada:
+  VEREDICTO: BLOCKED · app ver-historial — paso 2: selector ausente '[data-testid=boton-historial]';
+  actualiza el mapa de funcionalidades (mantener-skill-verificacion) o agrega data-testid   [exit=2]
+Paso 2, resta antes de sumar: entrada eliminada del mapa y rutas/ver-historial.json borrada,
+  porque una ruta que nunca ha dado PASS no se documenta como válida.
+  Copia del mapa obsoleto conservada en fase4/mapa-con-entrada-obsoleta.md
+Diff final: -11 líneas (el bloque ver-historial completo). rutas/ queda con 2 archivos.
+Nota: al reescribir el mapa con Path.write_text se convirtieron los finales de línea a CRLF
+  (28 líneas); se normalizaron a LF para que el diff fuera legible. Artefacto mío, no del harness.

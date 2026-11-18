@@ -1,0 +1,83 @@
+=== Fase 0 repetida en itostack 0.1.1 · Windows 11 nativo · Git Bash ===
+Repo: C:/Users/licjo/.harness/Harness-Itosturre
+git log --oneline -1  ->  06cc4fe Agrega el plan de prueba integral adaptado a Windows y a la versión 0.1.1
+git status --porcelain ->  (vacío)
+
+--- F0-01 · mensaje del hook de inicio (SessionStart), tal como llegó al contexto ---
+[itostack] Plugin disponible (raíz: C:\Users\licjo\.harness\Harness-Itosturre\itostack). Este proyecto aún no tiene .itostack/: si se trabajará con citas o verificación, ejecuta la skill configurar-itostack.
+(No incluye la línea del intérprete: esa rama de inicio_sesion.py:36-47 exige .itostack/ existente.)
+
+--- F0-10 · prueba en vivo del guardia Bash (PreToolUse) ---
+Comando solicitado: commit con mensaje en inglés "Add test", con --dry-run.
+Respuesta de la herramienta Bash (acción NO ejecutada):
+  itostack: commit en inglés («Add test»). Escribe commits descriptivos en español: «Agrega…», «Corrige…», «Elimina…».
+Veredicto: DENEGADO. Éxito esperado.
+
+--- D-01 · import del núcleo en Windows ---
+$ python -c "import sys; sys.path.insert(0,'itostack/scripts'); import nucleo.config as c; ..."
+config OK -> C:\Users\licjo\.harness\Harness-Itosturre\itostack/scripts\nucleo\config.py
+HOME real: C:\Users\licjo
+
+$ grep -n "pwd" itostack/scripts/nucleo/config.py
+13:    import pwd
+14:except ImportError:  # Windows: no existe el módulo pwd
+15:    pwd = None
+115:    if pwd is not None:
+117:            return Path(pwd.getpwuid(os.getuid()).pw_dir)
+
+--- D-03 · intérprete en hooks.json ---
+$ grep -c "python3" itostack/hooks/hooks.json
+0
+(los 7 hooks invocan: node "${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs" <hook.py> <cerrado|abierto> <Evento>)
+
+--- Intérpretes disponibles ---
+$ python --version    -> Python 3.14.0
+$ py -3 --version     -> Python 3.14.0
+$ python3 --version   -> Python was not found; run without arguments to install from the Microsoft Store, ...
+                         (alias de la Store: no ejecuta nada)
+
+--- D-02 · falla cerrado del lanzador (carga de prueba inocua: {"tool_name":"Bash","tool_input":{"command":"ls -la"}}) ---
+$ ITOSTACK_PYTHON="C:/no/existe/python.exe" node itostack/hooks/lanzar.mjs guardia_bash.py cerrado PreToolUse < entrada
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"itostack: la guardia guardia_bash.py no pudo evaluar (intérprete «C:/no/existe/python.exe» no disponible). Falla cerrado: acción bloqueada. Verifica que exista Python 3.10+ (python3, python o py -3) o define ITOSTACK_PYTHON."}}
+[exit=0]
+
+$ node itostack/hooks/lanzar.mjs no_existe.py cerrado PreToolUse < entrada
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"itostack: la guardia no_existe.py no pudo evaluar (no existe C:\\Users\\licjo\\.harness\\Harness-Itosturre\\itostack\\hooks\\no_existe.py). Falla cerrado: acción bloqueada. Verifica que exista Python 3.10+ (python3, python o py -3) o define ITOSTACK_PYTHON."}}
+[exit=0]
+
+$ ITOSTACK_PYTHON="C:/no/existe/python.exe" node itostack/hooks/lanzar.mjs inicio_sesion.py abierto SessionStart < entrada
+itostack: hook inicio_sesion.py omitido (intérprete «C:/no/existe/python.exe» no disponible)
+[exit=0]
+
+$ node itostack/hooks/lanzar.mjs guardia_bash.py cerrado PreToolUse < entrada
+(sin salida)
+[exit=0]   -> permite
+
+--- F0-05 · módulos Python ---
+pytest: OK 9.0.1
+hypothesis: OK 6.170.15
+yaml: OK 6.0.3
+flask: OK 3.1.2
+
+--- F0-04 · Playwright ---
+$ ls itostack/scripts/node_modules/.bin/
+playwright, playwright-core, playwright.cmd, playwright.ps1, tsc, tsc.cmd, tsc.ps1, tsserver, ...
+$ ls "$LOCALAPPDATA/ms-playwright"
+chromium-1194/ chromium-1208/ chromium-1223/ chromium-1234/ chromium-1255/
+chromium_headless_shell-1194/ ... -1255/  ffmpeg-1011/ ffmpeg-1013/ winldd-1007/
+
+--- F0-07 · claude plugin validate ./itostack ---
+✔ Validation passed
+⚠ 1 aviso del directorio de plugins: .claude-plugin/plugin.json icon: No icon (ICON_MISSING). No cambia el resultado.
+
+--- F0-08 · typecheck ---
+$ cd itostack/scripts && ./node_modules/.bin/tsc.cmd --noEmit -p .
+(sin salida)
+[exit=0]
+
+--- O-02 · asimetría entre guardias (medido sin buscarlo) ---
+Dos intentos de escribir pruebas-manuales/fase0/resultado-011.md con heredoc de Bash fueron DENEGADOS
+porque el texto del informe cita comandos prohibidos:
+  1) "itostack: push forzado prohibido: reescribe historia compartida. Usa una rama nueva o pide al operador que lo haga."
+  2) (mismo guardia, al citar el commit en inglés)
+El mismo contenido pasó por la herramienta Write sin objeción (guardia_escritura.py no evalúa comandos de git).

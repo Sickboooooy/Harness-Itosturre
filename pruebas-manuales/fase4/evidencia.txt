@@ -1,0 +1,75 @@
+=== Fase 4 · evidencia cruda · pilar 1 desarrollo ===
+Proyecto anidado: C:\Users\licjo\.harness\Harness-Itosturre\pruebas-manuales\app
+PY = python (C:\Python314\python.exe) · R = ...\Harness-Itosturre\itostack
+
+--- F4-01 · copia e inicialización ---
+$ cp -r itostack/evals/fixtures/app_flask_simulada pruebas-manuales/app
+$ cd pruebas-manuales/app && python ../../itostack/scripts/inicializar.py --proyecto . --perfil desarrollo
+itostack inicializado en ...\pruebas-manuales\app\.itostack
+  modo: real · perfil: desarrollo
+  navegador: ...\ms-playwright\chromium-1255\chrome-win64\chrome.exe
+[exit=0]
+config.json -> {"version":1,"perfil":"desarrollo","navegador":{"ejecutable":"..."}}
+(sin bloque "sjf": el perfil desarrollo no lo necesita; el modo por omisión es "real")
+Creó además .itostack/mapa-funcionalidades.md (plantilla), distinta del mapa-funcionalidades.md
+que la app ya traía en su raíz.
+
+--- F4-02 · mapa_rutas_flask.py . ---
+## Rutas Flask
+| Ruta | Métodos | Función | Archivo |
+| `/` | GET | `inicio` | `app.py:18` |
+| `/validar` | POST | `validar` | `app.py:23` |
+## Selectores estables (data-testid)
+- `templates\index.html`: `[data-testid=boton-validar]`, `[data-testid=campo-registro]`, `[data-testid=resultado]`
+[exit=0]
+Coincide con el código y con el mapa que la app trae.
+
+--- arranque ---
+$ python "$R/scripts/arrancar_app.py" iniciar
+{"ok": true, "base_url": "http://127.0.0.1:53489", "puerto": 53489, "pid": 32004,
+ "comando": "\"C:\Python314\python.exe\" -m flask --app app run --port 53489",
+ "bitacora": "...\pruebas-manuales\app\.itostack\app.log"}
+[exit=0]
+
+--- F4-03 · demuestra-que-funciona · caso 1: validar-mayusculas ---
+$ python "$R/scripts/verificar.py" app --base http://127.0.0.1:53489 --ruta rutas/validar-mayusculas.json
+VEREDICTO: PASS · ✅ VERIFICADO
+app validar-mayusculas — la ruta del mapa se recorrió completa sobre la app en ejecución
+  evidencia: ...\app\validar-mayusculas\20261118T183913Z-8bcc\resultado.json (63f9d43afce4a6c9…)
+  capturas: paso-1-ir.png (65be2d4f2f14ce83…) · resultado.png (439c1120eb045721…) · final.png (439c1120eb045721…)
+[exit=0]
+Captura resultado.png abierta: «Validador ficticio de registros», campo con FICT-0001,
+botón Validar y la línea «Resultado: VERIFICADO». Coherente con el veredicto.
+
+--- F4-04 · caso 2: data-testid=boton-historial -> BLOCKED, sin implementarlo ---
+Paso previo (regla de la skill): el control NO está en ningún mapa y NO existe en el código.
+$ grep -rn "historial" templates/ app.py  -> sin resultados
+$ mapa_rutas_flask.py .  -> solo boton-validar, campo-registro, resultado
+Ruta temporal (en el scratchpad, no en rutas/ de la app) con el selector inexistente:
+$ python "$R/scripts/verificar.py" app --base http://127.0.0.1:53489 --ruta <scratchpad>/historial.json
+VEREDICTO: BLOCKED · ⚠ NO VERIFICADO — BLOQUEADO
+app ver-historial — paso 2: selector ausente '[data-testid=boton-historial]'; actualiza el mapa
+de funcionalidades (mantener-skill-verificacion) o agrega data-testid
+  capturas: paso-1-ir.png · fallo-paso-2.png · final.png
+[exit=2]
+>> BLOCKED, no FAIL, como manda la regla. NO se implementó la funcionalidad ni se inventó el selector.
+
+--- F4-05 · caso 3: validar-minusculas, solo verificar -> FAIL ---
+$ python "$R/scripts/verificar.py" app --base http://127.0.0.1:53489 --ruta rutas/validar-minusculas.json
+VEREDICTO: FAIL · ❌ NO VERIFICABLE — DISCREPANTE O INEXISTENTE
+app validar-minusculas — paso 4 (esperar_texto): no apareció el texto «Resultado: VERIFICADO»
+  capturas: paso-1-ir.png · fallo-paso-4.png (6058dbab7b809643…) · final.png
+[exit=1]
+>> Solo verificación: NO se corrigió nada en este punto.
+
+--- F4-06 · limpieza y supervivencia de la evidencia ---
+antes de detener: .itostack/app.json existe (286 bytes)
+$ python "$R/scripts/arrancar_app.py" detener
+{"ok": true, "detalle": "app detenida (pid 32004)"}
+[exit=0]
+después:  .itostack/app.json  -> NO existe  (correcto)
+evidencia sobreviviente:
+  app/validar-mayusculas/20261118T183913Z-8bcc/resultado.json
+  app/validar-minusculas/20261118T184011Z-594b/resultado.json
+  app/ver-historial/20261118T183951Z-6708/resultado.json
+  9 capturas PNG en total

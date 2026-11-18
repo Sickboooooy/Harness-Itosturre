@@ -1,0 +1,54 @@
+# Evidencia Fase 0 — 2026-11-18T10:42:39-06:00
+## Versiones
+node v24.10.0
+python Python 3.14.0
+claude 2.1.235 (Claude Code)
+## python3 (stub Microsoft Store)
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+exit=49
+## Módulos (python)
+pytest 9.0.1
+ModuleNotFoundError: No module named 'hypothesis'
+yaml 6.0.3
+flask 3.1.2
+## bwrap/socat
+bwrap: NO
+socat: NO
+## node_modules
+ls: cannot access 'itostack/scripts/node_modules': No such file or directory
+## Hook inicio_sesion con python3
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+exit=49
+## Hook inicio_sesion con python
+Traceback (most recent call last):
+  File "C:\Users\licjo\.harness\Harness-Itosturre\itostack\hooks\inicio_sesion.py", line 12, in <module>
+    import _comun  # noqa: E402
+    ^^^^^^^^^^^^^
+  File "C:\Users\licjo\.harness\Harness-Itosturre\itostack\hooks\_comun.py", line 14, in <module>
+    from nucleo import config as cfg  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\licjo\.harness\Harness-Itosturre\itostack\scripts\nucleo\config.py", line 9, in <module>
+    import pwd
+ModuleNotFoundError: No module named 'pwd'
+exit=1
+## Hook guardia_bash con python (git push --force)
+    import pwd
+ModuleNotFoundError: No module named 'pwd'
+exit=1
+## plugin list
+Installed plugins:
+
+  ❯ telegram@claude-plugins-official
+    Version: 0.0.7
+    Scope: user
+    Status: ✔ enabled
+
+## validate
+Validating plugin manifest: C:\Users\licjo\.harness\Harness-Itosturre\itostack\.claude-plugin\plugin.json
+
+✔ Validation passed
+Validating marketplace manifest: C:\Users\licjo\.harness\Harness-Itosturre\.claude-plugin\marketplace.json
+
+✔ Validation passed
+## git status (solo modo)
+ 47 files changed, 0 insertions(+), 0 deletions(-)

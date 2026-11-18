@@ -1,0 +1,10 @@
+{
+  "nombre": "validar-minusculas",
+  "pasos": [
+    {"accion": "ir", "ruta": "/"},
+    {"accion": "llenar", "selector": "[data-testid=campo-registro]", "valor": "fict-0001"},
+    {"accion": "clic", "selector": "[data-testid=boton-validar]"},
+    {"accion": "esperar_texto", "texto": "Resultado: VERIFICADO"},
+    {"accion": "captura", "etiqueta": "resultado"}
+  ]
+}

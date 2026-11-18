@@ -1,0 +1,36 @@
+=== Fase 1 · evidencia cruda ===
+
+--- F1-01 ---
+$ cd itostack && python -m pytest tests -q -rs
+SKIPPED [1] tests\test_plataforma.py:80: el alias simulado es un script de shell
+98 passed, 1 skipped in 121.63s
+[exit=0]
+
+--- F1-02 ---
+$ PYTHONUTF8=1 python evals/autoprueba.py
+CASO                                                 REFERENCIA     ROTA
+corregir/dev-eleva-a-guardia                               1.00     0.25  OK
+demuestra-que-funciona/dev-blocked-selector                1.00     0.00  OK
+demuestra-que-funciona/dev-pass                            1.00     0.33  OK
+demuestra-que-funciona/holdout-fail-bug                    1.00        —  OK
+redactar-con-citas/dev-ensamblado                          1.00     0.40  OK
+reproducir-y-corregir/dev-bug-minusculas                   1.00     0.43  OK
+validar-documento/dev-tres-citas                           1.00     0.12  OK
+validar-documento/holdout-rubro-truncado                   1.00        —  OK
+verificar-cita/blocked-portal-caido                        1.00     0.00  OK
+verificar-cita/blocked-sin-registro                        1.00     0.33  OK
+verificar-cita/fail-inexistente                            1.00     0.00  OK
+verificar-cita/fail-rubro-alterado                         1.00     0.57  OK
+verificar-cita/holdout-blocked-estructura                  1.00        —  OK
+verificar-cita/holdout-fail-clave                          1.00        —  OK
+verificar-cita/holdout-pass-normalizacion                  1.00        —  OK
+verificar-cita/pass-advertencia-sala                       1.00     0.80  OK
+verificar-cita/pass-exacto                                 1.00     0.20  OK
+
+autoprueba: 17/17 casos coherentes
+[exit=0]
+
+--- F1-03 ---
+$ PYTHONUTF8=1 python guardias/lint_itosturre.py scripts hooks evals/autoprueba.py evals/compuerta_holdout.py
+lint itosturre: 0 hallazgo(s)
+[exit=0]

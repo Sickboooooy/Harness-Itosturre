@@ -1,0 +1,12 @@
+# Párrafo de prueba · exigencia de verificación forense de las citas
+
+Es inadmisible que una resolución se apoye en criterios cuya existencia no ha sido constatada en la fuente oficial. Así se desprende de Jurisprudencia FICT.1o.P. J/1 P (12a.), de rubro: «CRITERIO FICTICIO DE PRUEBA. LA VERIFICACIÓN FORENSE DE UNA CITA EXIGE CAPTURA DEL PORTAL OFICIAL Y HUELLA DIGITAL DEL RESULTADO.», emitida por Tribunal Ficticio de Pruebas, Duodécima Época, registro digital FICT-0001[^ev1], que condiciona la invocación de un criterio a la captura del portal oficial y a la huella digital del resultado, de modo que la cita pueda reconstruirse y auditarse con posterioridad.
+
+El deber de constatación se extiende a la vigencia del criterio invocado y no se agota en su existencia. En ese sentido se pronunció Jurisprudencia 2a./J. FICT-2/2019 (10a.), de rubro: «CRITERIO FICTICIO DE SALA EXTINTA. SIRVE PARA PROBAR LAS ADVERTENCIAS DE CORTE TEMPORAL DEL HARNESS.», emitida por Segunda Sala, Décima Época, registro digital FICT-0002[^ev2], cuyo alcance debe valorarse a la luz de la reorganización de la Suprema Corte, pues procede de un órgano que ya no subsiste.
+
+---
+
+[^ev1]: Verificado en el portal oficial el 2026-11-18T18:24:52+00:00 [fixture] · evidencia `C:\Users\licjo\.harness\Harness-Itosturre\.itostack\evidencia\tesis\FICT-0001\20261118T182452Z-5614\resultado.json` · SHA-256 e7a82081ddbc38ab…. ⚠ EVIDENCIA DE FIXTURE (datos ficticios): no apta para uso procesal.
+[^ev2]: Verificado en el portal oficial el 2026-11-18T18:25:57+00:00 [fixture] · evidencia `C:\Users\licjo\.harness\Harness-Itosturre\.itostack\evidencia\tesis\FICT-0002\20261118T182557Z-bc80\resultado.json` · SHA-256 fe90fd42bf441d11…. ⚠ EVIDENCIA DE FIXTURE (datos ficticios): no apta para uso procesal. ⚠ Criterio de una Sala extinta (reforma DOF 15-IX-2024; la SCJN funciona solo en Pleno desde 1-IX-2025): verificar si fue superado, reiterado o interrumpido por el Pleno. ⚠ Anterior a la reforma judicial (DOF 15-IX-2024): verificar si el criterio fue superado. ⚠ Anterior a la Duodécima Época (AG 7/2025 (12a.), 1-IX-2025): verificar vigencia del criterio. ⚠ Anterior a la reforma a la Ley de Amparo (DOF 16-X-2025, vigor 17-X-2025): verificar compatibilidad y transitorio 3°.
+
+⚠ Documento ensamblado con apoyo de IA. Verificar citas en fuentes oficiales antes de uso procesal: sjf.scjn.gob.mx · dof.gob.mx · diputados.gob.mx/LeyesBiblio

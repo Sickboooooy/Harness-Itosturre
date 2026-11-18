@@ -1,0 +1,209 @@
+=== Fase 3 · evidencia cruda · pilar 1 jurídico en modo fixture ===
+Proyecto: C:/Users/licjo/.harness/Harness-Itosturre  ·  PY = python (C:\Python314\python.exe)
+R = $(cat .itostack/raiz_plugin) = C:\Users\licjo\.harness\Harness-Itosturre\itostack
+
+--- E1 · los 8 casos de verificar-cita -------------------------------------
+
+[CASO 1] FICT-0001 exacto
+$ python "$R/scripts/verificar.py" tesis --registro FICT-0001 --rubro "CRITERIO FICTICIO DE PRUEBA. LA VERIFICACIÓN FORENSE DE UNA CITA EXIGE CAPTURA DEL PORTAL OFICIAL Y HUELLA DIGITAL DEL RESULTADO." --clave "FICT.1o.P. J/1 P (12a.)" --epoca "Duodécima Época" --instancia "Tribunal Ficticio de Pruebas" --tipo "Jurisprudencia"
+VEREDICTO: PASS · ✅ VERIFICADO
+  cotejo rubro: coincide idéntico | clave: coincide | epoca: coincide | instancia: coincide | tipo: coincide
+  ⚠ EVIDENCIA DE FIXTURE (datos ficticios): no apta para uso procesal.
+  evidencia: ...\tesis\FICT-0001\20261118T182038Z-7503\resultado.json (SHA-256 fe6b8b5354a9367a…)
+  capturas: detalle.png (05f7dc17c1465d5e…) · api.png (886b8e660946260a…)
+[exit=0]
+
+[CASO 2] FICT-0001 con una palabra cambiada (PORTAL -> SITIO)
+VEREDICTO: FAIL · ❌ NO VERIFICABLE — DISCREPANTE O INEXISTENTE
+  rubro discrepante (primera diferencia — citado: «sitio» / oficial: «portal»)
+  cotejo clave: coincide
+[exit=1]
+
+[CASO 3] FICT-0404
+VEREDICTO: FAIL · ❌ NO VERIFICABLE — DISCREPANTE O INEXISTENTE
+  registro inexistente en el SJF (respuesta oficial: no encontrado)
+[exit=1]
+
+[CASO 4] FICT-0503
+VEREDICTO: BLOCKED · ⚠ NO VERIFICADO — BLOQUEADO
+  portal no disponible: page.goto: net::ERR_TIMED_OUT at https://sjf2.scjn.gob.mx/services/sjftesismicroservice/api/public/tesis/FICT-0503
+[exit=2]
+
+[CASO 5] FICT-0777
+VEREDICTO: BLOCKED · ⚠ NO VERIFICADO — BLOQUEADO
+  estructura de respuesta no reconocida: calibrar la extracción antes de concluir
+[exit=2]
+
+[CASO 6] cita sin registro digital (se pasó --rubro y --clave, sin --registro)
+VEREDICTO: BLOCKED · ⚠ NO VERIFICADO — BLOQUEADO
+  la cita no trae registro digital: localízalo en el SJF o repórtala como BLOCKED
+  evidencia: ...\tesis\sin_registro\20261118T182156Z-396b\resultado.json  (sin capturas: nunca se consultó el portal)
+[exit=2]
+  >> No se inventó ningún registro. El verificador se ejecutó igual para dejar constancia.
+
+[CASO 7] FICT-0002
+VEREDICTO: PASS · ✅ VERIFICADO
+  cotejo rubro: coincide idéntico | clave | epoca | instancia | tipo: coinciden
+  ⚠ EVIDENCIA DE FIXTURE (datos ficticios): no apta para uso procesal.
+  ⚠ Criterio de una Sala extinta (reforma DOF 15-IX-2024; la SCJN funciona solo en Pleno desde 1-IX-2025): verificar si fue superado, reiterado o interrumpido por el Pleno.
+  ⚠ Anterior a la reforma judicial (DOF 15-IX-2024): verificar si el criterio fue superado.
+  ⚠ Anterior a la Duodécima Época (AG 7/2025 (12a.), 1-IX-2025): verificar vigencia del criterio.
+  ⚠ Anterior a la reforma a la Ley de Amparo (DOF 16-X-2025, vigor 17-X-2025): verificar compatibilidad y transitorio 3°.
+[exit=0]
+
+[CASO 8] FICT-0003 en minúsculas y entre comillas tipográficas “…”
+VEREDICTO: PASS · ✅ VERIFICADO
+  cotejo rubro: tipografica coincide salvo variaciones tipográficas
+  ⚠ EVIDENCIA DE FIXTURE · ⚠ Anterior a la reforma judicial · ⚠ Anterior a la Duodécima Época · ⚠ Tesis aislada: criterio orientador, no obligatorio.
+  (sin advertencia de amparo: FICT-0003 es materia Penal; la regla está acotada a ["comun","amparo"] en nucleo/config.py:59-63)
+[exit=0]
+
+--- E2 · capturas PNG abiertas --------------------------------------------
+
+PASS  -> .itostack\evidencia\tesis\FICT-0001\20261118T182038Z-7503\detalle.png
+  Franja roja superior: «FIXTURE — DATOS FICTICIOS DE PRUEBA, NO SON CRITERIOS REALES».
+  Debajo: título «CRITERIO FICTICIO DE PRUEBA», Registro digital: FICT-0001, Instancia:
+  Tribunal Ficticio de Pruebas, Duodécima Época, Tesis: FICT.1o.P. J/1 P (12a.), Tipo: Jurisprudencia.
+
+BLOCKED -> .itostack\evidencia\tesis\FICT-0777\20261118T182126Z-c3fb\detalle.png
+  Misma franja roja FIXTURE. Debajo, una sola línea: «Contenido sin etiquetas reconocibles».
+  Coherente con el motivo «estructura de respuesta no reconocida».
+
+api.png (ambos casos) -> NO lleva la franja. Muestra el visor JSON del navegador.
+  En FICT-0001 el JSON empieza con "_fixture": "DATOS FICTICIOS" (marca textual, no visual).
+  En FICT-0777 igual. Pero los fixtures de error (FICT-0404 = {"mensaje":"No se encontró"},
+  FICT-0500 = {"error":"Error interno del servidor"}) NO llevan la clave _fixture.
+  Causa: verificador_fuente.ts:41,57,62,69 inyecta AVISO_FIXTURE solo en respuestas text/html.
+
+--- E3 · verificar.py url --------------------------------------------------
+
+$ python "$R/scripts/verificar.py" url --url "https://www.dof.gob.mx/nota_detalle.php?codigo=FICT0001&fecha=16/10/2025" --contiene "DECRETO FICTICIO DE PRUEBA"
+VEREDICTO: PASS · ✅ VERIFICADO — contenido confirmado en la fuente oficial
+  cotejo texto: coincide · captura fuente.png (SHA-256 60ebeaedb68fd554…)
+[exit=0]
+
+$ ... --contiene "TEXTO QUE NO APARECE EN LA NOTA"
+VEREDICTO: FAIL · ❌ texto esperado ausente en la fuente oficial: ['TEXTO QUE NO APARECE EN LA NOTA']
+[exit=1]
+
+--- E4 · validar-documento -------------------------------------------------
+
+[dictamen_ia.md]
+$ reporte_vvca.py extraer  -> 3 candidatas: c01 FICT-0001 · c02 FICT-0404 · c03 sin registro (null, no se inventó)
+   revisión manual: los 3 rubros coinciden letra por letra con el documento. No se corrigió nada.
+$ verificar.py lote --archivo .itostack/citas.json
+   [c01] PASS · [c02] FAIL (registro inexistente) · [c03] BLOCKED (sin registro)
+   VEREDICTO LOTE: 1 PASS · 1 FAIL · 1 BLOCKED   [exit=1]
+$ reporte_vvca.py informe --documento ...dictamen_ia.md
+   Informe: salidas\informe-vvca.md  [exit=0]   (copia en fase3/informe-vvca-dictamen_ia.md)
+
+[dictamen_ia_holdout.md]
+$ reporte_vvca.py extraer -> 2 candidatas: c01 FICT-0003 · c02 FICT-0002
+   El rubro extraído de c01 termina en «…SUSTANTIVA DEL RUBRO.» y el oficial en
+   «…SUSTANTIVA DEL RUBRO, NI SIQUIERA PARCIAL.»  La truncadura es DEL DOCUMENTO, no de la
+   extracción, así que NO se corrigió (regla 2 de la skill).
+$ verificar.py lote
+   [c01] FAIL — rubro discrepante (primera diferencia — citado: «rubro» / oficial: «rubro, ni siquiera parcial»)
+   [c02] PASS
+   VEREDICTO LOTE: 1 PASS · 1 FAIL · 0 BLOCKED   [exit=1]
+   (copia en fase3/informe-vvca-holdout.md)
+
+--- E5 · redactar-con-citas ------------------------------------------------
+
+$ ensamblar_documento.py borradores/parrafo.md --salida salidas/parrafo.md
+ENSAMBLADO: PASS — salidas\parrafo.md · 2 cita(s) con evidencia · 0 pendiente(s)   [exit=0]
+  salidas/parrafo.md contiene [^ev1] (FICT-0001) y [^ev2] (FICT-0002), cada una con fecha,
+  ruta de resultado.json, SHA-256 y las ⚠ heredadas de la verificación.
+
+$ ensamblar_documento.py borradores/parrafo-bloqueado.md --salida salidas/parrafo-bloqueado.md
+✘ [[CITA:FICT-0404]] sin evidencia vigente: python3 ...\verificar.py tesis --registro FICT-0404 --modo existencia
+ENSAMBLADO: BLOCKED — no se escribió ningún archivo.   [exit=2]
+  comprobado: salidas/parrafo-bloqueado.md NO existe.
+
+--- SONDA · falso positivo de RE_MARCA_NO_VERIFICADA (defecto D-04) --------
+
+Ambas sondas: una cita escrita A MANO (sin marcador [[CITA:…]]), registro digital FICT-0404,
+cuyo último veredicto en el almacén es FAIL, luego NO tiene evidencia vigente.
+
+[SONDA A] línea: «…de rubro «CRITERIO FICTICIO INVENTADO. ESTE RUBRO NO APARECE EN NINGÚN PORTAL.», registro digital FICT-0404.»
+$ ensamblar_documento.py borradores/sonda-a.md --salida salidas/sonda-a.md
+✘ línea 3: registro «FICT-0404» escrito a mano sin evidencia vigente
+ENSAMBLADO: BLOCKED — no se escribió ningún archivo.   [exit=2]   >> archivo NO escrito  (CORRECTO)
+
+[SONDA B] misma línea + «Y DEBE DETECTARSE COMO INEXISTENTE.» dentro del rubro entrecomillado
+$ ensamblar_documento.py borradores/sonda-b.md --salida salidas/sonda-b.md
+ENSAMBLADO: PASS — salidas\sonda-b.md · 0 cita(s) con evidencia · 0 pendiente(s)   [exit=0]
+>> archivo ESCRITO  (DEFECTO)
+
+Contenido de salidas/sonda-b.md: la cita inexistente aparece como prosa normal, sin ⚠ ni ❌
+junto a ella; solo lleva el pie genérico «⚠ Documento ensamblado con apoyo de IA».
+
+Código responsable:
+  nucleo/citas.py:19  RE_MARCA_NO_VERIFICADA = re.compile(r"⚠|❌|NO VERIFICAD|NO VERIFICABLE|BLOQUEAD|INEXISTENTE", re.IGNORECASE)
+  nucleo/citas.py:44  marcada = bool(RE_MARCA_NO_VERIFICADA.search(linea))   <- toda la línea, rubro entrecomillado incluido
+  ensamblar_documento.py:77-82  citas_a_mano(): «if cita.tipo == "marcador" or cita.marcada_no_verificada: continue»
+  (el propio docstring dice «sin marca ⚠/❌»: la intención son los símbolos, no las cuatro palabras)
+
+--- E6 · corte temporal ----------------------------------------------------
+Ver fase3/corte-temporal-FICT-0002.md. Las 4 advertencias se dispararon correctamente;
+el filtro por materia funciona (FICT-0003, Penal, no recibe la de amparo).
+Paso 3 de la skill (buscar criterios posteriores) = BLOCKED estructural: verificar.py solo
+acepta {tesis,url,app,lote}; no hay búsqueda en el SJF.
+
+--- E8 · almacén de evidencia ----------------------------------------------
+
+$ evidencia_db.py recientes --limite 25     -> 15 filas (listado completo abajo)
+$ evidencia_db.py auditar
+Integridad: OK   [exit=0]
+
+Listado:
+#15 18:25:57 tesis FICT-0002 PASS [fixture]
+#14 18:25:55 tesis FICT-0003 FAIL [fixture] rubro discrepante (…«rubro» / «rubro, ni siquiera parcial»)
+#13 18:25:11 tesis (vacío) BLOCKED [real]   <- D-05
+#12 18:24:54 tesis FICT-0404 FAIL [fixture]
+#11 18:24:52 tesis FICT-0001 PASS [fixture]
+#10 18:23:41 url  dof…FICT0001 FAIL [fixture]
+#9  18:23:39 url  dof…FICT0001 PASS [fixture]
+#8  18:22:41 tesis FICT-0003 PASS [fixture]
+#7  18:21:56 tesis FICT-0002 PASS [fixture]
+#6  18:21:56 tesis (vacío) BLOCKED [real]   <- D-05
+#5  18:21:26 tesis FICT-0777 BLOCKED [fixture]
+#4  18:21:25 tesis FICT-0503 BLOCKED [fixture]
+#3  18:20:58 tesis FICT-0404 FAIL [fixture]
+#2  18:20:56 tesis FICT-0001 FAIL [fixture]
+#1  18:20:38 tesis FICT-0001 PASS [fixture]
+
+D-05: las filas #6 y #13 se registraron como [real] estando el proyecto en modo fixture.
+Causa en verificar.py:128-130: el atajo de «sin registro» construye `captura` sin la clave
+`modo_fuente`, y verificar.py:112 cae al literal "real"  («captura.get("modo_fuente", "real")»),
+sin consultar config["modo"]. El mismo literal por omisión está en nucleo/evidencia.py:86.
+Alcance hoy: `vigente()` (nucleo/evidencia.py:121-131) exige veredicto PASS, y esta ruta siempre
+da BLOCKED, así que no puede fabricar evidencia utilizable. Es un defecto de etiquetado, pero
+el valor por omisión apunta al lado MÁS confiable (real) en vez del modo configurado.
+
+--- SONDA 2 · el MISMO falso positivo en el guardia de escritura (PreToolUse) ---
+
+Herramienta Write (no Bash), destino salidas/ = ruta protegida por config["salidas_juridicas"].
+
+[SONDA GUARDIA A] salidas/sonda-guardia-a.md
+  línea 3: «…de rubro «CRITERIO FICTICIO INVENTADO. ESTE RUBRO NO APARECE EN NINGÚN PORTAL.», registro digital FICT-0404.»
+  >> DENEGADO por el hook:
+     itostack: citas sin evidencia vigente en un entregable jurídico:
+     - línea 3: registro «FICT-0404»
+     Opciones: (1) verifica con /verificar-cita y vuelve a escribir; (2) redacta con el marcador
+     [[CITA:registro]] y ensambla con ensamblar_documento.py; (3) si reportas una cita ajena,
+     márcala en la misma línea con ⚠ NO VERIFICADO o ❌.
+  (CORRECTO — es también el caso F5 del plan)
+
+[SONDA GUARDIA B] salidas/sonda-guardia-b.md
+  misma línea + «Y DEBE DETECTARSE COMO INEXISTENTE.» dentro del rubro entrecomillado
+  >> PERMITIDO. "File created successfully at ...\salidas\sonda-guardia-b.md"
+  (DEFECTO — el entregable jurídico se escribió con un registro inexistente y sin marca)
+
+Código compartido por las dos capas:
+  hooks/guardia_escritura.py:55-68  citas_sin_evidencia()  -> «if cita.tipo == "marcador" or cita.marcada_no_verificada: continue»  (línea 61)
+  scripts/ensamblar_documento.py:77-82  citas_a_mano()     -> misma condición
+  ambos consumen nucleo/citas.py:19,44 (RE_MARCA_NO_VERIFICADA aplicada a la línea completa)
+
+Nota: el propio mensaje del guardia le enseña al usuario que la marca válida es «⚠ NO VERIFICADO o ❌»
+(los símbolos), lo que confirma que las cuatro palabras sueltas del regex no eran la intención.
