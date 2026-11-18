@@ -12,7 +12,7 @@
       "name": "itostack",
       "source": "./itostack",
       "description": "Harness con Feedback Loop forense, Agent Evals, mejora continua de skills y guardias deterministas.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   ]
 }

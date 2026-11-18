@@ -28,6 +28,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from nucleo import config as cfg  # noqa: E402
 
 
+ES_WINDOWS = os.name == "nt"
+
+
+def comando_defecto() -> str:
+    interprete = f'"{sys.executable}"' if ES_WINDOWS else shlex.quote(sys.executable)
+    return f"{interprete} -m flask --app app run --port {{puerto}}"
+
+
+def _lanzar(linea: str, cwd: Path, salida) -> subprocess.Popen:
+    """Arranca la app en su propio grupo de procesos para poder detenerla completa."""
+    if ES_WINDOWS:
+        return subprocess.Popen(linea, cwd=cwd, stdout=salida, stderr=subprocess.STDOUT,
+                                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+    return subprocess.Popen(shlex.split(linea), cwd=cwd, stdout=salida, stderr=subprocess.STDOUT, start_new_session=True)
+
+
+def _terminar(pid: int) -> None:
+    if ES_WINDOWS:
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, check=False)
+        return
+    try:
+        os.killpg(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+
+
 def puerto_libre() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
@@ -51,7 +77,7 @@ def iniciar(proyecto: Path, comando: str, salud: str, espera: int) -> dict:
     bitacora = proyecto / cfg.DIR_ITOSTACK / "app.log"
     bitacora.parent.mkdir(parents=True, exist_ok=True)
     with open(bitacora, "w", encoding="utf-8") as salida:
-        proceso = subprocess.Popen(shlex.split(linea), cwd=proyecto, stdout=salida, stderr=subprocess.STDOUT, start_new_session=True)
+        proceso = _lanzar(linea, proyecto, salida)
     base = f"http://127.0.0.1:{puerto}"
     limite = time.monotonic() + espera
     while time.monotonic() < limite:
@@ -62,7 +88,7 @@ def iniciar(proyecto: Path, comando: str, salud: str, espera: int) -> dict:
             estado_ruta.write_text(json.dumps(estado, indent=2), encoding="utf-8")
             return estado
         time.sleep(0.3)
-    os.killpg(proceso.pid, signal.SIGTERM)
+    _terminar(proceso.pid)
     return {"ok": False, "error": f"la app no respondió en {espera} s en {base}{salud}; revisa {bitacora}"}
 
 
@@ -71,10 +97,7 @@ def detener(proyecto: Path) -> dict:
     if not estado_ruta.is_file():
         return {"ok": True, "detalle": "no había app registrada"}
     estado = json.loads(estado_ruta.read_text(encoding="utf-8"))
-    try:
-        os.killpg(estado["pid"], signal.SIGTERM)
-    except ProcessLookupError:
-        pass
+    _terminar(estado["pid"])
     estado_ruta.unlink()
     return {"ok": True, "detalle": f"app detenida (pid {estado['pid']})"}
 
@@ -83,7 +106,7 @@ def principal() -> int:
     analizador = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = analizador.add_subparsers(dest="accion", required=True)
     p_ini = sub.add_parser("iniciar")
-    p_ini.add_argument("--comando", default=f"{shlex.quote(sys.executable)} -m flask --app app run --port {{puerto}}")
+    p_ini.add_argument("--comando", default=comando_defecto())
     p_ini.add_argument("--salud", default="/")
     p_ini.add_argument("--espera", type=int, default=30)
     sub.add_parser("estado")

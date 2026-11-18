@@ -10,7 +10,7 @@ R1 = "CRITERIO FICTICIO DE PRUEBA. LA VERIFICACIÓN FORENSE DE UNA CITA EXIGE CA
 
 
 def correr(proyecto, script, *argumentos):
-    return subprocess.run([sys.executable, str(SCRIPTS / script), *argumentos], cwd=proyecto, capture_output=True, text=True, timeout=240)
+    return subprocess.run([sys.executable, str(SCRIPTS / script), *argumentos], cwd=proyecto, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=240)
 
 
 @requiere_navegador

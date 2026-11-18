@@ -38,9 +38,11 @@ def principal() -> int:
     (proyecto / ".itostack" / "raiz_plugin").write_text(str(raiz), encoding="utf-8")
     config = _comun.configuracion(entrada)
     pendientes = pendientes_de_elevar(proyecto)
+    interprete = Path(sys.executable).as_posix()
     lineas = [
         f"[itostack] Harness activo · raíz del plugin: {raiz} · modo: {config['modo']}.",
-        f"Scripts: python3 {raiz}/scripts/verificar.py (tesis|url|app|lote) · ensamblar_documento.py · reporte_vvca.py.",
+        f"Intérprete de Python que funciona aquí: \"{interprete}\". Úsalo donde las skills dicen python3 (en Windows, python3 suele ser el alias de la Store).",
+        f"Scripts: \"{interprete}\" {raiz}/scripts/verificar.py (tesis|url|app|lote) · ensamblar_documento.py · reporte_vvca.py.",
         "Veredictos: PASS / FAIL / BLOCKED. Sin evidencia observable no hay PASS; ante la duda, BLOCKED.",
         "Citas jurídicas: solo con evidencia vigente o como [[CITA:registro]]; lo no verificado se marca ⚠ NO VERIFICADO.",
     ]
@@ -53,4 +55,4 @@ def principal() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(principal())
+    sys.exit(_comun.ejecutar(principal, "SessionStart", "abierto"))

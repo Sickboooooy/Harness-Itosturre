@@ -9,3 +9,4 @@ La prosa es la capa más débil de la pirámide: aquí solo va lo que todavía n
 - Corrección repetida → `/corregir` (se eleva a lint, hook o prueba).
 - Datos legales: nunca salen de la máquina.
 - Commits descriptivos en español; PRs de agente solo en borrador.
+- Intérprete de Python: el que anuncia el hook de inicio (en Windows, no `python3`).

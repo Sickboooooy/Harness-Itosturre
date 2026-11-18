@@ -8,7 +8,7 @@ from conftest import RAIZ, SCRIPTS, requiere_navegador
 
 
 def correr(proyecto, script, *argumentos):
-    return subprocess.run([sys.executable, str(SCRIPTS / script), *argumentos], cwd=proyecto, capture_output=True, text=True, timeout=120)
+    return subprocess.run([sys.executable, str(SCRIPTS / script), *argumentos], cwd=proyecto, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
 
 
 def test_correcciones_pendientes_y_propuesta(proyecto):
@@ -71,7 +71,7 @@ def test_revisor_local_rechaza_familia_claude(tmp_path):
 
 
 def test_mapa_rutas_flask():
-    salida = subprocess.run([sys.executable, str(SCRIPTS / "mapa_rutas_flask.py"), str(RAIZ / "evals" / "fixtures" / "app_flask_simulada"), "--json"], capture_output=True, text=True)
+    salida = subprocess.run([sys.executable, str(SCRIPTS / "mapa_rutas_flask.py"), str(RAIZ / "evals" / "fixtures" / "app_flask_simulada"), "--json"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     datos = json.loads(salida.stdout)
     assert {r["ruta"] for r in datos["rutas"]} == {"/", "/validar"}
     assert "campo-registro" in json.dumps(datos["selectores"])
@@ -79,7 +79,7 @@ def test_mapa_rutas_flask():
 
 @requiere_navegador
 def test_autoprueba_de_evals_juridicos():
-    resultado = subprocess.run([sys.executable, str(RAIZ / "evals" / "autoprueba.py"), "--caso", "verificar-cita/*"], capture_output=True, text=True, timeout=900)
+    resultado = subprocess.run([sys.executable, str(RAIZ / "evals" / "autoprueba.py"), "--caso", "verificar-cita/*"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
     assert resultado.returncode == 0, resultado.stdout
 
 

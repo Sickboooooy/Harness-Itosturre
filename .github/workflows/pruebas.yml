@@ -4,13 +4,21 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   pruebas:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
+        shell: bash
         working-directory: itostack
+    env:
+      PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,14 +29,14 @@ jobs:
           node-version: "22"
       - name: Dependencias
         run: |
-          pip install -r requirements-dev.txt
-          cd scripts && npm ci || npm install
+          python -m pip install -r requirements-dev.txt
+          cd scripts && (npm ci || npm install)
           npx playwright install --with-deps chromium
       - name: Tipos TypeScript
         run: cd scripts && npx tsc --noEmit -p .
       - name: Lint de arquitectura sobre el propio plugin
-        run: python3 guardias/lint_itosturre.py scripts hooks evals/autoprueba.py evals/compuerta_holdout.py
+        run: python guardias/lint_itosturre.py scripts hooks evals/autoprueba.py evals/compuerta_holdout.py
       - name: Pruebas
-        run: python3 -m pytest tests -q
+        run: python -m pytest tests -q
       - name: Autoprueba de evals
-        run: python3 evals/autoprueba.py
+        run: python evals/autoprueba.py

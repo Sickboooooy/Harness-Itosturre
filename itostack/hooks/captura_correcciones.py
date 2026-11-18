@@ -61,4 +61,4 @@ def principal() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(principal())
+    sys.exit(_comun.ejecutar(principal, "UserPromptSubmit", "abierto"))

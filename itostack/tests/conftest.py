@@ -37,11 +37,11 @@ def proyecto(tmp_path, monkeypatch):
 
 
 def correr_hook(nombre: str, entrada: dict, cwd: Path | None = None) -> dict:
-    entorno = {**os.environ, "CLAUDE_PLUGIN_ROOT": str(RAIZ)}
+    entorno = {**os.environ, "CLAUDE_PLUGIN_ROOT": str(RAIZ), "PYTHONUTF8": "1"}
     entorno.pop("ITOSTACK_PROYECTO", None)
     proceso = subprocess.run(
         [sys.executable, str(RAIZ / "hooks" / nombre)],
-        input=json.dumps(entrada), capture_output=True, text=True, env=entorno, cwd=cwd or RAIZ, timeout=30,
+        input=json.dumps(entrada), capture_output=True, text=True, encoding="utf-8", errors="replace", env=entorno, cwd=cwd or RAIZ, timeout=30,
     )
     assert proceso.returncode == 0, proceso.stderr
     return json.loads(proceso.stdout) if proceso.stdout.strip() else {}
@@ -53,4 +53,4 @@ def decision(salida: dict) -> str | None:
 
 def verificar(proyecto: Path, *argumentos: str) -> subprocess.CompletedProcess:
     entorno = {k: v for k, v in os.environ.items() if k not in {"ITOSTACK_PROYECTO", "ITOSTACK_MODO"}}
-    return subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), *argumentos], cwd=proyecto, capture_output=True, text=True, env=entorno, timeout=240)
+    return subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), *argumentos], cwd=proyecto, capture_output=True, text=True, encoding="utf-8", errors="replace", env=entorno, timeout=240)

@@ -13,9 +13,19 @@ Plugin de Claude Code que convierte la metodología de ingeniería de agentes de
 
 Detalle en [`docs/arquitectura.md`](docs/arquitectura.md).
 
+## Plataformas
+
+| Plataforma | Estado | Notas |
+|---|---|---|
+| Linux / WSL2 (Ubuntu 24.04) | Completo | Probado en local y en CI |
+| Windows 11 nativo (Git Bash de Claude Code) | Completo, salvo `claude plugin eval` con Bash | CI en `windows-latest` desde 0.1.1. El sandbox de los evals nativos (bubblewrap/socat) solo existe en Linux/macOS: en Windows usa `autoprueba.py` o corre la fase de evals en WSL |
+| macOS | Sin probar | Rutas de Chromium contempladas |
+
+Los hooks se lanzan con `node hooks/lanzar.mjs`. El lanzador busca un Python que funcione de verdad (`ITOSTACK_PYTHON`; si no, `py -3` → `python` → `python3` en Windows, o `python3` → `python` en Unix) y descarta el alias de la Microsoft Store. Si una guardia no puede evaluar, **deniega la acción** (falla cerrado). Node es requisito: sin él, Claude Code ni siquiera puede lanzar el hook.
+
 ## Instalación
 
-Requisitos: Claude Code reciente, Python ≥ 3.10, Node ≥ 22.6, Git. Para correr evals nativos con Bash: `sudo apt install bubblewrap socat` (sandbox).
+Requisitos: Claude Code reciente, Python ≥ 3.10, Node ≥ 22.6, Git. Para correr evals nativos con Bash en Linux/WSL: `sudo apt install bubblewrap socat` (sandbox).
 
 ```bash
 # 1. Desde Claude Code

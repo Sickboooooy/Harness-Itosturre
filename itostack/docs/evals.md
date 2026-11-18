@@ -32,7 +32,8 @@
 ## Requisitos de `claude plugin eval`
 
 - Sesión de Claude Code autenticada (cada corrida es un `claude` hijo con tus credenciales).
-- Para casos con Bash, sandbox: `sudo apt install bubblewrap socat`.
+- Para casos con Bash, sandbox: `sudo apt install bubblewrap socat`. Solo existe en Linux/macOS: en Windows nativo corre la autoprueba (funciona con Git Bash) y deja los evals nativos para WSL.
+- Los scripts bash de los casos eligen intérprete con `_comun/python.sh` (`PY`): en Windows evitan el alias `python3` de la Store.
 - `--scaffold` ejecuta los `preparar.sh` de los casos (son tuyos; revísalos). La primera corrida pide confiar en el plugin.
 - Solo variables `EVAL_*` pueden definirse en `case.yaml`; por eso el andamiaje escribe `.itostack/config.json` en modo fixture.
 - Banderas de regex con `flags:` (motor JavaScript): `(?i)` no funciona.

@@ -9,6 +9,8 @@ Router del harness. Convierte una petición en un procedimiento verificable.
 
 **Raíz del plugin:** `R=$(cat .itostack/raiz_plugin)` (la escribe el hook de inicio; también es el directorio dos niveles arriba de esta skill). Si no existe `.itostack/`, ejecuta primero la skill `configurar-itostack`.
 
+**Intérprete:** donde las skills dicen `python3`, usa el intérprete que anuncia el hook de inicio (en Windows suele ser `python` o `py -3`; `python3` puede ser el alias de la Microsoft Store).
+
 ## Contrato (no negociable)
 
 1. **Meta + prueba.** Reformula la petición en una frase y su prueba: «terminado cuando …». Si no hay prueba posible, propón una y espera confirmación.

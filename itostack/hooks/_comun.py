@@ -56,3 +56,20 @@ def contexto(evento: str, texto: str) -> None:
 
 def bloquear_cierre(razon: str) -> None:
     _emitir({"decision": "block", "reason": f"itostack: {razon}"})
+
+
+def ejecutar(principal, evento: str = "PreToolUse", falla: str = "cerrado") -> int:
+    """Corre un hook sin dejar que una excepción se convierta en permiso.
+
+    Guardias (PreToolUse, falla cerrado): cualquier error interno deniega la acción.
+    Hooks informativos (falla abierto): el error se reporta por stderr y la sesión sigue.
+    """
+    try:
+        principal()
+    except Exception as error:  # noqa: BLE001 — aquí se captura todo a propósito
+        detalle = f"{type(error).__name__}: {error}"
+        if falla == "cerrado" and evento == "PreToolUse":
+            denegar(f"la guardia falló internamente ({detalle}); falla cerrado: acción bloqueada.")
+        else:
+            sys.stderr.write(f"itostack: hook omitido por error interno ({detalle})\n")
+    return 0

@@ -61,7 +61,7 @@ def _observar(script: str, argumentos: list[str], tipo: str, identificador: str,
     if not (DIR_SCRIPTS / "node_modules" / "playwright").is_dir():
         return {**base, "motivo_no_consulta": f"Playwright no está instalado. {INSTALACION}"}
     try:
-        proceso = subprocess.run(comando + argumentos, capture_output=True, text=True, timeout=timeout_s, cwd=DIR_SCRIPTS)
+        proceso = subprocess.run(comando + argumentos, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout_s, cwd=DIR_SCRIPTS)
     except subprocess.TimeoutExpired:
         return {**base, "motivo_no_consulta": f"el observador excedió {timeout_s} s"}
     if proceso.returncode != 0:

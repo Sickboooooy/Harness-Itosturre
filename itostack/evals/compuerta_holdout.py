@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -136,7 +137,7 @@ def holdout(skill: str, resultados: Path | None, extra: list[str]) -> int:
         return 1
     if resultados is None:
         resultados = Path(tempfile.mkstemp(suffix=".json")[1])
-        comando = ["claude", "plugin", "eval", str(PLUGIN), "--tag", "holdout", "--case", f"{skill}.*", "--runs", "1", "--scaffold", "--json", str(resultados), *extra]
+        comando = [shutil.which("claude") or "claude", "plugin", "eval", str(PLUGIN), "--tag", "holdout", "--case", f"{skill}.*", "--runs", "1", "--scaffold", "--json", str(resultados), *extra]
         print("Ejecutando:", " ".join(comando))
         subprocess.run(comando, check=False)
     minimo, obtenidos, faltantes = _evaluar(skill, "holdout", resultados)

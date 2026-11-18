@@ -1,17 +1,17 @@
 {
-  "description": "Guardias deterministas de itostack: arquitectura, citas con evidencia, compuerta humana y Prove It Works.",
+  "description": "Guardias deterministas de itostack: arquitectura, citas con evidencia, compuerta humana y Prove It Works. El lanzador Node busca Python en cualquier plataforma y, si una guardia no puede evaluar, deniega (falla cerrado).",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/inicio_sesion.py\"", "timeout": 10 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" inicio_sesion.py abierto SessionStart", "timeout": 20 }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/captura_correcciones.py\"", "timeout": 10 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" captura_correcciones.py abierto UserPromptSubmit", "timeout": 20 }
         ]
       }
     ],
@@ -19,26 +19,26 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guardia_bash.py\"", "timeout": 10 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_bash.py cerrado PreToolUse", "timeout": 20 }
         ]
       },
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guardia_escritura.py\"", "timeout": 15 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_escritura.py cerrado PreToolUse", "timeout": 20 }
         ]
       },
       {
         "matcher": "mcp__.*",
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guardia_externo.py\"", "timeout": 15 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_externo.py cerrado PreToolUse", "timeout": 20 }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guardia_cierre.py\"", "timeout": 15 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_cierre.py abierto Stop", "timeout": 20 }
         ]
       }
     ]

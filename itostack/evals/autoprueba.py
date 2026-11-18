@@ -102,12 +102,13 @@ def ejecutar(caso_dir: Path, script: str, conservar: bool) -> tuple[Calificacion
     datos = yaml.safe_load((caso_dir / "case.yaml").read_text(encoding="utf-8"))
     espacio = Path(tempfile.mkdtemp(prefix="ws-"))
     entorno = {k: v for k, v in os.environ.items() if not k.startswith("ITOSTACK_")}
+    entorno.update({"PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"})
     andamiaje = datos.get("context", {}).get("scaffold_script")
     if andamiaje:
-        subprocess.run(["bash", str(caso_dir / andamiaje)], cwd=espacio, env=entorno, check=True, capture_output=True, text=True)
+        subprocess.run(["bash", str(caso_dir / andamiaje)], cwd=espacio, env=entorno, check=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
     mensaje_ruta = espacio.parent / f"{espacio.name}.mensaje"
     entorno.update({"PLUGIN": str(PLUGIN), "MENSAJE": str(mensaje_ruta)})
-    proceso = subprocess.run(["bash", "-x", str(caso_dir / script)], cwd=espacio, env=entorno, capture_output=True, text=True, timeout=900)
+    proceso = subprocess.run(["bash", "-x", str(caso_dir / script)], cwd=espacio, env=entorno, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900)
     traza = proceso.stdout + "\n" + proceso.stderr
     mensaje = _texto(mensaje_ruta) or ""
     calificacion = calificar(datos["graders"], espacio, mensaje, traza)

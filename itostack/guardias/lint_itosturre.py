@@ -146,7 +146,7 @@ def revisar_archivos(rutas: list[Path]) -> list[Hallazgo]:
 
 
 def revisar_diff(base: str) -> list[Hallazgo]:
-    salida = subprocess.run(["git", "diff", "-U0", base, "--", *[f"*{s}" for s in CODIGO]], capture_output=True, text=True, check=False).stdout
+    salida = subprocess.run(["git", "diff", "-U0", base, "--", *[f"*{s}" for s in CODIGO]], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False).stdout
     hallazgos, archivo, numero = [], "", 0
     lineas_por_archivo: dict[str, tuple[list[str], list[int]]] = {}
     for linea in salida.splitlines():

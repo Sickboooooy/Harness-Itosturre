@@ -6,9 +6,13 @@ import copy
 import glob
 import json
 import os
-import pwd
 import shutil
 from pathlib import Path
+
+try:
+    import pwd
+except ImportError:  # Windows: no existe el módulo pwd
+    pwd = None
 
 RAIZ_PLUGIN = Path(__file__).resolve().parents[2]
 DIR_ITOSTACK = ".itostack"
@@ -108,10 +112,13 @@ def ruta_en_proyecto(config: dict, relativa: str) -> Path:
 
 def home_real() -> Path:
     """El HOME del usuario aunque el proceso corra con HOME aislado (p. ej. `claude plugin eval`)."""
-    try:
-        return Path(pwd.getpwuid(os.getuid()).pw_dir)
-    except KeyError:
-        return Path.home()
+    if pwd is not None:
+        try:
+            return Path(pwd.getpwuid(os.getuid()).pw_dir)
+        except KeyError:
+            pass
+    perfil = os.environ.get("USERPROFILE")
+    return Path(perfil) if perfil else Path.home()
 
 
 def detectar_navegador(config: dict) -> str | None:
@@ -120,12 +127,22 @@ def detectar_navegador(config: dict) -> str | None:
     for valor in (config.get("navegador", {}).get("ejecutable"), os.environ.get("ITOSTACK_CHROME")):
         if valor:
             candidatos.append(valor)
-    bases = [os.environ.get("PLAYWRIGHT_BROWSERS_PATH"), str(home_real() / ".cache" / "ms-playwright")]
+    bases = [
+        os.environ.get("PLAYWRIGHT_BROWSERS_PATH"),
+        str(home_real() / ".cache" / "ms-playwright"),
+        str(home_real() / "Library" / "Caches" / "ms-playwright"),
+        os.path.join(os.environ["LOCALAPPDATA"], "ms-playwright") if os.environ.get("LOCALAPPDATA") else None,
+        str(home_real() / "AppData" / "Local" / "ms-playwright"),
+    ]
+    patrones = (
+        "chromium-*/chrome-linux*/chrome",
+        "chromium-*/chrome-mac*/Chromium.app/Contents/MacOS/Chromium",
+        "chromium-*/chrome-win*/chrome.exe",
+    )
     for base in filter(None, bases):
-        patrones = ("chromium-*/chrome-linux*/chrome", "chromium-*/chrome-mac*/Chromium.app/Contents/MacOS/Chromium")
         for patron in patrones:
             candidatos.extend(sorted(glob.glob(os.path.join(base, patron)), reverse=True))
-    for nombre in ("google-chrome", "chromium", "chromium-browser"):
+    for nombre in ("google-chrome", "chromium", "chromium-browser", "chrome"):
         encontrado = shutil.which(nombre)
         if encontrado:
             candidatos.append(encontrado)

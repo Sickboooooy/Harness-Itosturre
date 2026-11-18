@@ -7,8 +7,9 @@ CASO="$1"
 PERFIL="${2:-juridico}"
 shift 2 || true
 PLUGIN="$(cd "$CASO/../../.." && pwd)"
+source "$PLUGIN/evals/_comun/python.sh"
 
-python3 "$PLUGIN/scripts/inicializar.py" --proyecto . --perfil "$PERFIL" --modo fixture \
+$PY "$PLUGIN/scripts/inicializar.py" --proyecto . --perfil "$PERFIL" --modo fixture \
   --sjf-fixture "$PLUGIN/evals/fixtures/sjf/basico.json" --silencioso
 
 if [ "$PERFIL" = "desarrollo" ]; then
