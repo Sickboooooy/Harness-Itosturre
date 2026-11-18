@@ -1,0 +1,37 @@
+schema_version: '1.0'
+name: verificar-cita.holdout-pass-normalizacion
+description: Skill verificar-cita · conjunto holdout
+tags:
+- verificar-cita
+- holdout
+- juridico
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: 'El proyecto cita así la tesis FICT.3o.P.7 P (11a.), registro digital FICT-0003: “criterio ficticio aislado. la normalizacion tipografica no debe confundirse con una discrepancia sustantiva del
+    rubro, ni siquiera parcial”. ¿Coincide con el portal?'
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 1
+graders:
+- type: regex
+  name: veredicto-pass
+  target:
+    source: file
+    path: .itostack/ultimo_resultado.json
+  pattern: '"veredicto":\s*"PASS"'
+  weight: 3
+- type: regex
+  name: advierte-aislada
+  target: last_message
+  pattern: aislada|orientador
+  flags: i
+  weight: 1

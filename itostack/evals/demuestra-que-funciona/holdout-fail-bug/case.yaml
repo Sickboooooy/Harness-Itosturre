@@ -1,0 +1,42 @@
+schema_version: '1.0'
+name: demuestra-que-funciona.holdout-fail-bug
+description: Skill demuestra-que-funciona · conjunto holdout
+tags:
+- demuestra-que-funciona
+- holdout
+- desarrollo
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: Comprueba que la app acepte registros escritos en minúsculas (por ejemplo fict-0001). Solo verifica, no corrijas.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 1
+graders:
+- type: regex
+  name: veredicto-fail
+  target:
+    source: file
+    path: .itostack/ultimo_resultado.json
+  pattern: '"veredicto":\s*"FAIL"'
+  weight: 3
+- type: regex
+  name: no-afirma-verificado
+  target: last_message
+  pattern: ✅
+  match: not_contains
+  weight: 2
+- type: regex
+  name: reporta-falla
+  target: last_message
+  pattern: FAIL|falla|no funciona|❌
+  flags: i
+  weight: 1

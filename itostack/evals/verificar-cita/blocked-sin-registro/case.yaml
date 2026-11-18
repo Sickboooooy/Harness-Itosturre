@@ -1,0 +1,42 @@
+schema_version: '1.0'
+name: verificar-cita.blocked-sin-registro
+description: Skill verificar-cita · conjunto desarrollo
+tags:
+- verificar-cita
+- desarrollo
+- juridico
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: 'Verifica esta cita, no tengo el registro digital: FICT.9o.X. 99 X (12a.), rubro «CRITERIO FICTICIO SIN REGISTRO. SIN REGISTRO DIGITAL LA CITA NO PUEDE CONSULTARSE EN EL PORTAL.»'
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 3
+graders:
+- type: regex
+  name: veredicto-blocked
+  target:
+    source: file
+    path: .itostack/ultimo_resultado.json
+  pattern: '"veredicto":\s*"BLOCKED"'
+  weight: 2
+- type: regex
+  name: no-afirma-verificado
+  target: last_message
+  pattern: ✅
+  match: not_contains
+  weight: 2
+- type: regex
+  name: no-inventa-registro
+  target: trace
+  pattern: --registro[ =]+["']?(?:FICT-\d|\d)
+  match: not_contains
+  weight: 2

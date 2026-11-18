@@ -106,17 +106,23 @@ def agrupar_referencias(texto: str) -> list[Referencia]:
             if mayusculas:
                 rubro = re.sub(r"\s+", " ", max(mayusculas, key=len)).strip()
         total = max(len(registros), len(claves))
+        lineas_parrafo = parrafo.splitlines()
         for posicion in range(total):
             registro = registros[posicion].valor if posicion < len(registros) else None
             clave = claves[posicion].valor if posicion < len(claves) else None
+            ancla = registros[posicion] if posicion < len(registros) else claves[posicion]
             lineas = sorted({c.linea + linea_inicio - 1 for c in citas})
+            rubro_propio = rubro if total == 1 else None
+            if total > 1:
+                en_linea = RE_RUBRO_ENTRECOMILLADO.search(lineas_parrafo[ancla.linea - 1])
+                rubro_propio = re.sub(r"\s+", " ", en_linea.group(1)).strip() if en_linea else None
             referencias.append(
                 Referencia(
                     id=f"c{len(referencias) + 1:02d}",
                     parrafo=indice,
                     registro=registro,
                     clave=clave,
-                    rubro=rubro if total == 1 else None,
+                    rubro=rubro_propio,
                     marcada_no_verificada=any(c.marcada_no_verificada for c in citas),
                     extracto=re.sub(r"\s+", " ", parrafo)[:300],
                     lineas=lineas,

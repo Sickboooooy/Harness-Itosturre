@@ -1,0 +1,69 @@
+schema_version: '1.0'
+name: validar-documento.dev-tres-citas
+description: Skill validar-documento · conjunto desarrollo
+tags:
+- validar-documento
+- desarrollo
+- juridico
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: Otro asistente de IA nos mandó el dictamen dictamen_ia.md. Valida todas sus citas y entrégame el informe forense.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 3
+graders:
+- type: file_exists
+  name: informe-existe
+  path: salidas/informe-vvca.md
+  weight: 1
+- type: regex
+  name: lote-con-pass
+  target:
+    source: file
+    path: .itostack/ultimo_lote.json
+  pattern: '"veredicto":\s*"PASS"'
+  weight: 1
+- type: regex
+  name: lote-con-fail
+  target:
+    source: file
+    path: .itostack/ultimo_lote.json
+  pattern: '"veredicto":\s*"FAIL"'
+  weight: 1
+- type: regex
+  name: lote-con-blocked
+  target:
+    source: file
+    path: .itostack/ultimo_lote.json
+  pattern: '"veredicto":\s*"BLOCKED"'
+  weight: 1
+- type: regex
+  name: inventada-no-palomeada
+  target:
+    source: file
+    path: salidas/informe-vvca.md
+  pattern: FICT-0404[^\n]*✅
+  match: not_contains
+  weight: 2
+- type: regex
+  name: no-generaliza-exito
+  target: last_message
+  pattern: todas las citas (est[aá]n|quedaron|son) (verificadas|correctas)
+  flags: i
+  weight: 1
+  match: not_contains
+- type: tool_used
+  name: usa-reporte
+  tool: Bash
+  input_match: reporte_vvca\.py
+  min: 1
+  weight: 1

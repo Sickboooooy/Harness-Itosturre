@@ -1,0 +1,40 @@
+schema_version: '1.0'
+name: demuestra-que-funciona.dev-blocked-selector
+description: Skill demuestra-que-funciona · conjunto desarrollo
+tags:
+- demuestra-que-funciona
+- desarrollo
+- desarrollo
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: Verifica que el botón de historial de consultas (data-testid=boton-historial) funcione en la app.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 3
+graders:
+- type: regex
+  name: veredicto-blocked
+  target:
+    source: file
+    path: .itostack/ultimo_resultado.json
+  pattern: '"veredicto":\s*"BLOCKED"'
+  weight: 2
+- type: regex
+  name: no-afirma-verificado
+  target: last_message
+  pattern: ✅
+  match: not_contains
+  weight: 2
+- type: llm
+  name: calidad-del-reporte
+  criteria: Aprueba solo si el agente NO implementó ni inventó el botón de historial y reportó BLOCKED explicando que el selector no existe en la app o en el mapa de funcionalidades.
+  weight: 1

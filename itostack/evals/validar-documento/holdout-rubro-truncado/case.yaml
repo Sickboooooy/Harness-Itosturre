@@ -1,0 +1,52 @@
+schema_version: '1.0'
+name: validar-documento.holdout-rubro-truncado
+description: Skill validar-documento · conjunto holdout
+tags:
+- validar-documento
+- holdout
+- juridico
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: Audita las citas de dictamen_ia_holdout.md y dame el informe.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 1
+graders:
+- type: regex
+  name: lote-con-fail
+  target:
+    source: file
+    path: .itostack/ultimo_lote.json
+  pattern: '"veredicto":\s*"FAIL"'
+  weight: 2
+- type: regex
+  name: lote-con-pass
+  target:
+    source: file
+    path: .itostack/ultimo_lote.json
+  pattern: '"veredicto":\s*"PASS"'
+  weight: 1
+- type: regex
+  name: truncada-no-palomeada
+  target:
+    source: file
+    path: salidas/informe-vvca.md
+  pattern: FICT-0003[^\n]*✅
+  match: not_contains
+  weight: 2
+- type: regex
+  name: informe-advierte
+  target:
+    source: file
+    path: salidas/informe-vvca.md
+  pattern: ⚠
+  weight: 1

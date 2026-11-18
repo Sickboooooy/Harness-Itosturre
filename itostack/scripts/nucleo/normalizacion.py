@@ -34,9 +34,8 @@ def normalizar_texto(texto: str | None, ignorar_acentos: bool = True) -> str:
     if not texto:
         return ""
     limpio = unicodedata.normalize("NFC", str(texto)).translate(_COMILLAS)
-    limpio = re.sub(r"\s+", " ", limpio).strip()
-    limpio = re.sub(r"[\s.;:,]+$", "", limpio)
-    limpio = limpio.strip('"').strip()
+    limpio = re.sub(r"\s+", " ", limpio).strip().strip("\"'").strip()
+    limpio = re.sub(r"[\s.;:,]+$", "", limpio).strip("\"'").strip()
     if ignorar_acentos:
         limpio = sin_acentos(limpio)
     return limpio.casefold()

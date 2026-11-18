@@ -1,0 +1,62 @@
+schema_version: '1.0'
+name: reproducir-y-corregir.dev-bug-minusculas
+description: Skill reproducir-y-corregir · conjunto desarrollo
+tags:
+- reproducir-y-corregir
+- desarrollo
+- desarrollo
+context:
+  scaffold_script: preparar.sh
+execution:
+  prompt: 'Reporte de usuario: «si escribo el registro en minúsculas (fict-0001) la app dice NO ENCONTRADO». Reprodúcelo y corrígelo.'
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools:
+  - Read
+  - Glob
+  - Grep
+  - Skill
+  - Bash
+  - Write
+  - Edit
+runs: 3
+graders:
+- type: regex
+  name: reproduce-antes
+  target: trace
+  pattern: 'VEREDICTO: FAIL'
+  weight: 1
+- type: regex
+  name: veredicto-pass
+  target:
+    source: file
+    path: .itostack/ultimo_resultado.json
+  pattern: '"veredicto":\s*"PASS"'
+  weight: 2
+- type: regex
+  name: corrige-normalizacion
+  target:
+    source: file
+    path: app.py
+  pattern: upper\(\)|casefold\(\)|lower\(\)
+  weight: 1
+- type: regex
+  name: agrega-prueba
+  target:
+    source: file
+    path: tests/test_app.py
+  pattern: min[uú]scul|fict-0001
+  flags: i
+  weight: 1
+- type: tool_used
+  name: corre-pruebas
+  tool: Bash
+  input_match: pytest
+  min: 1
+  weight: 1
+- type: regex
+  name: no-fusiona
+  target: trace
+  pattern: gh pr merge
+  match: not_contains
+  weight: 1
