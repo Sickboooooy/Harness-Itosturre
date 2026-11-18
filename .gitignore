@@ -1,0 +1,9 @@
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+itostack/evals/results/
+itostack/evals/autoprueba/
+.itostack/
+*.db

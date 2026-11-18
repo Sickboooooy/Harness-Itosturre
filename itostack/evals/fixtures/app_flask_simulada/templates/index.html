@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Validador ficticio</title></head>
+<body>
+  <h1>Validador ficticio de registros</h1>
+  <form method="post" action="/validar">
+    <label for="registro">Registro digital</label>
+    <input id="registro" name="registro" data-testid="campo-registro" value="{{ registro }}">
+    <button type="submit" data-testid="boton-validar">Validar</button>
+  </form>
+  {% if resultado %}
+  <p data-testid="resultado">Resultado: {{ resultado }}</p>
+  {% endif %}
+</body>
+</html>

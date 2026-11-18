@@ -1,0 +1,58 @@
+"""Utilidades compartidas por los hooks de itostack (solo biblioteca estándar)."""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from pathlib import Path
+
+RAIZ_PLUGIN = Path(os.environ.get("CLAUDE_PLUGIN_ROOT") or Path(__file__).resolve().parent.parent)
+sys.path.insert(0, str(RAIZ_PLUGIN / "scripts"))
+sys.path.insert(0, str(RAIZ_PLUGIN / "guardias"))
+
+from nucleo import config as cfg  # noqa: E402
+
+
+def leer_entrada() -> dict:
+    try:
+        return json.load(sys.stdin)
+    except (json.JSONDecodeError, ValueError):
+        return {}
+
+
+def proyecto(entrada: dict) -> Path:
+    return cfg.raiz_proyecto(entrada.get("cwd") or os.getcwd())
+
+
+def configuracion(entrada: dict) -> dict:
+    return cfg.cargar(proyecto(entrada))
+
+
+def tiene_itostack(entrada: dict) -> bool:
+    return (proyecto(entrada) / cfg.DIR_ITOSTACK).is_dir()
+
+
+def modos_validos(config: dict) -> tuple[str, ...]:
+    return ("real", "fixture") if config["modo"] == "fixture" else ("real",)
+
+
+def _emitir(datos: dict) -> None:
+    sys.stdout.write(json.dumps(datos, ensure_ascii=False))
+    sys.stdout.flush()
+
+
+def denegar(razon: str) -> None:
+    _emitir({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": f"itostack: {razon}"}})
+
+
+def preguntar(razon: str) -> None:
+    _emitir({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask", "permissionDecisionReason": f"itostack: {razon}"}})
+
+
+def contexto(evento: str, texto: str) -> None:
+    _emitir({"hookSpecificOutput": {"hookEventName": evento, "additionalContext": texto}})
+
+
+def bloquear_cierre(razon: str) -> None:
+    _emitir({"decision": "block", "reason": f"itostack: {razon}"})

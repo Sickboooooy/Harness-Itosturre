@@ -1,0 +1,76 @@
+{
+  "_nota": "DATOS FICTICIOS PARA EVALS. Ningún registro FICT-#### existe en el Semanario Judicial de la Federación. No usar como fuente.",
+  "tesis": {
+    "FICT-0001": {
+      "estado_http": 200,
+      "json": {
+        "_fixture": "DATOS FICTICIOS",
+        "registroDigital": "FICT-0001",
+        "rubro": "CRITERIO FICTICIO DE PRUEBA. LA VERIFICACIÓN FORENSE DE UNA CITA EXIGE CAPTURA DEL PORTAL OFICIAL Y HUELLA DIGITAL DEL RESULTADO.",
+        "tesis": "FICT.1o.P. J/1 P (12a.)",
+        "epoca": "Duodécima Época",
+        "instancia": "Tribunal Ficticio de Pruebas",
+        "tipoTesis": "Jurisprudencia",
+        "materias": ["Penal"],
+        "fechaPublicacion": "2025-10-24",
+        "fuente": "Semanario Ficticio de Pruebas",
+        "texto": "Texto ficticio para pruebas automatizadas del harness itostack."
+      },
+      "html": "<html><body><h1>CRITERIO FICTICIO DE PRUEBA</h1><p>Registro digital: FICT-0001</p><p>Instancia: Tribunal Ficticio de Pruebas</p><p>Duodécima Época</p><p>Tesis: FICT.1o.P. J/1 P (12a.)</p><p>Tipo: Jurisprudencia</p></body></html>"
+    },
+    "FICT-0002": {
+      "estado_http": 200,
+      "json": {
+        "_fixture": "DATOS FICTICIOS",
+        "registroDigital": "FICT-0002",
+        "rubro": "CRITERIO FICTICIO DE SALA EXTINTA. SIRVE PARA PROBAR LAS ADVERTENCIAS DE CORTE TEMPORAL DEL HARNESS.",
+        "tesis": "2a./J. FICT-2/2019 (10a.)",
+        "epoca": "Décima Época",
+        "instancia": "Segunda Sala",
+        "tipoTesis": "Jurisprudencia",
+        "materias": ["Común"],
+        "fechaPublicacion": "2019-03-15",
+        "fuente": "Semanario Ficticio de Pruebas"
+      },
+      "html": "<html><body><h1>CRITERIO FICTICIO DE SALA EXTINTA</h1><p>Registro digital: FICT-0002</p><p>Instancia: Segunda Sala</p></body></html>"
+    },
+    "FICT-0003": {
+      "estado_http": 200,
+      "json": {
+        "_fixture": "DATOS FICTICIOS",
+        "registroDigital": "FICT-0003",
+        "rubro": "CRITERIO FICTICIO AISLADO. LA NORMALIZACIÓN TIPOGRÁFICA NO DEBE CONFUNDIRSE CON UNA DISCREPANCIA SUSTANTIVA DEL RUBRO, NI SIQUIERA PARCIAL.",
+        "tesis": "FICT.3o.P.7 P (11a.)",
+        "epoca": "Undécima Época",
+        "instancia": "Tribunal Ficticio de Pruebas",
+        "tipoTesis": "Aislada",
+        "materias": ["Penal"],
+        "fechaPublicacion": "2023-06-02",
+        "fuente": "Semanario Ficticio de Pruebas"
+      },
+      "html": "<html><body><h1>CRITERIO FICTICIO AISLADO</h1><p>Registro digital: FICT-0003</p></body></html>"
+    },
+    "FICT-0404": {
+      "estado_http": 404,
+      "json": {"mensaje": "No se encontró"}
+    },
+    "FICT-0500": {
+      "estado_http": 500,
+      "json": {"error": "Error interno del servidor"}
+    },
+    "FICT-0503": {
+      "abortar": "timedout"
+    },
+    "FICT-0777": {
+      "estado_http": 200,
+      "json": {"_fixture": "DATOS FICTICIOS", "datos": {"campoA": "valor sin etiqueta reconocible", "campoB": 7}},
+      "html": "<html><body><div>Contenido sin etiquetas reconocibles</div></body></html>"
+    }
+  },
+  "urls": {
+    "https://www.dof.gob.mx/nota_detalle.php?codigo=FICT0001&fecha=16/10/2025": {
+      "estado_http": 200,
+      "html": "<html><head><title>DOF - Nota ficticia</title></head><body><h1>DECRETO FICTICIO DE PRUEBA</h1><p>Se reforman disposiciones ficticias para probar la verificación de URL oficial.</p></body></html>"
+    }
+  }
+}

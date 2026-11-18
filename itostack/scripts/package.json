@@ -1,0 +1,23 @@
+{
+  "name": "itostack-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Navegación forense de itostack: toda visita a un portal oficial deja captura y huella SHA-256.",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "scripts": {
+    "verificador": "node --experimental-strip-types verificador_fuente.ts",
+    "evidencia": "node --experimental-strip-types evidencia_web.ts",
+    "instalar-navegador": "playwright install chromium",
+    "tipos": "tsc --noEmit"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}
