@@ -318,6 +318,9 @@ def compuerta(tmp_path, monkeypatch):
     monkeypatch.setenv("ITOSTACK_PROYECTO", str(proyecto))
     monkeypatch.setattr(compuerta_holdout, "COMPUERTA", tmp_path / "compuerta")
     monkeypatch.setattr(compuerta_holdout, "HISTORIAL", tmp_path / "compuerta" / "historial.tsv")
+    # Las pruebas del protocolo simulan una reserva aislada; la reserva real está contaminada (TestReservaContaminada).
+    (tmp_path / "reserva.json").write_text(json.dumps({"estado": "aislada"}), encoding="utf-8")
+    monkeypatch.setattr(compuerta_holdout, "RESERVA_ESTADO", tmp_path / "reserva.json")
     desarrollo = {"cases": [{"name": n, "aggregates": {"score": 1.0}} for n in compuerta_holdout._casos("verificar-cita", "desarrollo")]}
     (tmp_path / "dev.json").write_text(json.dumps(desarrollo), encoding="utf-8")
     holdout = {"cases": [{"name": n, "aggregates": {"score": 1.0}} for n in compuerta_holdout._casos("verificar-cita", "holdout")]}
@@ -962,7 +965,7 @@ CARRERA = textwrap.dedent('''
     from pathlib import Path
     sys.path.insert(0, sys.argv[1])
     import compuerta_holdout as c
-    c.COMPUERTA = Path(sys.argv[2]); c.HISTORIAL = c.COMPUERTA / "historial.tsv"
+    c.COMPUERTA = Path(sys.argv[2]); c.HISTORIAL = c.COMPUERTA / "historial.tsv"; c.RESERVA_ESTADO = c.COMPUERTA.parent / "reserva.json"
     salida = Path(sys.argv[3])
     salida.with_suffix(".listo").write_text("")
     while not (salida.parent / "ya").exists():
@@ -1241,3 +1244,39 @@ class TestCierre012:
         # Límite conocido (CR-3 en 0.2.0): una variable ITOSTACK_PROYECTO en el entorno de la corrida sí redirige el caso.
         monkeypatch.setenv("ITOSTACK_PROYECTO", str(operador))
         assert cfg.raiz_proyecto(espacio) == operador.resolve()
+
+
+# ---------------------------------------------------------------- 0.2.0: la reserva contaminada no admite holdouts
+
+class TestReservaContaminada:
+    """Decisión del operador (2026-11-19): los casos holdout-* actuales están contaminados. No se corre ningún holdout
+    hasta que CR-2 los aísle; la compuerta lo impide por estructura, no por promesa."""
+
+    def _real(self, compuerta, monkeypatch):
+        monkeypatch.setattr(compuerta, "RESERVA_ESTADO", RAIZ / "evals" / "reserva.json")
+
+    def test_la_reserva_versionada_esta_contaminada(self, compuerta, monkeypatch):
+        self._real(compuerta, monkeypatch)
+        assert "contaminada" in compuerta.reserva_bloqueada()
+
+    def test_contaminada_no_reserva_ni_registra_ni_corre(self, compuerta, tmp_path, monkeypatch):
+        self._real(compuerta, monkeypatch)
+        assert compuerta.congelar("verificar-cita", tmp_path / "dev.json", sin_juez_externo="prueba") == 0  # desarrollo sigue
+        assert compuerta.reservar("verificar-cita") == 1
+        assert compuerta.holdout("verificar-cita", refrescar(tmp_path / "h.json"), []) == 1
+        assert compuerta.holdout("verificar-cita", None, []) == 1  # tampoco lanza claude plugin eval
+        marcas = [p.name for p in (tmp_path / "compuerta").iterdir() if p.suffix in {".consumido", ".decidido"}]
+        assert marcas == [] and "holdout" not in historial(tmp_path).replace("holdout-", "")
+
+    @PROPIEDADES
+    @given(datos=JSON)
+    def test_propiedad_solo_aislada_admite_un_holdout(self, compuerta, tmp_path, datos):
+        (tmp_path / "reserva.json").write_text(json.dumps(datos), encoding="utf-8")
+        admitida = isinstance(datos, dict) and datos.get("estado") == "aislada"
+        assert (compuerta.reserva_bloqueada() is None) == admitida
+
+    def test_estado_ilegible_bloquea(self, compuerta, tmp_path):
+        (tmp_path / "reserva.json").write_bytes(bytes([0xFF, 0x7B]))
+        assert compuerta.reserva_bloqueada()
+        (tmp_path / "reserva.json").unlink()
+        assert compuerta.reserva_bloqueada()

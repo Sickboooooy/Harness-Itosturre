@@ -1,6 +1,6 @@
 # Diseño de itostack 0.2.0: eliminar familias de defectos
 
-Estado: **diseño aprobado en dirección por el operador (2026-11-19); sin implementar.**
+Estado: **diseño aprobado en dirección por el operador (2026-11-19).** En curso en la rama `dev/itostack-0.2.0`; avance por incremento en la sección «Incrementos».
 
 Criterio rector: no se optimiza para que un revisor deje de encontrar problemas. Se optimiza para que los invariantes críticos se cumplan **por construcción** y se demuestren con pruebas reproducibles, controles estructurales y evidencia verificable.
 
@@ -60,7 +60,7 @@ Reglas de la gramática. El analizador es formal, no un conjunto de expresiones 
 1. El agente redacta un **borrador** (`borradores/**`) con prosa y marcadores.
 2. **Guardia del borrador (alarma):** cualquier patrón de registro, clave de tesis, `rubro:` o marca ⚠/❌ **fuera de un marcador** → deny, con la indicación de qué marcador usar.
    - El detector de texto libre de 0.1.x se conserva solo como alarma. Un falso positivo produce una denegación de más; un falso negativo no exime, porque el entregable final igual pasa por el paso 4.
-3. `ensamblar_documento.py` resuelve los marcadores y escribe el **entregable** en `salidas/**`, junto con un **manifiesto** (`<entregable>.manifiesto.json`) con:
+3. `ensamblar_documento.py` resuelve los marcadores y escribe el **entregable** en `salidas/**`, junto con un **manifiesto de procedencia** (`<entregable>.procedencia.json`, contrato `itostack/citas@1`) con:
    - el sha256 del entregable;
    - cada tramo renderizado, con su posición, tipo, registro y huella de la evidencia;
    - la versión del renderizador.
@@ -100,6 +100,8 @@ Reglas de la gramática. El analizador es formal, no un conjunto de expresiones 
 ---
 
 ## CR-2 · Reserva holdout aislada por permisos
+
+> **Antes de implementar, el operador aprueba el modelo de amenazas:** `docs/cr2-modelo-amenazas.md`. Ahí se descarta un usuario Linux dentro de la distribución WSL del operador, que `wsl -u root` atraviesa, y se recomienda una cuenta local de Windows con su propia distribución (O3).
 
 ### Invariante
 
@@ -152,6 +154,8 @@ Se consideraron y se descartaron como frontera principal:
 ---
 
 ## CR-3 · Holdout orquestado por la compuerta
+
+> Contrato técnico (entorno, invocación, validación de resultados, identidad del evaluador, manifiesto): `docs/contrato-cr3.md`, con esquemas ejecutables en `evals/esquemas/`.
 
 ### Invariante
 
@@ -225,6 +229,22 @@ Spike WSL de claude plugin eval ─► CR-3 (orquestador) ─► CR-2 (cuenta, A
 - **En paralelo, el spike de WSL**, porque bloquea el paso 5 de CR-3.
 - **CR-3 antes que CR-2.** La cuenta de servicio de CR-2 ejecuta el orquestador de CR-3; sin orquestador, aislar la reserva obligaría al operador a manejar archivos a mano como cuenta de servicio.
 - **CR-2 al final.** Requiere configuración del sistema que hace el operador (cuenta, contraseña, ACL) y casos holdout nuevos escritos por él.
+
+## Incrementos
+
+Cada incremento tiene una propiedad verificable y un criterio de terminación. No se agregan reglas sin una observación nueva que las motive, y no hay revisiones generales en bucle.
+
+| Incremento | Propiedad verificable | Terminación | Estado |
+|---|---|---|---|
+| **CR-1.1** · Contrato `itostack/citas@1`: gramática formal, ensamblado desde la evidencia, manifiesto de procedencia y comprobación de entrega (`nucleo/procedencia.py`, `ensamblar_documento.py`, `verificar_entrega.py`) | Todo «[[» es un marcador válido o un error. Un patrón de cita fuera de un marcador impide ensamblar. Cada cita del entregable es exactamente la de su evidencia. Sin evidencia no hay documento. Cualquier byte cambiado, o una cita a mano, invalida la entrega. Las marcas ⚠/❌/✅ solo las escribe el ensamblador | `tests/test_procedencia.py` (17 pruebas, propiedades con más de 400 ejemplos) + 11/11 mutantes + `test_flujos` + autoprueba de `redactar-con-citas` | **PASS** |
+| **Reserva contaminada** · `evals/reserva.json`: solo «aislada» admite un holdout | Para todo contenido del archivo de estado, `reservar` y `holdout` se niegan salvo con exactamente `{"estado": "aislada"}`; no dejan marcas ni historial | `TestReservaContaminada` + 3/3 mutantes | **PASS** |
+| **CR-3.0** · Contrato técnico de CR-3 | Las salidas reales de `claude plugin eval` cumplen el esquema; faltar, sobrar o cambiar el tipo de un campo lo incumple | `tests/test_contrato_cr3.py` (18) | **PASS** |
+| **CR-1.2** · Conectar la entrega a los guardias, migrar skills y evals | A1-1. Además: ningún archivo de `salidas/**` sin manifiesto válido sale por MCP ni pasa el cierre de sesión. El guardia de escritura deja de sugerir marcas escritas a mano | A1-1, A1-7, A1-8 | Siguiente |
+| **CR-3.1** · Spike en WSL | Una corrida exitosa real cumple el esquema; fórmula del puntaje (R7) confirmada | Fixture nuevo en `tests/datos/` validado | **Bloqueado:** no hay distribución WSL (paso del operador) |
+| **CR-3.2** · Orquestador | De A3-1 a A3-9 | Ídem | Después de CR-3.1 |
+| **CR-2** · Cuenta de servicio y ACL | De A2-1 a A2-6 | Ídem | **Esperando la aprobación** del modelo de amenazas |
+
+**Incoherencia transitoria, documentada hasta CR-1.2:** el guardia de escritura de 0.1.x todavía sugiere marcar a mano una cita ajena con ⚠ o ❌ cuando el agente escribe directamente en `salidas/**`. El ensamblador de CR-1.1 rechaza esas marcas en un borrador. La skill `redactar-con-citas` ya indica los marcadores nuevos.
 
 ## Protocolo de cierre de 0.2.0
 

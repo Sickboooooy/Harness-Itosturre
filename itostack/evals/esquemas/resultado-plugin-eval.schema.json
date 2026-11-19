@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "itostack/evals/esquemas/resultado-plugin-eval.schema.json",
+  "title": "Salida --json de claude plugin eval (schemaVersion 1) tal como la acepta la compuerta (contrato CR-3)",
+  "description": "Estructura observada en claude 2.1.327 (dos salidas reales: tests/datos/). Estricto: la compuerta fija la versión de claude y un campo desconocido es BLOCKED hasta revisar el contrato. Las reglas semánticas (error, partial, cobertura de calificadores) están en docs/contrato-cr3.md; este esquema solo fija forma y tipos. PROVISIONAL: aún no se observó una corrida exitosa (pendiente del spike en WSL).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "claudeVersion", "startedAt", "durationSeconds", "costUsd", "partial", "suite", "cases", "aggregates"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "claudeVersion": {"type": "string", "minLength": 1},
+    "startedAt": {"type": "string"},
+    "durationSeconds": {"type": "number", "minimum": 0},
+    "costUsd": {"type": "number", "minimum": 0},
+    "partial": {"type": "boolean"},
+    "partialReason": {"type": "string"},
+    "suite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "ablation", "caseFilter", "threshold", "concurrency", "plugins"],
+      "properties": {
+        "root": {"type": "string"},
+        "ablation": {"enum": ["none", "with-without"]},
+        "modelOverride": {"type": "string"},
+        "caseFilter": {"type": "string"},
+        "tagFilter": {"type": "array", "items": {"type": "string"}},
+        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "concurrency": {"type": "integer", "minimum": 1},
+        "plugins": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "version", "path"],
+            "properties": {"name": {"type": "string"}, "version": {"type": "string"}, "path": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "cases": {"type": "array", "items": {"$ref": "#/$defs/caso"}},
+    "aggregates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["casesTotal", "casesPassed", "overallScore", "overallPassRate"],
+      "properties": {
+        "casesTotal": {"type": "integer", "minimum": 0},
+        "casesPassed": {"type": "integer", "minimum": 0},
+        "overallScore": {"type": "number", "minimum": 0, "maximum": 1},
+        "overallPassRate": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  },
+  "$defs": {
+    "caso": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "dir", "source", "promptMarkdown", "runsPerCase", "timeoutSeconds", "maxTurns", "graders", "arms", "aggregates"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "dir": {"type": "string"},
+        "source": {"type": "string"},
+        "promptMarkdown": {"type": "string"},
+        "runsPerCase": {"type": "integer", "minimum": 1},
+        "timeoutSeconds": {"type": "number"},
+        "maxTurns": {"type": "integer"},
+        "graders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "type", "weight", "config"],
+            "properties": {"name": {"type": "string"}, "type": {"type": "string"}, "weight": {"type": "number"}, "config": {"type": "object"},
+                           "graderMarkdown": {"type": "string", "description": "instrucciones de un calificador llm"}}
+          }
+        },
+        "arms": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["with"],
+          "properties": {
+            "with": {"type": "array", "items": {"$ref": "#/$defs/corrida"}},
+            "without": {"type": "array", "items": {"$ref": "#/$defs/corrida"}}
+          }
+        },
+        "aggregates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["score", "passRate"],
+          "properties": {"score": {"type": "number", "minimum": 0, "maximum": 1}, "passRate": {"type": "number", "minimum": 0, "maximum": 1}}
+        }
+      }
+    },
+    "corrida": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "passed", "turns", "costUsd", "judgeCostUsd", "durationSeconds", "startedAt", "error", "tracePath", "skippedPaidGraders", "graders"],
+      "properties": {
+        "score": {"type": "number", "minimum": 0, "maximum": 1},
+        "passed": {"type": "boolean"},
+        "turns": {"type": "integer", "minimum": 0},
+        "costUsd": {"type": "number", "minimum": 0},
+        "judgeCostUsd": {"type": "number", "minimum": 0},
+        "durationSeconds": {"type": "number", "minimum": 0},
+        "startedAt": {"type": "string"},
+        "error": {"type": "string"},
+        "tracePath": {"type": "string"},
+        "skippedPaidGraders": {"type": "boolean"},
+        "graders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "passed", "weight", "explanation", "withOnly", "scored"],
+            "properties": {
+              "name": {"type": "string"},
+              "passed": {"type": "boolean"},
+              "weight": {"type": "number"},
+              "explanation": {"type": "string"},
+              "withOnly": {"type": "boolean"},
+              "scored": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

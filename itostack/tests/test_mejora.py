@@ -89,6 +89,8 @@ def test_compuerta_holdout_un_solo_intento(tmp_path, monkeypatch):
 
     monkeypatch.setattr(compuerta, "COMPUERTA", tmp_path)
     monkeypatch.setattr(compuerta, "HISTORIAL", tmp_path / "historial.tsv")
+    (tmp_path / "reserva.json").write_text(json.dumps({"estado": "aislada"}), encoding="utf-8")  # protocolo con reserva simulada
+    monkeypatch.setattr(compuerta, "RESERVA_ESTADO", tmp_path / "reserva.json")
     real = json.loads((RAIZ / "tests" / "datos" / "resultado_claude_plugin_eval.json").read_text(encoding="utf-8"))
     assert compuerta.puntajes(real) == {"verificar-cita.fail-inexistente": real["cases"][0]["aggregates"]["score"]}
 

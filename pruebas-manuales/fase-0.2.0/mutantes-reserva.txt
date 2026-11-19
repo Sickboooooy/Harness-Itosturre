@@ -1,0 +1,8 @@
+DETECTADO       Reserva · reservar ignora el estado de la reserva
+                limpio: 4 passed, 253 deselected in 6.43s · mutante: 1 failed, 3 passed, 253 deselected in 6.66s
+DETECTADO       Reserva · registrar o correr el holdout ignora el estado
+                limpio: 4 passed, 253 deselected in 4.16s · mutante: 1 failed, 3 passed, 253 deselected in 7.39s
+DETECTADO       Reserva · cualquier estado declarado admite un holdout
+                limpio: 4 passed, 253 deselected in 2.78s · mutante: 2 failed, 2 passed, 253 deselected in 6.57s
+
+3/3 mutantes detectados

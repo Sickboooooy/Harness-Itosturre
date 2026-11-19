@@ -45,6 +45,21 @@ from nucleo import juez as contrato_juez  # noqa: E402
 COMPUERTA = EVALS / "compuerta"
 HISTORIAL = COMPUERTA / "historial.tsv"
 RUBRICAS = EVALS / "rubricas"
+# Estado de la reserva holdout (decisión del operador). Solo «aislada» permite correr un holdout: los casos actuales los
+# escribió el agente y están en la historia de Git, así que quedan «contaminada» hasta que CR-2 los aísle por permisos.
+RESERVA_ESTADO = EVALS / "reserva.json"
+
+
+def reserva_bloqueada() -> str | None:
+    """Motivo por el que la reserva no admite un holdout, o None si está declarada aislada. Falla cerrado."""
+    try:
+        estado = json.loads(RESERVA_ESTADO.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return f"no se pudo leer el estado de la reserva ({RESERVA_ESTADO.name})"
+    if not isinstance(estado, dict) or estado.get("estado") != "aislada":
+        motivo = estado.get("motivo") if isinstance(estado, dict) else None
+        return f"la reserva holdout está «{estado.get('estado') if isinstance(estado, dict) else '?'}»" + (f": {motivo}" if motivo else "")
+    return None
 EXCLUIR = {"node_modules", "__pycache__", "results"}
 CAMPOS_JUEZ = ("familia", "herramienta", "modelo", "esfuerzo", "version")
 
@@ -352,6 +367,9 @@ def _instante_de_reserva(marca: Path) -> float:
 
 
 def reservar(skill: str) -> int:
+    if bloqueo := reserva_bloqueada():
+        print(f"No se reserva: {bloqueo}. Un holdout sobre una reserva contaminada no mide generalización.")
+        return 1
     candidata, actual = _candidata_vigente(skill)
     if not candidata or not _tomar_reserva(skill, actual, candidata):
         return 1
@@ -363,6 +381,9 @@ def reservar(skill: str) -> int:
 
 
 def holdout(skill: str, resultados: Path | None, extra: list[str], jueces: list[Path] | tuple = ()) -> int:
+    if bloqueo := reserva_bloqueada():
+        print(f"No se registra ni se corre el holdout: {bloqueo}.")
+        return 1
     candidata, actual = _candidata_vigente(skill)
     if not candidata:
         return 1

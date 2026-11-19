@@ -140,6 +140,18 @@ El operador suspendió el ciclo de revisiones después de la ronda 4 de Codex (1
 - **Diseño de 0.2.0:** `itostack/docs/diseno-0.2.0.md`, con CR-1, CR-2 y CR-3, sus criterios de aceptación A1 a A3 y la secuencia recomendada. Sin implementar.
 - **Pendiente del operador:** autorizar un commit en una rama, y decidir si arranca CR-1 y el spike de WSL. Sin commit ni push.
 
+## F-0.2.0 · inicio de itostack 0.2.0 (2026-11-19)
+
+Autorizado por el operador: cerrar 0.1.2 en una rama de release, crear `dev/itostack-0.2.0`, iniciar CR-1, hacer una exploración mínima de `claude plugin eval` y preparar el contrato de CR-3. CR-2 solo se diseña (modelo de amenazas para aprobación). No se corren holdouts.
+
+- **Release 0.1.2:** commit local `7933f35` en `release/itostack-0.1.2-experimental`, con la evidencia seleccionada (`git add -f`). Sin push ni merge.
+- **CR-1.1** (contrato `itostack/citas@1`): PASS. 17 pruebas por propiedades y 11/11 mutantes (`fase-0.2.0/mutantes-cr1.txt`); `test_flujos` y la autoprueba de `redactar-con-citas` siguen en verde. Las propiedades encontraron dos huecos del detector de texto libre, que se aplicaron a la alarma: un registro o una marca pegados a otra palabra no se detectaban por las anclas de palabra.
+- **Reserva contaminada:** `itostack/evals/reserva.json`; `reservar` y `holdout` se niegan. 3/3 mutantes.
+- **Exploración de `claude plugin eval`:** WSL sin distribución, así que se hizo en Windows nativo, y la corrida quedó bloqueada (`~/.aws` de 22 GB). Hallazgos en `fase-0.2.0/exploracion-plugin-eval.md`. El más serio: con `--keep-temp`, el temporal tenía una unión a `~/.aws/sso` real; se quitó sin seguirla y las credenciales quedaron intactas.
+- **Contrato de CR-3:** `itostack/docs/contrato-cr3.md` y `evals/esquemas/`, con 18 pruebas de conformidad contra dos salidas reales.
+- **CR-2:** `itostack/docs/cr2-modelo-amenazas.md`, esperando aprobación. Recomienda O3: una cuenta local de Windows con su propia distribución WSL. Un usuario Linux dentro de la distribución del operador no aísla, porque `wsl -u root` lo atraviesa.
+- **Sin commit en la rama de desarrollo**: falta autorización.
+
 ## Siguiente
 - Fase 8 (SJF y DOF reales). **Bloqueada esperando al operador**: hace falta un registro digital real con su rubro literal del SJF, y una URL del DOF con un fragmento literal de su texto. La regla 3 del plan prohíbe buscarlos o proponerlos.
 - Luego, fase 9: `pruebas-manuales/INFORME-PRUEBAS.md` con la matriz completa, los defectos por gravedad y las 3 correcciones prioritarias.

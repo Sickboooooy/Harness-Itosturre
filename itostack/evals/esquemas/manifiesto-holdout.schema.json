@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "itostack/evals/esquemas/manifiesto-holdout.schema.json",
+  "title": "Manifiesto de un holdout orquestado por la compuerta (contrato CR-3, itostack/holdout@1)",
+  "description": "Lo produce la compuerta, nunca el operador. Toda huella es recalculable por verificar-manifiesto a partir de los archivos sellados. Reglas en docs/contrato-cr3.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contrato", "fecha", "skill", "candidata", "reserva", "entorno", "evaluador", "juez", "rubrica", "casos", "decision", "diario"],
+  "properties": {
+    "contrato": {"const": "itostack/holdout@1"},
+    "fecha": {"type": "string"},
+    "skill": {"type": "string", "minLength": 1},
+    "candidata": {
+      "type": "object", "additionalProperties": false, "required": ["huella", "version_plugin", "huella_copia"],
+      "properties": {"huella": {"$ref": "#/$defs/sha256"}, "version_plugin": {"type": "string"}, "huella_copia": {"$ref": "#/$defs/sha256"}}
+    },
+    "reserva": {
+      "type": "object", "additionalProperties": false, "required": ["huella", "estado"],
+      "properties": {"huella": {"$ref": "#/$defs/sha256"}, "estado": {"const": "aislada"}}
+    },
+    "entorno": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sistema", "usuario_de_servicio", "python", "variables", "path"],
+      "properties": {
+        "sistema": {"type": "string"},
+        "usuario_de_servicio": {"type": "string"},
+        "python": {"type": "string"},
+        "variables": {"type": "array", "items": {"type": "string"}, "description": "nombres (no valores) de las variables que recibió la evaluación"},
+        "path": {"type": "string"}
+      }
+    },
+    "evaluador": {
+      "type": "object", "additionalProperties": false,
+      "required": ["claude_version", "argv", "modelo", "modelo_calificador_llm", "ablation", "runs", "concurrencia", "sha256_resultados"],
+      "properties": {
+        "claude_version": {"type": "string"},
+        "argv": {"type": "array", "items": {"type": "string"}},
+        "modelo": {"type": "string"},
+        "modelo_calificador_llm": {"type": "string"},
+        "ablation": {"const": "none"},
+        "runs": {"type": "integer", "minimum": 1},
+        "concurrencia": {"type": "integer", "minimum": 1},
+        "sha256_resultados": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "juez": {
+      "type": "object", "additionalProperties": false,
+      "required": ["familia", "herramienta", "modelo", "esfuerzo", "version", "sha256_opciones"],
+      "properties": {
+        "familia": {"type": "string"}, "herramienta": {"type": "string"}, "modelo": {"type": "string"},
+        "esfuerzo": {"type": ["string", "null"]}, "version": {"type": "string"}, "sha256_opciones": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "rubrica": {
+      "type": "object", "additionalProperties": false, "required": ["archivo", "sha256", "criterios"],
+      "properties": {"archivo": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}, "criterios": {"type": "integer", "minimum": 1}}
+    },
+    "casos": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["nombre", "corridas", "sha256_artefacto", "juicios", "estado"],
+        "properties": {
+          "nombre": {"type": "string"},
+          "corridas": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["score", "turns", "error", "sha256_traza"],
+              "properties": {"score": {"type": "number", "minimum": 0, "maximum": 1}, "turns": {"type": "integer", "minimum": 0},
+                             "error": {"type": "string"}, "sha256_traza": {"$ref": "#/$defs/sha256"}}
+            }
+          },
+          "sha256_artefacto": {"$ref": "#/$defs/sha256"},
+          "juicios": {
+            "type": "array", "minItems": 1, "description": "cada llamada al juez, incluidas las BLOCKED reintentadas",
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["sha256_respuesta", "estado", "puntaje"],
+              "properties": {"sha256_respuesta": {"$ref": "#/$defs/sha256"}, "estado": {"enum": ["APRUEBA", "REPRUEBA", "BLOCKED"]},
+                             "puntaje": {"type": ["number", "null"]}}
+            }
+          },
+          "estado": {"enum": ["ACEPTA", "RECHAZA", "BLOCKED"]}
+        }
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false, "required": ["estado", "motivo"],
+      "properties": {"estado": {"enum": ["ACEPTADA", "RECHAZADA", "PENDIENTE_DE_JUICIO", "INCONCLUSA", "REINTENTABLE"]}, "motivo": {"type": "string"}}
+    },
+    "diario": {
+      "type": "object", "additionalProperties": false, "required": ["cabeza_sha256", "entradas"],
+      "properties": {"cabeza_sha256": {"$ref": "#/$defs/sha256"}, "entradas": {"type": "integer", "minimum": 1}}
+    }
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

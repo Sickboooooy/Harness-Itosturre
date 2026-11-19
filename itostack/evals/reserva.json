@@ -1,0 +1,7 @@
+{
+  "estado": "contaminada",
+  "desde": "2026-11-19",
+  "decidido_por": "operador",
+  "motivo": "los casos holdout-* los escribió el agente que mejora las skills y están en la historia de Git; no sirven como evidencia de generalización",
+  "nota": "Solo «aislada» permite reservar o registrar un holdout. Ese estado corresponde a CR-2 (reserva fuera del alcance del agente por permisos del sistema operativo) y no se declara a mano."
+}

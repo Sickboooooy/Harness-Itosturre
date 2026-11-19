@@ -4,7 +4,7 @@ Para cada mutante: copia el plugin (sin node_modules) a un directorio temporal, 
 exacto y corre solo las pruebas del invariante. «Detectado» = las pruebas fallan con el defecto. Un mutante no
 detectado es una prueba que no demuestra su invariante.
 
-Uso: python -I mutantes_cierre.py <raíz del plugin itostack>
+Uso: python -I mutantes_cierre.py <raíz del plugin itostack> [cierre-0.1.2|cr1|reserva]
 """
 import os
 import shutil
@@ -75,14 +75,69 @@ MUTANTES = [
 ]
 
 
+# CR-1.1 (0.2.0): contrato estructurado de citas. Pruebas: tests/test_procedencia.py.
+PROC = "scripts/nucleo/procedencia.py"
+MUTANTES_CR1 = [
+    ("I-8 · un «[[» que no es marcador válido se ignora", PROC,
+     [("        if hallado is None:\n            errores.append(", "        if hallado is None:\n            (lambda *a: None)(")],
+     "test_gramatica_todo_doble_corchete_es_un_marcador_valido_o_un_error"),
+    ("I-8 · una CITA sin evidencia se degrada a no verificada", PROC,
+     [("                if not permitir_pendientes:\n", "                if False:\n")],
+     "test_sin_evidencia_no_hay_documento"),
+    ("I-8 · la alarma no ve registros digitales", PROC,
+     [('("registro", re.compile(r"(?i)(?:registro|ius)', '("registro", re.compile(r"(?!)(?:registro|ius)')],
+     "test_alarma_un_patron_de_cita_fuera_de_marcador_impide_ensamblar"),
+    ("I-10 · la alarma no ve marcas de verificación", PROC,
+     [("for tipo, patron in _ALARMA for m in patron.finditer(texto)", "for tipo, patron in _ALARMA[:-1] for m in patron.finditer(texto)")],
+     "test_alarma_un_patron_de_cita_fuera_de_marcador_impide_ensamblar"),
+    ("I-9 · tramos con posiciones corridas", PROC,
+     [("tramos.append(Tramo(inicio=largo, fin=largo + len(fragmento), **tramo))", "tramos.append(Tramo(inicio=largo, fin=largo + len(fragmento) - 1, **tramo))")],
+     "test_cada_cita_del_entregable_es_exactamente_la_de_su_evidencia"),
+    ("I-9 · la forma «clave» no muestra la clave de la evidencia", PROC,
+     [("return f\"{oficial.get('clave', '—')} (registro digital {registro}){nota}\"", "return f\"{oficial.get('registro', '—')} (registro digital {registro}){nota}\"")],
+     "test_cada_cita_del_entregable_es_exactamente_la_de_su_evidencia"),
+    ("A1-4 · la cita ajena no se coteja con su fuente", PROC,
+     [("if _comparable(referencia) not in _comparable(contenido):", "if False:")],
+     "test_cita_ajena_solo_si_aparece_literal_en_la_fuente"),
+    ("A1-5 · la entrega no comprueba la huella del documento", PROC,
+     [('if sha256(documento) != datos_manifiesto.get("sha256_documento"):', "if False:")],
+     "test_el_entregable_se_verifica_y_cualquier_cambio_lo_invalida"),
+    ("I-8 · la entrega no busca citas fuera de los tramos", PROC,
+     [("        if not _dentro(a, b, intervalos):\n            errores.append(f\"línea {_linea(texto, a)}: {tipo} «", "        if False:\n            errores.append(f\"línea {_linea(texto, a)}: {tipo} «")],
+     "test_una_cita_a_mano_se_detecta_aunque_se_rehaga_la_huella"),
+    ("I-9 · la entrega no coteja el texto de cada tramo", PROC,
+     [(' or sha256(texto[inicio:fin]) != tramo.get("sha256_texto"):', ":")],
+     "test_editar_dentro_de_un_tramo_se_detecta_aunque_se_rehaga_la_huella"),
+    ("A1-5 · un borrador con pendientes pasa por entregable", PROC,
+     [('"entregable": not ensamblado.pendientes,', '"entregable": True,')],
+     "test_pendientes_permitidos_dan_un_borrador_no_entregable"),
+]
+
+# 0.2.0: la reserva contaminada no admite holdouts (decisión del operador). Pruebas: TestReservaContaminada.
+MUTANTES_RESERVA = [
+    ("Reserva · reservar ignora el estado de la reserva", GATE,
+     [("    if bloqueo := reserva_bloqueada():\n        print(f\"No se reserva:", "    if False:\n        print(f\"No se reserva:")],
+     "TestReservaContaminada"),
+    ("Reserva · registrar o correr el holdout ignora el estado", GATE,
+     [("    if bloqueo := reserva_bloqueada():\n        print(f\"No se registra", "    if False:\n        print(f\"No se registra")],
+     "TestReservaContaminada"),
+    ("Reserva · cualquier estado declarado admite un holdout", GATE,
+     [('estado.get("estado") != "aislada"', 'estado.get("estado") is None')],
+     "TestReservaContaminada"),
+]
+
+CONJUNTOS = {"cierre-0.1.2": ("tests/test_auditoria_codex.py", MUTANTES), "cr1": ("tests/test_procedencia.py", MUTANTES_CR1),
+             "reserva": ("tests/test_auditoria_codex.py", MUTANTES_RESERVA)}
+
+
 def copiar(destino: Path) -> None:
     shutil.copytree(PLUGIN, destino, ignore=shutil.ignore_patterns("node_modules", "__pycache__", ".pytest_cache", ".hypothesis", "results", "compuerta"))
 
 
-def correr(raiz: Path, filtro: str) -> subprocess.CompletedProcess:
+def correr(raiz: Path, filtro: str, pruebas: str = PRUEBAS) -> subprocess.CompletedProcess:
     entorno = {k: v for k, v in os.environ.items() if not k.startswith("ITOSTACK_")}
     entorno["PYTHONUTF8"] = "1"
-    return subprocess.run([sys.executable, "-m", "pytest", PRUEBAS, "-q", "-p", "no:cacheprovider", "-k", filtro], cwd=raiz,
+    return subprocess.run([sys.executable, "-m", "pytest", pruebas, "-q", "-p", "no:cacheprovider", "-k", filtro], cwd=raiz,
                           capture_output=True, text=True, encoding="utf-8", errors="replace", env=entorno, timeout=900)
 
 
@@ -92,13 +147,14 @@ def ultima_linea(salida: str) -> str:
 
 
 def principal() -> int:
+    pruebas, mutantes = CONJUNTOS[sys.argv[2] if len(sys.argv) > 2 else "cierre-0.1.2"]
     base = Path(tempfile.mkdtemp(prefix="mutantes-"))
     filas, sobrevivientes = [], 0
     try:
         limpio = base / "limpio"
         copiar(limpio)
-        for i, (nombre, archivo, reemplazos, filtro) in enumerate(MUTANTES, 1):
-            control = correr(limpio, filtro)
+        for i, (nombre, archivo, reemplazos, filtro) in enumerate(mutantes, 1):
+            control = correr(limpio, filtro, pruebas)
             raiz = base / f"m{i}"
             copiar(raiz)
             ruta = raiz / archivo
@@ -111,7 +167,7 @@ def principal() -> int:
             for original, mutado in reemplazos:
                 texto = texto.replace(original, mutado)
             ruta.write_text(texto, encoding="utf-8")
-            mutante = correr(raiz, filtro)
+            mutante = correr(raiz, filtro, pruebas)
             if control.returncode != 0:
                 estado = "CONTROL FALLA"  # las pruebas fallan sin mutar: el pase no demuestra nada
                 sobrevivientes += 1

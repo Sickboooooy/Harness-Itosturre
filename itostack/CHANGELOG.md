@@ -1,5 +1,23 @@
 # Cambios
 
+## 0.2.0 · en desarrollo (rama `dev/itostack-0.2.0`, sin publicar)
+
+Objetivo: reducir clases de fallos con garantías estructurales. Plan e incrementos en `docs/diseno-0.2.0.md`.
+
+- **CR-1.1 · contrato estructurado de citas (`itostack/citas@1`).** Nuevo `scripts/nucleo/procedencia.py`: gramática formal de marcadores, en la que cada «[[» es un marcador válido o un error:
+  - `[[CITA:registro|forma]]`;
+  - `[[CITA_AJENA:referencia|fuente]]`: la referencia debe aparecer literal en la fuente;
+  - `[[NO_VERIFICADO:texto]]`.
+
+  El ensamblado sale de la evidencia, y ahora un patrón de cita, «rubro:» o una marca ⚠/❌/✅ escritos a mano fuera de un marcador impiden ensamblar. `ensamblar_documento.py` escribe un **manifiesto de procedencia** (`<salida>.procedencia.json`) y se somete a la comprobación de entrega antes de escribir. Nuevo `scripts/verificar_entrega.py`.
+- **Reserva contaminada.** `evals/reserva.json` declara la reserva holdout «contaminada» (decisión del operador). `reservar` y `holdout` se niegan salvo con el estado «aislada», que corresponde a CR-2.
+- **Contrato técnico de CR-3** (`docs/contrato-cr3.md`), con esquemas ejecutables en `evals/esquemas/` y conformidad contra dos salidas reales de `claude plugin eval` (`tests/test_contrato_cr3.py`). Cierra, cuando se implemente, tres defectos latentes de la compuerta de 0.1.2, hoy neutralizados por la reserva contaminada:
+  - una falla de infraestructura con puntaje se tomaba como resultado;
+  - el informe se publicaba en claude.ai por omisión;
+  - los resultados quedaban dentro del plugin.
+- **Modelo de amenazas de CR-2** (`docs/cr2-modelo-amenazas.md`), para aprobación; sin implementar.
+- Pruebas nuevas: `test_procedencia.py` (17, por propiedades), `TestReservaContaminada` y `test_contrato_cr3.py` (18). Mutantes: CR-1.1 11/11 y reserva 3/3.
+
 ## 0.1.2 — 2026-11-19 · experimental
 
 Versión experimental de integración y evaluación cruzada con Codex. **No es apta para producción jurídica**: las citas de los entregables todavía se controlan con heurísticas (ver «Límites conocidos»). La matriz de invariantes, con pruebas nombradas, mutantes y mediciones en vivo, está en `pruebas-manuales/fase-codex/matriz-invariantes.md`; el diseño que cierra los invariantes pendientes, en `docs/diseno-0.2.0.md`.

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.327",
+  "startedAt": "2026-11-19T10:03:43.033Z",
+  "durationSeconds": 1,
+  "costUsd": 0,
+  "partial": false,
+  "suite": {
+    "root": "C:/ruta/itostack",
+    "ablation": "none",
+    "modelOverride": "claude-haiku-5-5",
+    "caseFilter": "verificar-cita.pass-exacto",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "itostack",
+        "version": "0.1.2",
+        "path": "C:/ruta/itostack"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "verificar-cita.pass-exacto",
+      "dir": "evals\\verificar-cita\\pass-exacto",
+      "source": "case_yaml",
+      "promptMarkdown": "Antes de usarla en un escrito, verifica esta cita: jurisprudencia FICT.1o.P. J/1 P (12a.), registro digital FICT-0001, de rubro «CRITERIO FICTICIO DE PRUEBA. LA VERIFICACIÓN FORENSE DE UNA CITA EXIGE CAPTURA DEL PORTAL OFICIAL Y HUELLA DIGITAL DEL RESULTADO.». ¿Puedo usarla?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 600,
+      "maxTurns": 25,
+      "graders": [
+        {
+          "name": "veredicto-pass",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": ".itostack/ultimo_resultado.json"
+            },
+            "pattern": "\"veredicto\":\\s*\"PASS\"",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "usa-verificador",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Bash",
+            "input_match": "verificar\\.py",
+            "min": 1
+          }
+        },
+        {
+          "name": "informa-veredicto",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "VERIFICADO|PASS",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "calidad-del-reporte",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Aprueba solo si el mensaje final: (1) declara uno de los veredictos PASS, FAIL o BLOCKED con su causa concreta; (2) remite a la evidencia (ruta del resultado o de la captura); (3) no afirma datos de la tesis que no provengan de la evidencia; (4) si la evidencia es de fixture, no la presenta como apta para uso procesal.",
+          "config": {
+            "criteria": "Aprueba solo si el mensaje final: (1) declara uno de los veredictos PASS, FAIL o BLOCKED con su causa concreta; (2) remite a la evidencia (ruta del resultado o de la captura); (3) no afirma datos de la tesis que no provengan de la evidencia; (4) si la evidencia es de fixture, no la presenta como apta para uso procesal.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 0,
+            "costUsd": 0,
+            "judgeCostUsd": 0,
+            "durationSeconds": 1,
+            "startedAt": "2026-11-19T10:03:43.106Z",
+            "error": "the AWS (~/.aws) credential store on this machine is too large to check for symbolic links, so the Bash sandbox cannot reliably exclude it — a Bash-granting evaluation cannot run here; keep the store's contents in one plain directory (its root may be a link)",
+            "tracePath": "",
+            "skippedPaidGraders": false,
+            "graders": []
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0,
+    "overallPassRate": 0
+  }
+}
