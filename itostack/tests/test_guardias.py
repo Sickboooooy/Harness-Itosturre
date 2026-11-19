@@ -124,13 +124,18 @@ class TestGuardiaEscritura:
         })
         assert decision(salida) == "deny"
 
-    def test_cita_marcada_y_marcador_pasan(self, proyecto):
-        texto = "Cita ajena: registro digital FICT-0404 ❌ inexistente.\nVéase [[CITA:FICT-0001]].\n"
-        salida = correr_hook("guardia_escritura.py", {
-            "tool_name": "Write", "cwd": str(proyecto),
-            "tool_input": {"file_path": str(proyecto / "salidas/escrito.md"), "content": texto},
-        })
-        assert decision(salida) is None
+    def test_un_entregable_no_se_escribe_a_mano_y_el_borrador_usa_marcadores(self, proyecto):
+        # CR-1.2: antes, una marca ❌ escrita a mano eximía a la cita (clase D-04). Ahora ningún entregable se escribe a
+        # mano, y en el borrador la cita ajena va en su marcador, no con una marca.
+        a_mano = "Cita ajena: registro digital FICT-0404 ❌ inexistente.\nVéase [[CITA:FICT-0001]].\n"
+        con_marcadores = "Cita ajena: [[NO_VERIFICADO:la contraparte invoca un registro inexistente]].\nVéase [[CITA:FICT-0001]].\n"
+        for ruta, texto, esperado in (("salidas/escrito.md", a_mano, "deny"), ("salidas/escrito.md", con_marcadores, "deny"),
+                                      ("borradores/escrito.md", a_mano, "deny"), ("borradores/escrito.md", con_marcadores, None)):
+            salida = correr_hook("guardia_escritura.py", {
+                "tool_name": "Write", "cwd": str(proyecto),
+                "tool_input": {"file_path": str(proyecto / ruta), "content": texto},
+            })
+            assert decision(salida) == esperado, (ruta, texto)
 
     def test_fuera_de_salidas_no_se_revisa(self, proyecto):
         salida = correr_hook("guardia_escritura.py", {
@@ -140,13 +145,18 @@ class TestGuardiaEscritura:
         assert decision(salida) is None
 
     @requiere_navegador
-    def test_cita_con_evidencia_vigente_pasa(self, proyecto):
+    def test_con_evidencia_vigente_el_unico_camino_es_ensamblar(self, proyecto):
         assert verificar(proyecto, "tesis", "--registro", "FICT-0001", "--rubro", RUBRO_0001).returncode == 0
-        salida = correr_hook("guardia_escritura.py", {
+        directo = correr_hook("guardia_escritura.py", {
             "tool_name": "Write", "cwd": str(proyecto),
             "tool_input": {"file_path": str(proyecto / "salidas/escrito.md"), "content": "Tesis registro digital FICT-0001.\n"},
         })
-        assert decision(salida) is None
+        assert decision(directo) == "deny"  # aunque la cita tenga evidencia: sin manifiesto no hay entregable
+        borrador = correr_hook("guardia_escritura.py", {
+            "tool_name": "Write", "cwd": str(proyecto),
+            "tool_input": {"file_path": str(proyecto / "borradores/escrito.md"), "content": "Aplica [[CITA:FICT-0001]].\n"},
+        })
+        assert decision(borrador) is None
 
 
 class TestGuardiaExterno:

@@ -19,25 +19,25 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_bash.py cerrado PreToolUse", "timeout": 20 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_bash.py cerrado PreToolUse || { echo \"itostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\" >&2; exit 2; }", "timeout": 20 }
         ]
       },
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_escritura.py cerrado PreToolUse", "timeout": 20 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_escritura.py cerrado PreToolUse || { echo \"itostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\" >&2; exit 2; }", "timeout": 20 }
         ]
       },
       {
         "matcher": "Read|Grep|Glob",
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_lectura.py cerrado PreToolUse", "timeout": 20 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_lectura.py cerrado PreToolUse || { echo \"itostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\" >&2; exit 2; }", "timeout": 20 }
         ]
       },
       {
         "matcher": "mcp__.*",
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_externo.py cerrado PreToolUse", "timeout": 20 }
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_externo.py cerrado PreToolUse || { echo \"itostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\" >&2; exit 2; }", "timeout": 20 }
         ]
       }
     ],

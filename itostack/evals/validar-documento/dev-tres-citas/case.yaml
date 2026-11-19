@@ -26,6 +26,13 @@ graders:
   path: salidas/informe-vvca.md
   weight: 1
 - type: regex
+  name: informe-con-procedencia
+  target:
+    source: file
+    path: salidas/informe-vvca.md.procedencia.json
+  pattern: '"tipo_documento":\s*"informe"'
+  weight: 2
+- type: regex
   name: lote-con-pass
   target:
     source: file

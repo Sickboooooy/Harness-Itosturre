@@ -598,17 +598,26 @@ class TestRubroContraEvidencia:
         assert citas.rubros_discrepantes(linea, self._buscar) == []
 
     @requiere_navegador
-    def test_n01_en_el_guardia_con_evidencia_real(self, proyecto):
+    def test_n01_ya_no_puede_ocurrir_en_un_entregable(self, proyecto):
+        """CR-1.2 elimina la clase N-01 por construcción: el agente no puede escribir un rubro (ni bueno ni falso) en un
+        entregable ni en un borrador; el único rubro del entregable es el que el ensamblador toma de la evidencia."""
         assert verificar(proyecto, "tesis", "--registro", "FICT-0001", "--rubro", RUBRO_0001).returncode == 0
         bueno = f'Tesis registro digital FICT-0001, de rubro: "{RUBRO_0001}"\n'
         falso = 'Tesis registro digital FICT-0001, de rubro: "CRITERIO FICTICIO DE PRUEBA. LA VERIFICACIÓN FORENSE ES OPCIONAL."\n'
         sin_comillas = "Tesis registro digital FICT-0001. Rubro: LA VERIFICACIÓN FORENSE ES OPCIONAL.\n"
-        for texto, esperado in ((bueno, None), (falso, "deny"), (sin_comillas, "deny")):
-            salida = correr_hook("guardia_escritura.py", {
-                "tool_name": "Write", "cwd": str(proyecto),
-                "tool_input": {"file_path": str(proyecto / "salidas/escrito.md"), "content": texto},
-            })
-            assert decision(salida) == esperado, texto
+        for texto in (bueno, falso, sin_comillas):
+            for ruta in ("salidas/escrito.md", "borradores/escrito.md"):
+                salida = correr_hook("guardia_escritura.py", {
+                    "tool_name": "Write", "cwd": str(proyecto),
+                    "tool_input": {"file_path": str(proyecto / ruta), "content": texto},
+                })
+                assert decision(salida) == "deny", (ruta, texto)
+        (proyecto / "borradores").mkdir(exist_ok=True)
+        (proyecto / "borradores" / "b.md").write_text("Aplica [[CITA:FICT-0001|rubro]].\n", encoding="utf-8")
+        ensamblado = subprocess.run([sys.executable, str(SCRIPTS / "ensamblar_documento.py"), "borradores/b.md", "--salida", "salidas/e.md"], cwd=proyecto,
+                                    capture_output=True, text=True, encoding="utf-8", errors="replace", env={**os.environ, "PYTHONUTF8": "1"}, timeout=120)
+        assert ensamblado.returncode == 0, ensamblado.stdout
+        assert f"«{RUBRO_0001}»" in (proyecto / "salidas" / "e.md").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------- B-02: la compuerta humana no se aprueba sola

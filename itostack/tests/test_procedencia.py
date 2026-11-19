@@ -9,13 +9,10 @@ borrador lo puso la prueba a propósito, así que el oráculo sabe exactamente q
 """
 
 import json
-import subprocess
-import sys
 
 import pytest
 from hypothesis import given, settings, strategies as st
 
-from conftest import SCRIPTS
 from nucleo import procedencia
 
 PROPIEDADES = settings(max_examples=400, deadline=None)
@@ -25,7 +22,8 @@ REGISTROS = st.sampled_from([f"FICT-00{i:02d}" for i in range(1, 13)] + ["202543
 TEXTO_OFICIAL = st.text(alphabet=st.characters(blacklist_characters="[]\n\r", blacklist_categories=("Cs",)), min_size=1, max_size=60)
 CLAVES = st.builds(lambda n, a, e: f"{n}a./J. {a}/2019 ({e}a.)", st.integers(1, 2), st.integers(1, 99), st.integers(9, 11))
 A_MANO = ["registro digital 2012345", "1a./J. 45/2019 (10a.)", "rubro: «UN RUBRO DE MEMORIA.»", "⚠ NO VERIFICADO", "❌", "✅ VERIFICADA", "IUS 1234567", "tesis 2012345"]
-ROTOS = ["[[CITA:", "[[CITA:FICT-0001|resumen]]", "[[OTRO:x]]", "[[CITA_AJENA:solo referencia]]", "[[ ]]", "[[NO_VERIFICADO: ]]", "[[CITA:FICT 1]]"]
+ROTOS = ["[[CITA:", "[[CITA:FICT-0001|resumen]]", "[[OTRO:x]]", "[[CITA_AJENA:solo referencia]]", "[[ ]]", "[[NO_VERIFICADO: ]]", "[[CITA:FICT 1]]",
+         "[[NO_VERIFICADO:dato [[x]]", "[[CITA_AJENA:ref [x]|exp/a.md]]"]
 
 
 @st.composite
@@ -127,6 +125,9 @@ def test_pendientes_permitidos_dan_un_borrador_no_entregable():
     manifiesto = procedencia.manifiesto(r.texto, "x", r, "prueba")
     assert r.texto and manifiesto["entregable"] is False
     assert any("pendientes" in p for p in procedencia.verificar_entrega(r.texto.encode("utf-8"), manifiesto))
+    # Declararlo entregable a mano no lo vuelve entregable: el manifiesto queda inconsistente.
+    manifiesto["entregable"] = True
+    assert any("inconsistente" in p for p in procedencia.verificar_entrega(r.texto.encode("utf-8"), manifiesto))
 
 
 # ---------------------------------------------------------------- citas ajenas: verificables contra su fuente (A1-4)
@@ -212,25 +213,130 @@ def test_las_marcas_de_verificacion_solo_las_escribe_el_ensamblador(datos):
         assert any(a <= m.start() and m.end() <= b for a, b in propios)
 
 
+def test_un_marcador_sin_resolver_nunca_es_entregable():
+    """Aunque un manifiesto se rehaga a mano para cubrirlo, un «[[» en el documento final es BLOCKED."""
+    import dataclasses
+
+    r = ensamblar("Texto con [[NO_VERIFICADO:un dato]].", {})
+    texto = r.texto + "[[CITA:FICT-0001]]"
+    falso = procedencia.Ensamblado(texto=texto, tramos=r.tramos[:-1] + [dataclasses.replace(r.tramos[-1], fin=len(texto))])
+    manifiesto = procedencia.manifiesto(texto, "x", falso, "prueba")
+    assert any("sin resolver" in p for p in procedencia.verificar_entrega(texto.encode("utf-8"), manifiesto))
+
+
 @pytest.mark.parametrize("manifiesto", [None, [], {}, {"contrato": "otro"}, {"contrato": procedencia.CONTRATO}])
 def test_sin_manifiesto_valido_no_es_entregable(manifiesto):
     assert procedencia.verificar_entrega(b"texto sin citas", manifiesto)
 
 
-def test_verificar_entrega_cli(tmp_path):
-    almacen = {"FICT-0001": {"datos_oficiales": json.dumps({"registro": "FICT-0001", "rubro": "RUBRO.", "clave": "1a./J. 1/2019 (10a.)"}),
-                             "advertencias": "[]", "creado_en": "hoy", "modo_fuente": "fixture", "ruta_resultado": "e.json", "sha256_resultado": "ab" * 32}}
-    borrador = "Aplica [[CITA:FICT-0001]]."
+# ---------------------------------------------------------------- CR-1.2: manifiesto estricto y reverificación
+
+FUENTE_ACTO = "La autoridad invoca la 1a./J. 45/2019 (10a.) sin más."
+FUENTES = {"exp/acto.md": (FUENTE_ACTO, procedencia.sha256(FUENTE_ACTO))}
+
+
+def contexto(almacen, fuentes=FUENTES):
+    return procedencia.Contexto(almacen.get, fuentes.get)
+
+
+@PROPIEDADES
+@given(st.data())
+def test_los_marcadores_internos_nunca_aparecen_en_el_entregable(datos):
+    almacen = datos.draw(evidencias())
+    borrador, _ = datos.draw(borradores(almacen, FUENTES))
+    texto = ensamblar(borrador, almacen, FUENTES).texto
+    assert "[[" not in texto and "]]" not in texto
+    assert not any(f"{tipo}:" in texto for tipo in ("CITA", "CITA_AJENA", "NO_VERIFICADO"))
+
+
+@PROPIEDADES
+@given(st.data())
+def test_quitar_o_agregar_cualquier_campo_del_manifiesto_es_blocked(datos):
+    almacen = datos.draw(evidencias())
+    borrador, _ = datos.draw(borradores(almacen, FUENTES))
+    r = ensamblar(borrador, almacen, FUENTES)
+    documento = r.texto.encode("utf-8")
+    base = procedencia.manifiesto(r.texto, borrador, r, "prueba")
+    assert procedencia.verificar_entrega(documento, base, contexto(almacen)) == []
+    rutas = [(clave,) for clave in base] + [("tramos", i, clave) for i, tramo in enumerate(base["tramos"]) for clave in tramo]
+    for ruta in rutas:
+        roto = json.loads(json.dumps(base))
+        padre = roto
+        for paso in ruta[:-1]:
+            padre = padre[paso]
+        del padre[ruta[-1]]
+        assert procedencia.verificar_entrega(documento, roto, contexto(almacen)), ruta
+    for destino in [lambda m: m, lambda m: m["tramos"][datos.draw(st.integers(0, len(m["tramos"]) - 1))]]:
+        roto = json.loads(json.dumps(base))
+        destino(roto)["campo_ajeno"] = 1
+        assert procedencia.verificar_entrega(documento, roto, contexto(almacen))
+    # Omitir un tramo entero (de cualquier tipo, incluida una cita en forma «rubro», cuyo texto no dispara la alarma).
+    for i in range(len(base["tramos"])):
+        roto = json.loads(json.dumps(base))
+        del roto["tramos"][i]
+        assert procedencia.verificar_entrega(documento, roto, contexto(almacen)), base["tramos"][i]["tipo"]
+
+
+JSON_ARBITRARIO = st.recursive(st.none() | st.booleans() | st.integers(-5, 10**6) | st.floats(allow_nan=False) | st.text(max_size=10),
+                               lambda hijos: st.lists(hijos, max_size=4) | st.dictionaries(st.text(max_size=10), hijos, max_size=4), max_leaves=20)
+
+
+@PROPIEDADES
+@given(st.data())
+def test_ningun_manifiesto_hace_lanzar_a_la_comprobacion(datos):
+    """Un manifiesto arbitrario, o uno válido con un valor cualquiera reemplazado por JSON arbitrario, nunca produce una
+    excepción: produce BLOCKED (salvo que el reemplazo deje el mismo valor)."""
+    almacen = datos.draw(evidencias())
+    borrador, _ = datos.draw(borradores(almacen, FUENTES))
+    r = ensamblar(borrador, almacen, FUENTES)
+    documento = r.texto.encode("utf-8")
+    assert procedencia.verificar_entrega(documento, datos.draw(JSON_ARBITRARIO), contexto(almacen))
+    base = procedencia.manifiesto(r.texto, borrador, r, "prueba")
+    rutas = [(clave,) for clave in base] + [("tramos", i, clave) for i, tramo in enumerate(base["tramos"]) for clave in tramo]
+    ruta = datos.draw(st.sampled_from(rutas))
+    roto = json.loads(json.dumps(base))
+    padre = roto
+    for paso in ruta[:-1]:
+        padre = padre[paso]
+    valor = datos.draw(JSON_ARBITRARIO)
+    padre[ruta[-1]] = valor
+    resultado = procedencia.verificar_entrega(documento, roto, contexto(almacen))
+    # Única excepción legítima: version_plugin es informativo (cualquier texto vale).
+    assert isinstance(resultado, list) and (resultado or roto == base or (ruta == ("version_plugin",) and isinstance(valor, str)))
+
+
+@PROPIEDADES
+@given(st.data(), st.sampled_from(["retirada", "otra", "contenido"]))
+def test_la_entrega_se_reverifica_contra_la_evidencia_viva(datos, cambio):
+    almacen = datos.draw(evidencias())
+    borrador, pedidas = datos.draw(borradores(almacen))
+    if not pedidas:
+        return
     r = ensamblar(borrador, almacen)
-    documento = tmp_path / "escrito.md"
-    documento.write_bytes(r.texto.encode("utf-8"))
-    (tmp_path / "escrito.md.procedencia.json").write_text(json.dumps(procedencia.manifiesto(r.texto, borrador, r, "prueba")), encoding="utf-8")
+    documento, manifiesto = r.texto.encode("utf-8"), procedencia.manifiesto(r.texto, borrador, r, "prueba")
+    registro = datos.draw(st.sampled_from(sorted({reg for reg, _ in pedidas})))
+    vivo = dict(almacen)
+    if cambio == "retirada":  # venció o se invalidó después de ensamblar
+        del vivo[registro]
+    elif cambio == "otra":  # hay una evidencia vigente distinta de la que se usó
+        vivo[registro] = dict(almacen[registro], sha256_resultado="f" * 64)
+    else:  # misma huella declarada, datos oficiales distintos: el texto ya no es el de su evidencia
+        oficial = json.loads(almacen[registro]["datos_oficiales"])
+        vivo[registro] = dict(almacen[registro], datos_oficiales=json.dumps(dict(oficial, rubro=oficial["rubro"] + " X", clave=oficial["clave"] + "X", registro=registro + "Z")))
+    assert procedencia.verificar_entrega(documento, manifiesto, contexto(almacen)) == []
+    assert procedencia.verificar_entrega(documento, manifiesto, contexto(vivo))
 
-    def correr():
-        return subprocess.run([sys.executable, str(SCRIPTS / "verificar_entrega.py"), str(documento)], capture_output=True, text=True, encoding="utf-8")
 
-    assert correr().returncode == 0
-    documento.write_bytes(r.texto.replace("RUBRO.", "RUBRO INVENTADO.").encode("utf-8"))
-    assert correr().returncode == 1
-    (tmp_path / "escrito.md.procedencia.json").unlink()
-    assert correr().returncode == 1
+@pytest.mark.parametrize("cambio", ["fuente_cambiada", "fuente_ausente", "referencia_que_ya_no_esta"])
+def test_la_cita_ajena_conserva_su_procedencia_literal(cambio):
+    borrador = "La autoridad invoca [[CITA_AJENA:1a./J. 45/2019 (10a.)|exp/acto.md]]."
+    r = ensamblar(borrador, {}, FUENTES)
+    documento, manifiesto = r.texto.encode("utf-8"), procedencia.manifiesto(r.texto, borrador, r, "prueba")
+    assert procedencia.verificar_entrega(documento, manifiesto, contexto({})) == []
+    if cambio == "fuente_cambiada":
+        vivas = {"exp/acto.md": (FUENTE_ACTO + " Adición.", procedencia.sha256(FUENTE_ACTO + " Adición."))}
+    elif cambio == "fuente_ausente":
+        vivas = {}
+    else:  # la misma huella declarada, pero el texto vivo ya no contiene la referencia
+        vivas = {"exp/acto.md": ("La autoridad no invoca nada.", procedencia.sha256(FUENTE_ACTO))}
+    assert procedencia.verificar_entrega(documento, manifiesto, contexto({}, vivas))

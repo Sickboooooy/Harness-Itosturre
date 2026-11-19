@@ -17,6 +17,36 @@ Objetivo: reducir clases de fallos con garantías estructurales. Plan e incremen
   - los resultados quedaban dentro del plugin.
 - **Modelo de amenazas de CR-2** (`docs/cr2-modelo-amenazas.md`), para aprobación; sin implementar.
 - Pruebas nuevas: `test_procedencia.py` (17, por propiedades), `TestReservaContaminada` y `test_contrato_cr3.py` (18). Mutantes: CR-1.1 11/11 y reserva 3/3.
+- **CR-1.2 · comprobación de entrega conectada a los hooks; skills y evals migrados.**
+  - **Comprobación estricta** (`procedencia.verificar_entrega`, `scripts/verificar_entrega.py`): 0 PASS · 2 BLOCKED · 3 uso. BLOCKED si el manifiesto:
+    - falta;
+    - está incompleto: un campo, un tramo o una nota de evidencia que falta, o un campo ajeno;
+    - es inconsistente: tipos, posiciones, huellas, o «entregable» con citas pendientes;
+    - deja un marcador sin resolver o un patrón de cita fuera de los tramos del renderizador;
+    - tiene un tramo que ya no se verifica contra sus fuentes vivas. Una cita debe tener evidencia PASS vigente, la misma que se usó, y su texto debe ser idéntico al que se volvería a generar. Una cita ajena debe tener su fuente con la misma huella y la referencia literal. Un informe debe tener el documento auditado con la misma huella y cada cita afirmada literal en él.
+
+    Nunca lanza una excepción en lugar de BLOCKED.
+  - **Informe VVCA** (`reporte_vvca.py`): exige **procedencia literal**. Cada registro, clave, rubro citado y extracto de `citas.json` debe aparecer en el documento auditado. Si no, BLOCKED: una «corrección» de `citas.json` ya no puede convertir una cita mal hecha en PASS. Escribe su manifiesto (`tipo_documento: informe`).
+  - **Ensamblador:** se autoverifica contra las fuentes vivas. El `.docx` derivado lleva un manifiesto que lo ata por huella a su `.md` de origen.
+  - **Hooks:**
+    - `guardia_escritura` deniega toda escritura o edición a mano en `salidas_juridicas` y en los manifiestos, y los cambios a `evals/reserva.json`. En `borradores/` (nueva clave `borradores_juridicos`) revisa la gramática y la alarma sobre el **contenido resultante**: una edición no puede completar una cita con lo que ya estaba.
+    - `guardia_cierre` bloquea el cierre si un entregable modificado en la sesión no supera la comprobación.
+    - `guardia_externo` deniega un envío MCP que nombra un entregable que no la supera.
+  - **Gramática:** los argumentos de un marcador no admiten corchetes (no hay marcadores anidados).
+  - **Evals:** `dev-ensamblado` y `dev-tres-citas` exigen el manifiesto. Las soluciones rotas, que escriben el entregable a mano, bajan a 0.29 y 0.10.
+  - **Pruebas:** `test_entrega.py` (integración con procesos reales) y nuevas propiedades en `test_procedencia.py`. Mutantes: CR-1.2 20/20; CR-1.1 11/11 de nuevo.
+- **Guardias sin `node`: fallaban abiertas (hallado en el laboratorio WSL).** Todos los hooks se lanzan con `node …/lanzar.mjs`. Si falta `node`, el shell sale con 127, que Claude Code trata como error **no bloqueante**, y la acción pasaba sin guardia. Los cuatro hooks PreToolUse terminan ahora en `|| { …; exit 2; }`: el código 2 bloquea. Lo prueba `test_plataforma.py` con el comando exacto de `hooks.json` y un PATH sin `node` (mutante detectado). El hook de cierre no se cambió, para no crear un bucle sin salida, y queda como residual.
+- **Laboratorio WSL** (`pruebas-manuales/fase-0.2.0/laboratorio-wsl.md`): distribución desechable `itostack-lab`, sin unidades de Windows, sin interoperabilidad y sin credenciales. Ni el código de salida ni `partial` identifican una falla de infraestructura, y así lo recoge el contrato de CR-3 (R4, R6, P3, E4 y V4).
+- **Contrato de CR-3:** el manifiesto ata cada veredicto a un identificador opaco del caso y a las huellas de su definición, su rúbrica autorizada, su evaluador y sus artefactos (M5).
+- **Diseño del ejecutor aislado de CR-2** (`docs/cr2-ejecutor-aislado.md`): VM o CI Linux, canal angosto, manifiesto firmado y «aislada» solo con atestación firmada. Sin aprovisionar.
+- **Incompatibilidades de CR-1.2** (cambios de comportamiento deliberados):
+  1. Ya no se escribe ni edita a mano en `salidas/`, `escritos/`, `dictamenes/` ni `*.juridico.md`: se redacta en `borradores/` y se ensambla. Para corregir un entregable, se corrige el borrador y se vuelve a ensamblar.
+  2. Una marca ⚠/❌/✅ escrita a mano ya no exime a una cita en un archivo (en el chat, sí se usan). Hay que usar `[[CITA_AJENA:…|…]]` o `[[NO_VERIFICADO:…]]`.
+  3. Los entregables de 0.1.x no tienen manifiesto y no son entregables. No bloquean el cierre si no se tocaron en la sesión, pero no salen por MCP. Hay que volver a ensamblarlos desde su borrador.
+  4. Si la evidencia de una cita vence o cambia, o si la fuente de una cita ajena o el documento auditado cambian, el entregable deja de ser válido: hay que volver a verificar y ensamblar.
+  5. El documento auditado por `validar-documento` debe estar dentro del proyecto.
+  6. `verificar_entrega.py` cambia sus códigos: «no entregable» pasa de 1 a 2 (BLOCKED), y el uso inválido es 3.
+  7. El texto de un mensaje MCP se sigue revisando con la heurística de 0.1.x (una marca ⚠/❌ todavía exime ahí): un mensaje no es un entregable. Queda como residual documentado.
 
 ## 0.1.2 — 2026-11-19 · experimental
 

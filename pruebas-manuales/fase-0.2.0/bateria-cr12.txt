@@ -1,0 +1,24 @@
+itostack 0.1.2 · 2026-11-19T11:26:25Z
+PASS  pytest (suite completa)
+      ........................................................................ [ 81%]
+      ............................................s........................... [ 97%]
+      ..........                                                               [100%]
+      441 passed, 1 skipped in 180.02s (0:03:00)
+PASS  autoprueba (casos de eval con andamiaje real)
+      verificar-cita/pass-advertencia-sala                       1.00     0.60  OK
+      verificar-cita/pass-exacto                                 1.00     0.20  OK
+      
+      autoprueba: 18/18 casos coherentes
+PASS  lint completo (scripts hooks guardias evals)
+      lint itosturre: 0 hallazgo(s)
+PASS  lint --diff (cobertura informada)
+      lint itosturre: 0 hallazgo(s) · examinados 14 archivo(s), 1041 línea(s) nuevas o añadidas
+PASS  tsc --noEmit
+      
+PASS  claude plugin validate
+      
+      The directory also runs a safety scan and a policy review that this command does not.
+      
+      ✔ Validation passed
+
+BATERÍA: PASS

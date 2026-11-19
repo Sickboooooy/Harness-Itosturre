@@ -21,10 +21,14 @@ Objetivo: que la compuerta **produzca** resultados y veredictos en vez de recibi
 | Con `--keep-temp`, el temporal contiene **una unión (junction) a `~/.aws/sso` real**; el borrado recursivo sugerido por la CLI puede seguirla en PowerShell 5.1 | Exploración: `Get-ChildItem -Attributes ReparsePoint` | Limpieza: primero quitar los puntos de reanálisis, después borrar |
 | En esta máquina, `~/.aws` (22 GB) impide **cualquier** evaluación con Bash en Windows nativo | `tests/datos/resultado_plugin_eval_windows_bloqueado.json` | Plataforma: Linux/WSL bajo la identidad de servicio (CR-2) |
 | `runsPerCase` informa el valor del caso aunque `--runs` lo cambie | Ídem (`runsPerCase: 3`, 1 corrida) | R6: las corridas reales se cuentan en `arms.with` |
+| **Laboratorio Linux:** sin backend de sandbox, una corrida termina con `error` («cannot confine» el Bash), `partial: false`, `turns` 0 y **código 1**, el mismo de un fallo de la candidata. Con sandbox y sin sesión, termina con «Not logged in», `partial: true` y **código 2** | `pruebas-manuales/fase-0.2.0/laboratorio-wsl.md` | R4 y R6: ni el código de salida ni `partial` bastan; decide `error` o un «grader threw» |
+| En Linux la evaluación necesita **bubblewrap y socat** (backend de sandbox), y los hooks de itostack necesitan **node**. Sin node, los guardias fallaban abiertos (código 127, no bloqueante); corregido en CR-1.2 | Ídem | P3 y E4: verificar las herramientas y una guardia funcionando antes de evaluar |
+| En Linux el temporal se **sella** (`sealed/`, modo 000) y no tuvo enlaces ni montajes. El HOME aislado trae señuelos vacíos (`.aws`, `.ssh`, `.config/anthropic`) | Ídem | V4: limpieza por sistema operativo |
 
 ## 2. Plataforma
 
-- **P1.** El holdout corre en Linux (WSL2 o una máquina aparte) y bajo la identidad de servicio de CR-2. Nunca como el usuario del agente y nunca en Windows nativo.
+- **P1.** El holdout corre en Linux, en el ejecutor aislado de CR-2 (VM o CI, `docs/cr2-ejecutor-aislado.md`). Nunca como el usuario del agente y nunca en Windows nativo.
+- **P3.** La imagen del ejecutor incluye `node` (hooks), `bubblewrap` y `socat` (sandbox), `python3` y `git`, con versiones registradas en el manifiesto.
 - **P2.** La versión de `claude` y la de `codex` se fijan al congelar; otra versión al ejecutar → BLOCKED.
 
 ## 3. Entorno de la corrida (validación estricta)
@@ -44,6 +48,11 @@ Objetivo: que la compuerta **produzca** resultados y veredictos en vez de recibi
   - que la huella de la reserva sea igual a la congelada.
 
   Cualquiera distinta → BLOCKED sin consumir el intento.
+- **E4. Verificación previa de infraestructura**, sin consumir el intento:
+  - que estén `node`, `bwrap`, `socat`, `python3`, `git` y `claude`, en sus versiones (P3);
+  - una prueba de humo de que una guardia PreToolUse de la copia deniega una acción conocida, con su comando exacto de `hooks.json`.
+
+  Sin guardias funcionando no se evalúa.
 
 ## 4. Invocación de `claude plugin eval`
 
@@ -57,7 +66,13 @@ Objetivo: que la compuerta **produzca** resultados y veredictos en vez de recibi
 
 - **V2.** `--allow-tools` es exactamente la unión de los `allowed_tools` de los casos de la reserva; nada más.
 - **V3.** El `argv` completo queda en el manifiesto (`evaluador.argv`).
-- **V4.** Si se usa `--keep-temp` para extraer artefactos, el temporal se limpia quitando primero sus puntos de reanálisis (enlaces y uniones) sin seguirlos, y después se borra.
+- **V4.** Si se usa `--keep-temp` para extraer artefactos, la limpieza no sigue ningún enlace ni cruza ningún montaje. Procedimiento verificado en `pruebas-manuales/fase-0.2.0/lab/limpiar.sh`:
+  1. abrir permisos solo en directorios reales (`find -P -xdev -type d`), porque en Linux lo escrito por el agente queda sellado con modo 000;
+  2. listar los enlaces y borrarlos sin seguirlos;
+  3. borrar el resto con `rm -r --one-file-system`;
+  4. verificar que los destinos de los enlaces siguen intactos.
+
+  Nunca se ejecuta `git` ni nada que cargue configuración desde ahí dentro.
 
 ## 5. Validación de resultados
 
@@ -66,7 +81,7 @@ Esquema: `evals/esquemas/resultado-plugin-eval.schema.json` (estricto; provision
 - **R1.** JSON legible y conforme al esquema; si no → BLOCKED.
 - **R2.** `schemaVersion == 1` y `claudeVersion ==` la congelada; si no → BLOCKED.
 - **R3.** `suite` coincide con lo pedido (`ablation`, `modelOverride`, `caseFilter`, `threshold`, `concurrency`); `plugins[0].path ==` la copia materializada; `plugins[0].version ==` la de la candidata. Si no → BLOCKED.
-- **R4.** `partial == false`; si no → BLOCKED, con `partialReason` en el manifiesto.
+- **R4.** `partial == false`; si no → BLOCKED, con `partialReason` en el manifiesto. **`partial == false` no prueba que la corrida haya ocurrido** (laboratorio: sin sandbox, `partial` vale `false` y `turns` 0); por eso R6 se aplica siempre. **El código de salida no decide nada:** 1 y 2 aparecieron en fallas de infraestructura.
 - **R5.** El conjunto de nombres de casos es **exactamente** el de la reserva: ni falta ni sobra uno. Si no → BLOCKED.
 - **R6.** Cada corrida de cada caso debe cumplir:
   - `error == ""`;
@@ -104,6 +119,13 @@ Esquema: `evals/esquemas/manifiesto-holdout.schema.json`.
   Cualquier diferencia → el manifiesto no vale.
 - **M3.** Un manifiesto de holdout solo existe con la reserva «aislada»; el esquema lo exige.
 - **M4.** La decisión se escribe una vez (marca exclusiva, como en 0.1.2). Con CR-2, en un almacén que el usuario del agente no puede escribir.
+- **M5.** Cada caso del manifiesto ata su veredicto a cuatro cosas, todas obligatorias en el esquema:
+  - un identificador opaco: el sha256 del nombre, que revelaría qué se prueba;
+  - la huella de su definición;
+  - la huella de su rúbrica autorizada;
+  - la huella de la identidad del evaluador, más la de sus artefactos y cada juicio con su veredicto.
+
+  El ejecutor de CR-2 firma el manifiesto (`ssh-keygen -Y sign`), y el constructor lo verifica con la clave pública versionada.
 
 ## 8. Incógnitas que resuelve el spike en WSL
 

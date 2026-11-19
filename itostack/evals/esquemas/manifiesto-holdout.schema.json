@@ -59,9 +59,12 @@
       "type": "array", "minItems": 1,
       "items": {
         "type": "object", "additionalProperties": false,
-        "required": ["nombre", "corridas", "sha256_artefacto", "juicios", "estado"],
+        "required": ["id", "sha256_caso", "sha256_rubrica", "sha256_evaluador", "corridas", "sha256_artefacto", "juicios", "estado"],
         "properties": {
-          "nombre": {"type": "string"},
+          "id": {"$ref": "#/$defs/sha256", "description": "identificador opaco: sha256 del nombre (el nombre revela qué se prueba)"},
+          "sha256_caso": {"$ref": "#/$defs/sha256", "description": "huella de la definición del caso (case.yaml y andamiaje)"},
+          "sha256_rubrica": {"$ref": "#/$defs/sha256", "description": "rúbrica autorizada para la skill del caso (por_skill.json de la copia congelada)"},
+          "sha256_evaluador": {"$ref": "#/$defs/sha256", "description": "huella JSON canónica de {evaluador, juez}: ata el veredicto a quién lo dio"},
           "corridas": {
             "type": "array", "minItems": 1,
             "items": {

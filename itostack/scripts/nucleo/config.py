@@ -45,6 +45,9 @@ CONFIG_DEFECTO: dict = {
     },
     "comparacion": {"ignorar_acentos": True},
     "salidas_juridicas": ["salidas/**", "escritos/**", "dictamenes/**", "**/*.juridico.md"],
+    # Borradores con marcadores (contrato itostack/citas@1): el guardia de escritura revisa su gramática y deniega citas
+    # o marcas escritas a mano. Los entregables de `salidas_juridicas` solo los escriben los renderizadores.
+    "borradores_juridicos": ["borradores/**"],
     # Herramientas MCP que salen de la máquina sin pasar por la compuerta humana (patrones fnmatch sobre el nombre,
     # p. ej. "mcp__plugin_telegram_telegram__reply"). Vacío por omisión: toda salida pasa por la compuerta.
     "acciones_externas_permitidas": [],

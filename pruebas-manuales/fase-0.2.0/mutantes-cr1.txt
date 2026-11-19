@@ -1,24 +1,24 @@
 DETECTADO       I-8 · un «[[» que no es marcador válido se ignora
-                limpio: 1 passed, 16 deselected in 3.33s · mutante: 1 failed, 16 deselected in 3.22s
+                limpio: 1 passed, 23 deselected in 2.93s · mutante: 1 failed, 23 deselected in 2.95s
 DETECTADO       I-8 · una CITA sin evidencia se degrada a no verificada
-                limpio: 1 passed, 16 deselected in 3.89s · mutante: 1 failed, 16 deselected in 4.42s
+                limpio: 1 passed, 23 deselected in 2.39s · mutante: 1 failed, 23 deselected in 3.69s
 DETECTADO       I-8 · la alarma no ve registros digitales
-                limpio: 1 passed, 16 deselected in 1.12s · mutante: 1 failed, 16 deselected in 3.26s
+                limpio: 1 passed, 23 deselected in 1.00s · mutante: 1 failed, 23 deselected in 2.87s
 DETECTADO       I-10 · la alarma no ve marcas de verificación
-                limpio: 1 passed, 16 deselected in 1.07s · mutante: 1 failed, 16 deselected in 3.19s
+                limpio: 1 passed, 23 deselected in 1.00s · mutante: 1 failed, 23 deselected in 2.91s
 DETECTADO       I-9 · tramos con posiciones corridas
-                limpio: 1 passed, 16 deselected in 1.76s · mutante: 1 failed, 16 deselected in 3.91s
+                limpio: 1 passed, 23 deselected in 1.75s · mutante: 1 failed, 23 deselected in 3.63s
 DETECTADO       I-9 · la forma «clave» no muestra la clave de la evidencia
-                limpio: 1 passed, 16 deselected in 1.84s · mutante: 1 failed, 16 deselected in 7.20s
+                limpio: 1 passed, 23 deselected in 1.72s · mutante: 1 failed, 23 deselected in 6.88s
 DETECTADO       A1-4 · la cita ajena no se coteja con su fuente
-                limpio: 1 passed, 16 deselected in 1.00s · mutante: 1 failed, 16 deselected in 3.70s
+                limpio: 1 passed, 23 deselected in 0.95s · mutante: 1 failed, 23 deselected in 3.50s
 DETECTADO       A1-5 · la entrega no comprueba la huella del documento
-                limpio: 1 passed, 16 deselected in 1.88s · mutante: 1 failed, 16 deselected in 4.82s
+                limpio: 1 passed, 23 deselected in 1.82s · mutante: 1 failed, 23 deselected in 5.47s
 DETECTADO       I-8 · la entrega no busca citas fuera de los tramos
-                limpio: 1 passed, 16 deselected in 1.96s · mutante: 1 failed, 16 deselected in 6.01s
+                limpio: 1 passed, 23 deselected in 1.77s · mutante: 1 failed, 23 deselected in 5.21s
 DETECTADO       I-9 · la entrega no coteja el texto de cada tramo
-                limpio: 1 passed, 16 deselected in 1.91s · mutante: 1 failed, 16 deselected in 4.63s
+                limpio: 1 passed, 23 deselected in 1.83s · mutante: 1 failed, 23 deselected in 9.06s
 DETECTADO       A1-5 · un borrador con pendientes pasa por entregable
-                limpio: 1 passed, 16 deselected in 0.79s · mutante: 1 failed, 16 deselected in 2.99s
+                limpio: 1 passed, 23 deselected in 0.78s · mutante: 1 failed, 23 deselected in 2.86s
 
 11/11 mutantes detectados

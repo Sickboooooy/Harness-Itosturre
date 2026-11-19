@@ -1,0 +1,100 @@
+PASS  corre como «lab», no como root
+PASS  «lab» sin sudo
+PASS  ninguna unidad de Windows montada ni legible (los directorios /mnt/<letra> existen vacíos)
+PASS  interoperabilidad con Windows desactivada
+PASS  sin ejecutables de Windows en el PATH
+PASS  sin variables de credenciales en el entorno
+PASS  sin almacenes de credenciales en el home
+PASS  copia del plugin completa (204 archivos) y sin casos holdout
+
+COMPROBACIONES: PASS
+== versión
+2.1.327 (Claude Code)
+== ayuda (opciones de privacidad y salida)
+    --ablation <mode>            Run a no-plugin baseline arm and report the score
+    --json [path]                Print the full run result (prompts, graders,
+    --judge-model <model>        Override LLM-grader model (default: haiku)
+    --keep-temp                  Keep scaffold directories for debugging
+    --no-publish                 Keep the HTML report local only; skip publishing
+    --output-dir <dir>           Directory for aggregate-result.json (default:
+    --publish-report             Also require publishing the report to claude.ai
+== corrida sin credenciales (caso de desarrollo, datos sintéticos)
+  código de salida: 2
+  | Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+  | ⚠ kept /tmp/claude-eval-qWvk04: home/ and tmp/ in it were written by the plugin under test and are sealed in /tmp/claude-eval-qWvk04/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /tmp/claude-eval-qWvk04 /tmp/claude-eval-qWvk04/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  | Wrote /home/lab/exploracion/resultado.json
+  | Report: /home/lab/exploracion/informe.html
+  partial=True partialReason='auth_failed' score=0 turns=1 error='exit 1: Not logged in · Please run /login'
+  graders=[('veredicto-pass', False, 'grader threw: case "verificar-cita.pass-exacto" gr'), ('usa-verificador', False, 'Bash called 0x (expected 1..∞)'), ('informa-veredicto', False, 'pattern not found in last_message'), ('calidad-del-reporte', False, 'grader threw: judge call failed: Not logged in · P')]
+  tracePath='/tmp/claude-eval-qWvk04/out/trace.jsonl'
+== mensajes completos
+  error: exit 1: Not logged in · Please run /login
+  grader veredicto-pass: passed=False scored=True withOnly=False · grader threw: case "verificar-cita.pass-exacto" grader focus file ".itostack/ultimo_resultado.json": path ".itostack/ultimo_resultado.json" does not exist
+  grader usa-verificador: passed=False scored=True withOnly=False · Bash called 0x (expected 1..∞)
+  grader informa-veredicto: passed=False scored=True withOnly=False · pattern not found in last_message
+  grader calidad-del-reporte: passed=False scored=True withOnly=False · grader threw: judge call failed: Not logged in · Please run /login
+== temporal conservado (solo inspección; lo borra limpiar.sh)
+  temporal: /tmp/claude-eval-qWvk04 · modos: dr-x------ y sealed d---------
+  .
+  ./out
+  ./out/trace.jsonl
+  ./sealed
+  ./sealed/tmp
+  ./sealed/tmp/claude-1000
+  ./sealed/tmp/claude-1000/plugin-tool-staging
+  ./sealed/tmp/claude-1000/fswatch-probe-Wl11mE
+  ./sealed/tmp/claude-1000/bash-edit-diff
+  ./sealed/tmp/claude-1000/-tmp-claude-eval-qWvk04-home-cwd
+  ./sealed/tmp/cc-socks
+  ./sealed/home
+  ./sealed/home/.git
+  ./sealed/home/.git/HEAD
+  ./sealed/home/.git/hooks
+  ./sealed/home/.git/commondir
+  ./sealed/home/.git/glab-cli
+  ./sealed/home/.git/objects
+  ./sealed/home/.git/refs
+  ./sealed/home/.git/config
+  ./sealed/home/.local
+  ./sealed/home/.local/lib
+  ./sealed/home/.ssh
+  ./sealed/home/.claude
+  ./sealed/home/.claude/remote
+  ./sealed/home/.claude/ssh
+  ./sealed/home/cwd
+  ./sealed/home/cwd/.git
+  ./sealed/home/cwd/.itostack
+  ./sealed/home/.config
+  ./sealed/home/.config/anthropic
+  ./sealed/home/.config/glab-cli
+  ./sealed/home/.config/git
+  ./sealed/home/.gitconfig
+  ./sealed/home/.aws
+  ./sealed/home/.aws/cli
+  ./sealed/home/.aws/boto
+  ./sealed/home/.aws/sso
+  ./config
+  ./config/projects
+  ./config/projects/-tmp-claude-eval-qWvk04-home-cwd
+  ./config/projects/-tmp-claude-eval-qWvk04-home-cwd/b7762471-01b3-4158-a31f-3f7fbeaae1d2.jsonl
+  ./config/projects/-tmp-claude-eval-qWvk04-home-cwd/memory
+  ./config/sessions
+  ./config/.claude.json
+  ./config/plugins
+  ./config/plugins/store
+  ./config/plugins/store/cc-plugin-agents-md_builtin-b049b47b3618.json
+  ./config/plugins/data
+  ./config/plugins/data/itostack-inline
+  ./config/dev-mods
+  ./config/backups
+  ./config/backups/.claude.json.backup.1795087135470
+  ./config/seed-admin
+  ./config/session-env
+  ./config/session-env/b7762471-01b3-4158-a31f-3f7fbeaae1d2
+  ./config/settings.json
+  enlaces simbólicos (ruta -> destino):
+  montajes dentro del temporal:
+    ninguno
+  primeras líneas de out/trace.jsonl:
+    {"type":"system","subtype":"hook_started","hook_id":"2890dfd6-aff9-4a5d-b276-43a14b651814","hook_name":"SessionStart:startup","hook_event":"SessionStart","uuid":"7ae08430-6a55-49c0-a3bd-a0c74989d499","session_id":"b7762471-01b3-4158-a31f-3f7fbeaae1d2"}
+    {"type":"system","subtype":"hook_response","hook_id":"2890dfd6-aff9-4a5d-b276-43a14b651814","hook_name":"SessionStart:startup","hook_event":"SessionStart","output":"/bin/sh: 1: node: not found\n","stdout":"","stderr":"/bin/sh: 1: node: not found\n","exit_code":127,"outcome":"error","uuid":"e504ee9f-1041-4b6e-ba22-6d1b09b2d08d","session_id":"b776

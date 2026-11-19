@@ -111,7 +111,8 @@ def test_ejemplo_minimo_de_manifiesto():
                       "ablation": "none", "runs": 1, "concurrencia": 1, "sha256_resultados": h},
         "juez": {"familia": "openai", "herramienta": "codex", "modelo": "gpt-6.1-sol", "esfuerzo": "high", "version": "codex-cli 0.167", "sha256_opciones": h},
         "rubrica": {"archivo": "verificacion.md", "sha256": h, "criterios": 5},
-        "casos": [{"nombre": "verificar-cita.x", "corridas": [{"score": 1.0, "turns": 5, "error": "", "sha256_traza": h}], "sha256_artefacto": h,
+        "casos": [{"id": h, "sha256_caso": h, "sha256_rubrica": h, "sha256_evaluador": h,
+                   "corridas": [{"score": 1.0, "turns": 5, "error": "", "sha256_traza": h}], "sha256_artefacto": h,
                    "juicios": [{"sha256_respuesta": h, "estado": "APRUEBA", "puntaje": 10.0}], "estado": "ACEPTA"}],
         "decision": {"estado": "ACEPTADA", "motivo": "holdout 1.0 y juez aprueba cada caso"},
         "diario": {"cabeza_sha256": h, "entradas": 7},
@@ -125,3 +126,12 @@ def test_ejemplo_minimo_de_manifiesto():
     roto = copy.deepcopy(manifiesto)
     roto["reserva"]["estado"] = "contaminada"
     assert not v.is_valid(roto)  # un manifiesto de holdout solo existe con la reserva aislada
+    # Cada caso ata su veredicto a su definición, su rúbrica autorizada, su evaluador y sus artefactos (decisión 5 del
+    # operador): quitar cualquiera de esos vínculos invalida el manifiesto; un nombre legible en lugar del id también.
+    for vinculo in ("id", "sha256_caso", "sha256_rubrica", "sha256_evaluador", "sha256_artefacto", "juicios"):
+        roto = copy.deepcopy(manifiesto)
+        del roto["casos"][0][vinculo]
+        assert not v.is_valid(roto), vinculo
+    roto = copy.deepcopy(manifiesto)
+    roto["casos"][0]["id"] = "verificar-cita.holdout-x"
+    assert not v.is_valid(roto)

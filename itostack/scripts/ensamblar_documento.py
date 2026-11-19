@@ -41,23 +41,6 @@ def ruta_manifiesto(salida: Path) -> Path:
     return salida.with_name(salida.name + ".procedencia.json")
 
 
-def lector_de_fuentes(proyecto: Path):
-    """Documentos del expediente para CITA_AJENA: solo archivos de texto dentro del proyecto."""
-    raiz = proyecto.resolve()
-
-    def leer(ruta: str):
-        destino = (raiz / ruta).resolve()
-        if not destino.is_file() or not destino.is_relative_to(raiz):
-            return None
-        datos = destino.read_bytes()
-        try:
-            return datos.decode("utf-8"), procedencia.sha256(datos)
-        except UnicodeDecodeError:
-            return None
-
-    return leer
-
-
 def principal() -> int:
     analizador = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     analizador.add_argument("borrador", type=Path)
@@ -72,8 +55,8 @@ def principal() -> int:
     dias, modos = config["evidencia"]["vigencia_dias"], modos_validos(config)
     texto = args.borrador.read_text(encoding="utf-8")
 
-    resultado = procedencia.ensamblar(texto, lambda registro: almacen.vigente("tesis", registro, dias, modos), lector_de_fuentes(proyecto),
-                                      args.permitir_pendientes)
+    contexto = procedencia.Contexto(lambda registro: almacen.vigente("tesis", registro, dias, modos), procedencia.lector_de_fuentes(proyecto))
+    resultado = procedencia.ensamblar(texto, contexto.evidencia_de, contexto.fuente_de, args.permitir_pendientes)
     if resultado.errores:
         for problema in resultado.errores:
             print(f"✘ {problema}")
@@ -86,7 +69,7 @@ def principal() -> int:
     manifiesto = procedencia.manifiesto(resultado.texto, texto, resultado, version)
     datos = resultado.texto.encode("utf-8")
     # El ensamblador se somete a la misma comprobación que cualquier entregable antes de escribir.
-    problemas = [p for p in procedencia.verificar_entrega(datos, manifiesto) if not (args.permitir_pendientes and "pendientes" in p)]
+    problemas = [p for p in procedencia.verificar_entrega(datos, manifiesto, contexto) if not (args.permitir_pendientes and "pendientes" in p)]
     if problemas:
         for problema in problemas:
             print(f"✘ {problema}")
@@ -105,6 +88,10 @@ def principal() -> int:
         if pandoc:
             destino = args.salida.with_suffix(".docx")
             subprocess.run([pandoc, str(args.salida), "-o", str(destino)], check=True)
+            # El .docx es un derivado: su manifiesto lo ata, por huella, al .md ensamblado del que salió.
+            derivado = {"contrato": procedencia.CONTRATO, "version_plugin": version, "tipo_documento": "derivado",
+                        "derivado_de": args.salida.name, "sha256_documento": procedencia.sha256(destino.read_bytes()), "sha256_origen": procedencia.sha256(datos)}
+            ruta_manifiesto(destino).write_text(json.dumps(derivado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             print(f"DOCX: {destino}")
         else:
             print("pandoc no está instalado: el .docx no se generó (sudo apt install pandoc)")

@@ -2,6 +2,8 @@
 
 Estado: **propuesta para aprobación del operador. No se implementa nada de CR-2 hasta que se apruebe.** Rama `dev/itostack-0.2.0`, 2026-11-19.
 
+> **Decisión del operador (2026-11-19):** la arquitectura objetivo es una **VM o un ejecutor de CI aislados**, preferentemente Linux. La opción O3 (cuenta de Windows + WSL) no es la solución definitiva. El diseño del ejecutor y sus criterios de aceptación están en `docs/cr2-ejecutor-aislado.md`. Este documento conserva el modelo de amenazas (secciones 2 a 4), que sigue vigente.
+
 Ningún paso de este documento pide, guarda ni transmite una contraseña a un agente o a un script.
 
 ## 1. Qué debe garantizar CR-2

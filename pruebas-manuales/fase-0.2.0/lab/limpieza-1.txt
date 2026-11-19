@@ -1,0 +1,5 @@
+== /tmp/claude-eval-J3kRRS
+  enlaces simbólicos:
+    ninguno
+  destinos de los enlaces intactos
+  temporal borrado

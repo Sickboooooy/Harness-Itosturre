@@ -28,7 +28,7 @@ Raíz del plugin: `R=$(cat .itostack/raiz_plugin)`.
    python3 "$R/scripts/reporte_vvca.py" informe --documento <documento>
    ```
 
-   Queda en `salidas/informe-vvca.md` (matriz VVCA, detalle por cita, evidencia y conclusión).
+   Queda en `salidas/informe-vvca.md` (matriz VVCA, detalle por cita, evidencia y conclusión) con su manifiesto de procedencia `salidas/informe-vvca.md.procedencia.json`. **Procedencia literal:** si un registro, clave, rubro o extracto de `citas.json` no aparece literal en el documento auditado (salvo espacios, comillas y mayúsculas), el informe sale `BLOCKED` y no se escribe: corrige `citas.json` para que refleje el documento tal como está, no como debería estar. El documento auditado debe estar dentro del proyecto. Compruébalo con `python3 "$R/scripts/verificar_entrega.py" salidas/informe-vvca.md`; si cambias el documento auditado después, el informe deja de ser entregable.
 5. **Audita** el informe con el subagente `auditor-citas` si el documento tiene más de tres citas o va a entregarse a un cliente.
 6. **Responde** con: ruta del informe, conteo PASS/FAIL/BLOCKED, las citas que no deben usarse y por qué, y las que requieren verificación manual.
 
@@ -36,5 +36,5 @@ Raíz del plugin: `R=$(cat .itostack/raiz_plugin)`.
 
 - Nunca afirmes que «todas las citas están verificadas» si hay un solo FAIL o BLOCKED.
 - Una cita inexistente o discrepante se reporta ❌; no propongas una sustituta sin verificarla con /verificar-cita.
-- No edites a mano el informe para cambiar veredictos: el veredicto lo da el verificador.
+- No edites a mano el informe: el veredicto lo da el verificador, el hook de escritura deniega escribir en `salidas/` y cualquier cambio invalida su manifiesto.
 - Advertencia fija al final de la respuesta.

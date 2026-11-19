@@ -152,6 +152,22 @@ Autorizado por el operador: cerrar 0.1.2 en una rama de release, crear `dev/itos
 - **CR-2:** `itostack/docs/cr2-modelo-amenazas.md`, esperando aprobación. Recomienda O3: una cuenta local de Windows con su propia distribución WSL. Un usuario Linux dentro de la distribución del operador no aísla, porque `wsl -u root` lo atraviesa.
 - **Sin commit en la rama de desarrollo**: falta autorización.
 
+### Decisiones del operador y CR-1.2 (2026-11-19, segunda parte)
+
+- **Commit local `97f3c54`** en `dev/itostack-0.2.0` (CR-1.1 y su documentación, la reserva contaminada, el contrato de CR-3 y el modelo de amenazas). Sin push.
+- **CR-1.2: PASS.** Comprobación de entrega estricta y reverificada contra las fuentes vivas, conectada a los hooks de escritura, cierre y MCP. Informe VVCA con procedencia literal; skills, plantilla y evals migrados.
+  - Mutantes: CR-1.2 21/21 y CR-1.1 11/11.
+  - Batería: PASS (`fase-0.2.0/bateria-cr12.txt`).
+- **Hallazgos del propio trabajo:**
+  1. Una propiedad nueva encontró que la comprobación de entrega **lanzaba una excepción** (`KeyError`, `TypeError`) con manifiestos mal formados, en vez de dar BLOCKED. Corregido, y lo cubre una propiedad que garantiza «nunca lanza».
+  2. Un manifiesto al que le faltaba el tramo de una cita en forma «rubro» pasaba, porque su texto no dispara la alarma. Corregido con una regla de coherencia de las notas `[^evN]`.
+  3. La gramática admitía `[` dentro de los argumentos y dejaba pasar `[[` anidados. Corregido.
+  4. **En el laboratorio:** sin `node`, todas las guardias fallaban abiertas. Corregido y probado.
+- **CR-2:** el operador eligió una VM o un CI aislados. Diseño y criterios X1 a X10 en `itostack/docs/cr2-ejecutor-aislado.md`. Sin aprovisionar.
+- **Laboratorio WSL:** `itostack-lab` instalado y detenido, sin credenciales; procedimiento y hallazgos en `fase-0.2.0/laboratorio-wsl.md`. La corrida exitosa necesita una credencial (decisión del operador).
+- **Por error leí con `grep` líneas de un caso `holdout-*`** (`validar-documento`). Ya estaba clasificado como contaminado, así que su estado no cambia. Desde entonces las búsquedas excluyen `holdout-*`.
+- **Sin commit de CR-1.2**: falta autorización.
+
 ## Siguiente
 - Fase 8 (SJF y DOF reales). **Bloqueada esperando al operador**: hace falta un registro digital real con su rubro literal del SJF, y una URL del DOF con un fragmento literal de su texto. La regla 3 del plan prohíbe buscarlos o proponerlos.
 - Luego, fase 9: `pruebas-manuales/INFORME-PRUEBAS.md` con la matriz completa, los defectos por gravedad y las 3 correcciones prioritarias.

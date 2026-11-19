@@ -37,5 +37,5 @@ El agente no escribe rubros, claves, datos de publicación ni marcas de verifica
 ## Reglas
 
 - Si no tienes el registro de un criterio, no lo cites: escribe la idea sin cita o usa `[[NO_VERIFICADO:<descripción>]]` para el operador.
-- El hook de escritura bloquea citas sin evidencia en `salidas/`, `escritos/` y `dictamenes/`; no lo evadas escribiendo en otra carpeta.
+- El hook de escritura deniega escribir o editar a mano en `salidas/`, `escritos/`, `dictamenes/` y `*.juridico.md` (solo escriben ahí los renderizadores), y en `borradores/` deniega citas, «rubro:» o marcas ⚠/❌/✅ fuera de un marcador. Un entregable sin procedencia válida bloquea el cierre de la sesión y no sale por MCP.
 - Estilo para escritos procesales: redacción doctrinal formal, sin muletillas de IA.

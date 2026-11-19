@@ -1,0 +1,44 @@
+DETECTADO       CR-1.2 · un entregable jurídico se puede escribir a mano
+                limpio: 5 passed, 72 deselected in 4.37s · mutante: 5 failed, 72 deselected in 4.35s
+DETECTADO       CR-1.2 · el borrador se revisa en el texto nuevo, no en cómo queda
+                limpio: 1 passed, 76 deselected in 2.65s · mutante: 1 failed, 76 deselected in 3.19s
+DETECTADO       CR-1.2 · un manifiesto se puede escribir a mano
+                limpio: 3 passed, 74 deselected in 1.58s · mutante: 1 failed, 2 passed, 74 deselected in 3.63s
+DETECTADO       CR-1.2 · el estado de la reserva se puede escribir a mano
+                limpio: 3 passed, 74 deselected in 1.56s · mutante: 1 failed, 2 passed, 74 deselected in 3.66s
+DETECTADO       CR-1.2 · el cierre de sesión no comprueba los entregables
+                limpio: 5 passed, 72 deselected in 2.58s · mutante: 2 failed, 3 passed, 72 deselected in 4.59s
+DETECTADO       CR-1.2 · un envío MCP saca un entregable que no es válido
+                limpio: 2 passed, 75 deselected in 1.59s · mutante: 1 failed, 1 passed, 75 deselected in 3.69s
+DETECTADO       CR-1.2 · el manifiesto admite campos ajenos o faltantes
+                limpio: 2 passed, 75 deselected in 3.12s · mutante: 2 failed, 75 deselected in 11.88s
+DETECTADO       CR-1.2 · un tramo de cita puede omitirse del manifiesto
+                limpio: 1 passed, 76 deselected in 2.65s · mutante: 1 failed, 76 deselected in 6.55s
+DETECTADO       CR-1.2 · se declara entregable un manifiesto con citas pendientes
+                limpio: 1 passed, 76 deselected in 0.78s · mutante: 1 failed, 76 deselected in 2.83s
+DETECTADO       CR-1.2 · la evidencia retirada después de ensamblar no bloquea
+                limpio: 1 passed, 76 deselected in 1.90s · mutante: 1 failed, 76 deselected in 3.98s
+DETECTADO       CR-1.2 · otra evidencia vigente pasa por la que se usó
+                limpio: 1 passed, 76 deselected in 1.84s · mutante: 1 failed, 76 deselected in 7.33s
+DETECTADO       CR-1.2 · el texto de la cita no se coteja con su evidencia viva
+                limpio: 1 passed, 76 deselected in 1.96s · mutante: 1 failed, 76 deselected in 4.06s
+DETECTADO       CR-1.2 · una fuente cambiada no invalida la cita ajena
+                limpio: 5 passed, 72 deselected in 1.33s · mutante: 2 failed, 3 passed, 72 deselected in 3.33s
+DETECTADO       CR-1.2 · la cita ajena no se recoteja literal contra su fuente
+                limpio: 3 passed, 74 deselected in 0.80s · mutante: 1 failed, 2 passed, 74 deselected in 2.74s
+DETECTADO       CR-1.2 · las citas del informe no se recotejan con el documento auditado
+                limpio: 1 passed, 76 deselected in 1.04s · mutante: 1 failed, 76 deselected in 3.10s
+DETECTADO       CR-1.2 · el informe no exige procedencia literal antes de escribirse
+                limpio: 1 passed, 76 deselected in 1.03s · mutante: 1 failed, 76 deselected in 3.12s
+DETECTADO       CR-1.2 · un .docx viejo pasa por su origen nuevo
+                limpio: 1 passed, 76 deselected in 1.17s · mutante: 1 failed, 76 deselected in 3.23s
+DETECTADO       CR-1.2 · la comprobación lanza en vez de bloquear
+                limpio: 1 passed, 76 deselected in 3.44s · mutante: 1 failed, 76 deselected in 12.74s
+DETECTADO       CR-1.2 · un marcador sin resolver llega al entregable
+                limpio: 1 passed, 76 deselected in 0.78s · mutante: 1 failed, 76 deselected in 2.85s
+DETECTADO       CR-1.2 · la gramática admite marcadores anidados
+                limpio: 1 passed, 76 deselected in 1.03s · mutante: 1 failed, 76 deselected in 3.29s
+DETECTADO       CR-1.2 · sin node, la guardia de escritura falla abierta (código 127, no bloqueante)
+                limpio: 4 passed, 73 deselected in 0.98s · mutante: 1 failed, 3 passed, 73 deselected in 3.06s
+
+21/21 mutantes detectados

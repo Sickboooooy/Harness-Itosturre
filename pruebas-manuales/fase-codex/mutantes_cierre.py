@@ -4,7 +4,7 @@ Para cada mutante: copia el plugin (sin node_modules) a un directorio temporal, 
 exacto y corre solo las pruebas del invariante. «Detectado» = las pruebas fallan con el defecto. Un mutante no
 detectado es una prueba que no demuestra su invariante.
 
-Uso: python -I mutantes_cierre.py <raíz del plugin itostack> [cierre-0.1.2|cr1|reserva]
+Uso: python -I mutantes_cierre.py <raíz del plugin itostack> [cierre-0.1.2|cr1|reserva|cr12]
 """
 import os
 import shutil
@@ -97,7 +97,7 @@ MUTANTES_CR1 = [
      [("return f\"{oficial.get('clave', '—')} (registro digital {registro}){nota}\"", "return f\"{oficial.get('registro', '—')} (registro digital {registro}){nota}\"")],
      "test_cada_cita_del_entregable_es_exactamente_la_de_su_evidencia"),
     ("A1-4 · la cita ajena no se coteja con su fuente", PROC,
-     [("if _comparable(referencia) not in _comparable(contenido):", "if False:")],
+     [("            if not literal_en(referencia, contenido):\n                resultado.errores.append(", "            if False:\n                resultado.errores.append(")],
      "test_cita_ajena_solo_si_aparece_literal_en_la_fuente"),
     ("A1-5 · la entrega no comprueba la huella del documento", PROC,
      [('if sha256(documento) != datos_manifiesto.get("sha256_documento"):', "if False:")],
@@ -106,7 +106,7 @@ MUTANTES_CR1 = [
      [("        if not _dentro(a, b, intervalos):\n            errores.append(f\"línea {_linea(texto, a)}: {tipo} «", "        if False:\n            errores.append(f\"línea {_linea(texto, a)}: {tipo} «")],
      "test_una_cita_a_mano_se_detecta_aunque_se_rehaga_la_huella"),
     ("I-9 · la entrega no coteja el texto de cada tramo", PROC,
-     [(' or sha256(texto[inicio:fin]) != tramo.get("sha256_texto"):', ":")],
+     [('if _es_hex(tramo.get("sha256_texto")) and sha256(texto[inicio:fin]) != tramo["sha256_texto"]:', "if False:")],
      "test_editar_dentro_de_un_tramo_se_detecta_aunque_se_rehaga_la_huella"),
     ("A1-5 · un borrador con pendientes pasa por entregable", PROC,
      [('"entregable": not ensamblado.pendientes,', '"entregable": True,')],
@@ -126,18 +126,89 @@ MUTANTES_RESERVA = [
      "TestReservaContaminada"),
 ]
 
+# CR-1.2 (0.2.0): la comprobación de entrega conectada a hooks, informe y CLI. Pruebas: test_entrega.py y test_procedencia.py.
+ESCRITURA = "hooks/guardia_escritura.py"
+MUTANTES_CR12 = [
+    ("CR-1.2 · un entregable jurídico se puede escribir a mano", ESCRITURA,
+     [("    if es_salida_juridica(ruta, proyecto, config):\n        _comun.denegar(", "    if False:\n        _comun.denegar(")],
+     "test_ningun_entregable_se_escribe_a_mano or test_editar_un_entregable"),
+    ("CR-1.2 · el borrador se revisa en el texto nuevo, no en cómo queda", ESCRITURA,
+     [("procedencia.problemas_de_borrador(contenido_resultante(nombre, datos, ruta))", "procedencia.problemas_de_borrador(\" \".join(textos_nuevos(nombre, datos)))")],
+     "test_una_edicion_que_completa_una_cita"),
+    ("CR-1.2 · un manifiesto se puede escribir a mano", ESCRITURA,
+     [("    if normalizada.endswith(\".procedencia.json\"):", "    if False:")],
+     "test_manifiestos_y_estado_de_la_reserva_protegidos"),
+    ("CR-1.2 · el estado de la reserva se puede escribir a mano", ESCRITURA,
+     [(" or normalizada.endswith(\"/evals/reserva.json\")", "")],
+     "test_manifiestos_y_estado_de_la_reserva_protegidos"),
+    ("CR-1.2 · el cierre de sesión no comprueba los entregables", "hooks/guardia_cierre.py",
+     [("        bloqueados = entregables_bloqueados(entrada, inicio_de_sesion(ruta))", "        bloqueados = []")],
+     "TestCierreDeSesion"),
+    ("CR-1.2 · un envío MCP saca un entregable que no es válido", "hooks/guardia_externo.py",
+     [("                if motivos:\n                    _comun.denegar(f\"«{ruta.name}» no es entregable", "                if False:\n                    _comun.denegar(f\"«{ruta.name}» no es entregable")],
+     "TestSalidaExterna"),
+    ("CR-1.2 · el manifiesto admite campos ajenos o faltantes", PROC,
+     [("    if set(datos) != esperados:", "    if False:")],
+     "test_quitar_o_agregar_cualquier_campo or test_manifiesto_incompleto_o_ajeno"),
+    ("CR-1.2 · un tramo de cita puede omitirse del manifiesto", PROC,
+     [("        errores += _notas_incoherentes(texto, [t for t in tramos if isinstance(t, dict)])", "        pass")],
+     "test_quitar_o_agregar_cualquier_campo"),
+    ("CR-1.2 · se declara entregable un manifiesto con citas pendientes", PROC,
+     [("        if datos.get(\"entregable\") is True and \"CITA_PENDIENTE\" in tipos:", "        if False:")],
+     "test_pendientes_permitidos"),
+    ("CR-1.2 · la evidencia retirada después de ensamblar no bloquea", PROC,
+     [("            if not fila:\n                errores.append(f\"tramo {i}: la cita", "            if not fila:\n                (lambda *a: None)(f\"tramo {i}: la cita")],
+     "test_la_entrega_se_reverifica_contra_la_evidencia_viva"),
+    ("CR-1.2 · otra evidencia vigente pasa por la que se usó", PROC,
+     [("            elif fila[\"sha256_resultado\"] != tramo[\"sha256_evidencia\"]:", "            elif False:")],
+     "test_la_entrega_se_reverifica_contra_la_evidencia_viva"),
+    ("CR-1.2 · el texto de la cita no se coteja con su evidencia viva", PROC,
+     [("            elif formatear(json.loads(fila[\"datos_oficiales\"]), tramo[\"forma\"], tramo[\"nota\"]) != fragmento:", "            elif False:")],
+     "test_la_entrega_se_reverifica_contra_la_evidencia_viva"),
+    ("CR-1.2 · una fuente cambiada no invalida la cita ajena", PROC,
+     [("            if huella != tramo[\"sha256_fuente\"]:", "            if False:")],
+     "test_la_cita_ajena_conserva or test_la_fuente_de_la_cita_ajena"),
+    ("CR-1.2 · la cita ajena no se recoteja literal contra su fuente", PROC,
+     [("            elif tramo[\"tipo\"] == \"CITA_AJENA\" and (not literal_en(tramo[\"referencia\"], contenido)", "            elif tramo[\"tipo\"] == \"CITA_AJENA\" and (False")],
+     "test_la_cita_ajena_conserva"),
+    ("CR-1.2 · las citas del informe no se recotejan con el documento auditado", PROC,
+     [("                        if not literal_en(valor, contenido):", "                        if False:")],
+     "test_las_citas_del_manifiesto_deben_ser_literales"),
+    ("CR-1.2 · el informe no exige procedencia literal antes de escribirse", "scripts/reporte_vvca.py",
+     [("    if no_literales:", "    if False:")],
+     "test_un_rubro_corregido_hacia_el_oficial"),
+    ("CR-1.2 · un .docx viejo pasa por su origen nuevo", "scripts/verificar_entrega.py",
+     [(" or procedencia.sha256(origen.read_bytes()) != datos[\"sha256_origen\"]", "")],
+     "test_derivado_docx"),
+    ("CR-1.2 · la comprobación lanza en vez de bloquear", PROC,
+     [("    if not isinstance(tipo_documento, str) or tipo_documento not in _CAMPOS_DOCUMENTO:", "    if tipo_documento not in _CAMPOS_DOCUMENTO:")],
+     "test_ningun_manifiesto_hace_lanzar"),
+    ("CR-1.2 · un marcador sin resolver llega al entregable", PROC,
+     [("    if \"[[\" in texto:\n        errores.append(", "    if False:\n        errores.append(")],
+     "test_un_marcador_sin_resolver"),
+    ("CR-1.2 · la gramática admite marcadores anidados", PROC,
+     [("\"NO_VERIFICADO\": re.compile(r\"\\[\\[NO_VERIFICADO:([^\\[\\]\\n]+)\\]\\]\")", "\"NO_VERIFICADO\": re.compile(r\"\\[\\[NO_VERIFICADO:([^\\]\\n]+)\\]\\]\")")],
+     "test_gramatica"),
+    ("CR-1.2 · sin node, la guardia de escritura falla abierta (código 127, no bloqueante)", "hooks/hooks.json",
+     [('guardia_escritura.py cerrado PreToolUse || { echo \\"itostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\\" >&2; exit 2; }',
+       "guardia_escritura.py cerrado PreToolUse")],
+     "test_sin_node_las_guardias_previas_fallan_cerradas"),
+]
+
 CONJUNTOS = {"cierre-0.1.2": ("tests/test_auditoria_codex.py", MUTANTES), "cr1": ("tests/test_procedencia.py", MUTANTES_CR1),
-             "reserva": ("tests/test_auditoria_codex.py", MUTANTES_RESERVA)}
+             "reserva": ("tests/test_auditoria_codex.py", MUTANTES_RESERVA),
+             "cr12": (["tests/test_entrega.py", "tests/test_procedencia.py", "tests/test_plataforma.py"], MUTANTES_CR12)}
 
 
 def copiar(destino: Path) -> None:
     shutil.copytree(PLUGIN, destino, ignore=shutil.ignore_patterns("node_modules", "__pycache__", ".pytest_cache", ".hypothesis", "results", "compuerta"))
 
 
-def correr(raiz: Path, filtro: str, pruebas: str = PRUEBAS) -> subprocess.CompletedProcess:
+def correr(raiz: Path, filtro: str, pruebas: str | list[str] = PRUEBAS) -> subprocess.CompletedProcess:
     entorno = {k: v for k, v in os.environ.items() if not k.startswith("ITOSTACK_")}
     entorno["PYTHONUTF8"] = "1"
-    return subprocess.run([sys.executable, "-m", "pytest", pruebas, "-q", "-p", "no:cacheprovider", "-k", filtro], cwd=raiz,
+    archivos = [pruebas] if isinstance(pruebas, str) else pruebas
+    return subprocess.run([sys.executable, "-m", "pytest", *archivos, "-q", "-p", "no:cacheprovider", "-k", filtro], cwd=raiz,
                           capture_output=True, text=True, encoding="utf-8", errors="replace", env=entorno, timeout=900)
 
 

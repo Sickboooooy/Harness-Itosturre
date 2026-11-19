@@ -1,0 +1,60 @@
+PASS  corre como «lab», no como root
+PASS  «lab» sin sudo
+PASS  ninguna unidad de Windows montada ni legible (los directorios /mnt/<letra> existen vacíos)
+PASS  interoperabilidad con Windows desactivada
+PASS  sin ejecutables de Windows en el PATH
+PASS  sin variables de credenciales en el entorno
+PASS  sin almacenes de credenciales en el home
+PASS  copia del plugin completa (200 archivos) y sin casos holdout
+
+COMPROBACIONES: PASS
+== versión
+2.1.327 (Claude Code)
+== ayuda (opciones de privacidad y salida)
+    --ablation <mode>            Run a no-plugin baseline arm and report the score
+    --json [path]                Print the full run result (prompts, graders,
+    --judge-model <model>        Override LLM-grader model (default: haiku)
+    --keep-temp                  Keep scaffold directories for debugging
+    --no-publish                 Keep the HTML report local only; skip publishing
+    --output-dir <dir>           Directory for aggregate-result.json (default:
+    --publish-report             Also require publishing the report to claude.ai
+== corrida sin credenciales (caso de desarrollo, datos sintéticos)
+  código de salida: 1
+  | Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+  | ⚠ kept /tmp/claude-eval-J3kRRS: home/ and tmp/ in it were written by the plugin under test and are sealed in /tmp/claude-eval-J3kRRS/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /tmp/claude-eval-J3kRRS /tmp/claude-eval-J3kRRS/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  | Wrote /home/lab/exploracion/resultado.json
+  | Report: /home/lab/exploracion/informe.html
+  partial=False partialReason=None score=0 turns=0 error='exit 1: A shell tool (Bash or PowerShell) was granted but this machine cannot confine it (no sandbox backend on this pla'
+  graders=[('veredicto-pass', False, 'grader threw: case "verificar-cita.pass-exacto" gr'), ('usa-verificador', False, 'Bash called 0x (expected 1..∞)'), ('informa-veredicto', False, 'pattern not found in last_message'), ('calidad-del-reporte', False, 'grader threw: judge call failed: Not logged in · P')]
+  tracePath='/tmp/claude-eval-J3kRRS/out/trace.jsonl'
+== temporal conservado: estructura, enlaces y montajes
+  temporal: /tmp/claude-eval-J3kRRS
+find: ‘/tmp/claude-eval-J3kRRS/sealed’: Permission denied
+  .
+  ./out
+  ./out/trace.jsonl
+  ./sealed
+  ./config
+  ./config/sessions
+  ./config/.claude.json
+  ./config/plugins
+  ./config/plugins/data
+  ./config/dev-mods
+  ./config/backups
+  ./config/backups/.claude.json.backup.1795087073081
+  ./config/seed-admin
+  ./config/session-env
+  ./config/session-env/912ec2b2-d18f-4830-97e9-366363cd73cf
+  ./config/settings.json
+  enlaces simbólicos (ruta -> destino):
+find: ‘/tmp/claude-eval-J3kRRS/sealed’: Permission denied
+  montajes dentro del temporal:
+    ninguno
+find: ‘/tmp/claude-eval-J3kRRS/sealed’: Permission denied
+== limpieza segura
+find: ‘/tmp/claude-eval-J3kRRS/sealed’: Permission denied
+rm: cannot remove '/tmp/claude-eval-J3kRRS/out': Permission denied
+rm: cannot remove '/tmp/claude-eval-J3kRRS/sealed': Permission denied
+rm: cannot remove '/tmp/claude-eval-J3kRRS/config': Permission denied
+  FALLA: el temporal sigue
+  destinos de los enlaces intactos

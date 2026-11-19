@@ -106,3 +106,41 @@ def test_hooks_json_usa_el_lanzador_en_todos_los_eventos():
     comandos = [h["command"] for grupos in configuracion["hooks"].values() for g in grupos for h in g["hooks"]]
     assert comandos and all(c.startswith('node "${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs"') for c in comandos)
     assert all(" cerrado PreToolUse" in c for c in comandos if "guardia_" in c and "cierre" not in c)
+
+
+def _comandos_previos():
+    configuracion = json.loads((RAIZ / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    return [h["command"] for g in configuracion["hooks"]["PreToolUse"] for h in g["hooks"]]
+
+
+def _bash():
+    sys.path.insert(0, str(RAIZ / "evals"))
+    import autoprueba
+
+    try:
+        return autoprueba.ubicar_bash()
+    except SystemExit:
+        pytest.skip("requiere bash")
+
+
+@pytest.mark.parametrize("indice", range(4))
+def test_sin_node_las_guardias_previas_fallan_cerradas(tmp_path, indice):
+    """Hallado en el laboratorio WSL (0.2.0): si falta `node`, el comando del hook sale con 127, que Claude Code trata
+    como error NO bloqueante, y la acción pasa sin guardia. El comando exacto de hooks.json debe salir con 2 (bloquea)."""
+    sin_node = tmp_path / "sin-node"
+    sin_node.mkdir()
+    entorno = {"PATH": str(sin_node), "CLAUDE_PLUGIN_ROOT": RAIZ.as_posix(), "SYSTEMROOT": os.environ.get("SYSTEMROOT", "")}
+    salida = subprocess.run([_bash(), "-c", _comandos_previos()[indice]], input='{"tool_name": "Bash", "tool_input": {"command": "ls"}}',
+                            capture_output=True, text=True, encoding="utf-8", errors="replace", env=entorno, timeout=60)
+    assert salida.returncode == 2 and "falla cerrado" in salida.stderr, (salida.returncode, salida.stderr[-300:])
+
+
+def test_con_node_el_respaldo_no_altera_la_decision(tmp_path):
+    """Control: con `node` presente, una guardia que deniega por JSON sale con 0 y su decisión llega intacta."""
+    if not shutil.which("node"):
+        pytest.skip("requiere node")
+    entorno = {**os.environ, "CLAUDE_PLUGIN_ROOT": RAIZ.as_posix(), "PYTHONUTF8": "1"}
+    entrada = json.dumps({"tool_name": "Bash", "tool_input": {"command": "git push --force origin main"}, "cwd": str(tmp_path)})
+    salida = subprocess.run([_bash(), "-c", _comandos_previos()[0]], input=entrada, capture_output=True, text=True, encoding="utf-8",
+                            errors="replace", env=entorno, timeout=60)
+    assert salida.returncode == 0 and json.loads(salida.stdout)["hookSpecificOutput"]["permissionDecision"] == "deny"

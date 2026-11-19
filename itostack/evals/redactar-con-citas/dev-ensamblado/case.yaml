@@ -39,6 +39,13 @@ graders:
     path: salidas/parrafo.md
   pattern: EXIGE CAPTURA DEL PORTAL OFICIAL
   weight: 1
+- type: regex
+  name: procedencia-entregable
+  target:
+    source: file
+    path: salidas/parrafo.md.procedencia.json
+  pattern: '"entregable":\s*true'
+  weight: 2
 - type: tool_used
   name: usa-ensamblador
   tool: Bash
