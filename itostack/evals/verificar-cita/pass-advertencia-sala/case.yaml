@@ -45,6 +45,7 @@ graders:
 - type: regex
   name: explica-contexto
   target: last_message
-  pattern: sala|superad|corte temporal|reforma
+  # D-16: «sala» suelto coincidía dentro de «úsala». Se exige la frase completa.
+  pattern: sala extinta|superad|corte temporal|reforma
   flags: i
   weight: 1

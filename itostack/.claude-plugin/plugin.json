@@ -1,6 +1,6 @@
 {
   "name": "itostack",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Harness de Itosturre para agentes jurídicos y de desarrollo: verificación forense con evidencia (PASS/FAIL/BLOCKED), evals con compuerta holdout, mejora continua de skills y guardias deterministas en pirámide invertida.",
   "author": {
     "name": "Jorge Fabián Martínez Sánchez · Itosturre",

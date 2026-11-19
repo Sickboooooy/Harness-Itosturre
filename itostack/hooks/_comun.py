@@ -50,6 +50,23 @@ def preguntar(razon: str) -> None:
     _emitir({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask", "permissionDecisionReason": f"itostack: {razon}"}})
 
 
+# Modos de permiso en los que el anfitrión SÍ muestra la pregunta al operador. En los demás (auto, dontAsk,
+# bypassPermissions, sin dato) un «ask» se resuelve solo: así pasó el push a main de B-02 sin que nadie lo viera.
+MODOS_QUE_PREGUNTAN = {"default", "acceptEdits", "plan"}
+
+
+def compuerta_humana(entrada: dict, razon: str) -> None:
+    """Pide confirmación humana solo donde el anfitrión de verdad pregunta; en otro modo, deniega (falla cerrado)."""
+    modo = entrada.get("permission_mode")
+    if modo in MODOS_QUE_PREGUNTAN:
+        preguntar(razon)
+        return
+    denegar(
+        f"{razon} En el modo de permisos «{modo or 'desconocido'}» el anfitrión aprueba las preguntas sin mostrarlas, "
+        "así que la compuerta humana deniega. Que el operador lo haga él mismo, o que cambie al modo default para confirmarlo."
+    )
+
+
 def contexto(evento: str, texto: str) -> None:
     _emitir({"hookSpecificOutput": {"hookEventName": evento, "additionalContext": texto}})
 

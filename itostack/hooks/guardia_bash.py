@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 import sys
 from pathlib import Path
 
@@ -26,6 +27,8 @@ REGLAS: list[tuple[str, re.Pattern, str]] = [
      "push con --force-with-lease: requiere confirmación humana."),
     ("preguntar", re.compile(r"\bgit\s+push\b[^|;&]*\b(?:main|master)\b"),
      "push directo a la rama principal: requiere confirmación humana."),
+    ("denegar", re.compile(r"(?i)\b(?:cat|head|tail|less|more|type|bat|sed|awk|grep|rg|findstr|Get-Content|gc|code|Select-String|sls)\b[^|;&]*holdout-"),
+     "los casos holdout son la reserva de evaluación: el agente que mejora una skill no puede leerlos."),
     ("denegar", re.compile(r"\bgh\s+pr\s+merge\b"),
      "un agente no fusiona PRs. Deja el PR en borrador con evidencia; la fusión la decide una persona."),
     ("denegar", re.compile(r"\bgit\s+commit\b.*--no-verify|\bgit\s+push\b.*--no-verify"),
@@ -72,7 +75,47 @@ def problema_commit(mensaje: str) -> str | None:
     return None
 
 
-def evaluar(comando: str) -> tuple[str, str] | None:
+# PowerShell no distingue mayúsculas: «get-content» es Get-Content.
+RE_LECTOR = re.compile(r"\b(?:rg|grep|egrep|fgrep|ag|ack|findstr|Select-String|sls|cat|type|Get-Content|gc|head|tail|less|more|sed|awk|bat)\b", re.IGNORECASE)
+RE_VARIABLE = re.compile(r"\$\{?\w+|%\w+%")
+
+
+def _contiene_reserva(ruta: Path) -> bool:
+    return ruta.is_dir() and any(p.name.lower().startswith("holdout-") for p in [*ruta.glob("*"), *ruta.glob("*/*")] if p.is_dir())
+
+
+def _argumentos(comando: str) -> list[str]:
+    """Argumentos con sus comillas resueltas («cat "/tmp/mi proyecto/evals/x/*"» es un solo argumento)."""
+    try:
+        return shlex.split(comando, posix=True)
+    except ValueError:
+        return re.findall(r"""[^\s"'|;&<>]+""", comando)
+
+
+def recorre_reserva(comando: str, cwd: str | None) -> str | None:
+    """Un lector o buscador apuntado a evals/ o evals/<skill>/ (o a un glob dentro) recorre la reserva holdout sin
+    nombrarla: «rg -n . evals/verificar-cita», «cat evals/verificar-cita/*/case.yaml»."""
+    if not RE_LECTOR.search(comando):
+        return None
+    # Desde evals/ o evals/<skill>/, un buscador sin ruta («rg .») recorre la reserva.
+    if cwd and _contiene_reserva(Path(cwd)):
+        return cwd
+    for ficha in (a for a in _argumentos(comando) if "evals" in a.lower()):
+        # Una variable sin expandir («$R/evals/verificar-cita») no se puede resolver con certeza: se deniega.
+        if RE_VARIABLE.search(ficha):
+            return ficha
+        base = re.split(r"[*?\[]", ficha)[0] or "."
+        ruta = Path(base)
+        ruta = ruta if ruta.is_absolute() else Path(cwd or ".") / ruta
+        if _contiene_reserva(ruta):
+            return ficha
+    return None
+
+
+def evaluar(comando: str, cwd: str | None = None) -> tuple[str, str] | None:
+    ficha = recorre_reserva(comando, cwd)
+    if ficha:
+        return "denegar", f"«{ficha}» abarca la reserva holdout: busca o lee dentro de un caso de desarrollo concreto (evals/<skill>/<caso>)."
     for accion, patron, razon in REGLAS:
         if patron.search(comando):
             return accion, razon
@@ -88,10 +131,13 @@ def evaluar(comando: str) -> tuple[str, str] | None:
 def principal() -> int:
     entrada = _comun.leer_entrada()
     comando = (entrada.get("tool_input") or {}).get("command", "")
-    decision = evaluar(comando)
+    decision = evaluar(comando, entrada.get("cwd"))
     if decision:
         accion, razon = decision
-        (_comun.denegar if accion == "denegar" else _comun.preguntar)(razon)
+        if accion == "denegar":
+            _comun.denegar(razon)
+        else:
+            _comun.compuerta_humana(entrada, razon)
     return 0
 
 

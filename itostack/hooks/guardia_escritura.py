@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import fnmatch
+import json
 import os
 import sys
 from pathlib import Path
@@ -66,7 +67,20 @@ def citas_sin_evidencia(texto: str, config: dict) -> list[str]:
         )
         if not vigente:
             problemas.append(f"línea {cita.linea}: {cita.tipo} «{cita.valor}»")
+    problemas.extend(detector.rubros_discrepantes(texto, oficial_vigente(almacen, dias, modos), config["comparacion"]["ignorar_acentos"]))
     return problemas
+
+
+def oficial_vigente(almacen: AlmacenEvidencia, dias: int, modos: tuple[str, ...]):
+    """Datos oficiales de la evidencia vigente de un registro o clave (para cotejar el rubro escrito)."""
+
+    def buscar(registro: str | None, clave: str | None) -> dict | None:
+        fila = (almacen.vigente("tesis", registro, dias, modos) if registro else None) or (
+            almacen.vigente_por_clave(clave, dias, modos) if clave else None
+        )
+        return json.loads(fila["datos_oficiales"]) if fila else None
+
+    return buscar
 
 
 def principal() -> int:

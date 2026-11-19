@@ -7,6 +7,7 @@ programar requiere aprobación; y si el contenido trae citas sin evidencia vigen
 
 from __future__ import annotations
 
+import fnmatch
 import re
 import sys
 from pathlib import Path
@@ -40,13 +41,18 @@ def principal() -> int:
     accion = herramienta.split("__")[-1]
     if not RE_ACCION_EXTERNA.search(accion):
         return 0
+    permitidas: list[str] = []
     if _comun.tiene_itostack(entrada):
         config = _comun.configuracion(entrada)
         problemas = citas_sin_evidencia("\n".join(cadenas(entrada.get("tool_input") or {})), config)
         if problemas:
             _comun.denegar("el contenido que saldría hacia afuera trae citas sin evidencia vigente: " + "; ".join(problemas[:5]))
             return 0
-    _comun.preguntar(f"compuerta humana: «{herramienta}» envía o publica fuera de la máquina. Confirma destinatario y contenido.")
+        permitidas = config.get("acciones_externas_permitidas") or []
+    # Lista que cura el operador en .itostack/config.json (p. ej. responderle a él mismo por Telegram).
+    if any(fnmatch.fnmatchcase(herramienta, patron) for patron in permitidas):
+        return 0
+    _comun.compuerta_humana(entrada, f"compuerta humana: «{herramienta}» envía o publica fuera de la máquina. Confirma destinatario y contenido.")
     return 0
 
 

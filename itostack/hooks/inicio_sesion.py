@@ -48,6 +48,8 @@ def principal() -> int:
     ]
     if config["modo"] == "fixture":
         lineas.append("MODO FIXTURE: la evidencia usa datos ficticios y no sirve para uso procesal.")
+    if config.get("entorno") == "desarrollo":
+        lineas.append("ENTORNO DESARROLLO: se permite el revisor y juez de otra familia en la nube (scripts/revisar_codex.py). En producción, solo revisar_ollama.py.")
     if pendientes:
         lineas.append(f"Hay {pendientes} corrección(es) repetida(s) sin elevar: proponer /corregir al cerrar la tarea.")
     _comun.contexto("SessionStart", "\n".join(lineas))

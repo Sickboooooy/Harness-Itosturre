@@ -1,0 +1,2156 @@
+CONTEXTO (cuarta ronda): diff de itostack 0.1.2 DESPUÉS de corregir los 14 hallazgos de tu tercera revisión
+(congelar con marca exclusiva, configuración evaluada en la huella, rubros por posición en todo el párrafo, claves emparejadas
+por proximidad, identidad clave-registro, rubros ambiguos rechazados, Grep/Bash desde un directorio con reserva y rutas con
+variables sin expandir, identidad completa del juez en la bitácora, instante exacto de la reserva, evidencia con tramos en
+orden y sin descartar, rubros largos, PowerShell sin distinguir mayúsculas, numero entero JSON, aprobado por conteos, lint con
+la codificación declarada e incompleto ante archivos ilegibles). Límites declarados: agente cooperativo, no un atacante que
+falsifica archivos a mano; pendientes de diseño: separación física de la reserva, manifiesto firmado del ejecutor que ate
+artefactos a resultados, python -c y búsquedas sobre todo el repo. Por tamaño, excluye tests/. Verifica las correcciones y
+busca regresiones o defectos nuevos que un caso concreto haría fallar. Diff:
+diff --git a/itostack/.claude-plugin/plugin.json b/itostack/.claude-plugin/plugin.json
+index 4a3c878..993d1e0 100644
+--- a/itostack/.claude-plugin/plugin.json
++++ b/itostack/.claude-plugin/plugin.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "itostack",
+-  "version": "0.1.1",
++  "version": "0.1.2",
+   "description": "Harness de Itosturre para agentes jurídicos y de desarrollo: verificación forense con evidencia (PASS/FAIL/BLOCKED), evals con compuerta holdout, mejora continua de skills y guardias deterministas en pirámide invertida.",
+   "author": {
+     "name": "Jorge Fabián Martínez Sánchez · Itosturre",
+diff --git a/itostack/CHANGELOG.md b/itostack/CHANGELOG.md
+index 8611854..79fbd1c 100644
+--- a/itostack/CHANGELOG.md
++++ b/itostack/CHANGELOG.md
+@@ -1,5 +1,23 @@
+ # Cambios
+ 
++## 0.1.2 — 2026-11-18
++
++Juez de otra familia con Codex y correcciones de la auditoría cruzada (Codex leyó el harness contra el plan: 15 hallazgos, en `pruebas-manuales/fase-codex/`).
++
++- **Juez y revisor de otra familia (pilar 2).** Nuevo `scripts/revisar_codex.py` (Codex CLI, OpenAI) con el mismo contrato que `revisar_ollama.py`, ambos sobre `scripts/nucleo/juez.py`. Codex corre con sandbox de solo lectura, sin sesión persistida, desde un directorio vacío de nombre neutro y con modelo y esfuerzo fijos desde `modelos.json` (ignora `~/.codex/config.toml`). Solo con `"entorno": "desarrollo"`: sin declararlo, el entorno es `produccion` y el script se niega (principio privacidad-local).
++- **D-17.** El juez califica cada criterio con `si` / `no` / `no_aplicable`; el puntaje lo calcula el programa (10 × cumplidos / aplicables, 0 con fallo crítico). Todo no aplicable es BLOCKED, no PASS. Codex reprodujo la calificación correcta de F7-06 (5 cumplidos, 1 no aplicable) donde `juez-evals` había dado 10/10.
++- **N-09.** `compuerta_holdout.py congelar` exige el visto bueno del juez de otra familia (`--juez`), o un motivo explícito (`--sin-juez-externo`) que queda en el historial. La identidad del juez se congela; cambiarla antes del holdout se rechaza sin consumir el intento. El `aprobado` se recalcula desde los criterios.
++- **N-07.** El intento holdout se consume antes de evaluar, con una marca de creación exclusiva: una interrupción, un JSON ilegible o una segunda invocación simultánea ya no permiten repetirlo.
++- **N-08.** La huella cubre agentes, rúbricas, fixtures, `_comun` y los instrumentos; la reserva tiene su propia huella, verificada antes del holdout. Nuevo `hooks/guardia_lectura.py` (Read, Grep, Glob) y regla de Bash que deniegan leer casos `holdout-*`.
++- **D-04 (crítico).** La marca de cita no verificada solo cuenta fuera de las comillas y debe ser explícita («⚠ NO VERIFICADO», «⚠ CITA NO VERIFICADA», «❌»): una palabra del rubro o una advertencia de contexto ya no eximen de la evidencia.
++- **N-01.** La evidencia de un registro ya no respalda un rubro distinto: el guardia de escritura y el ensamblador cotejan el rubro explícito (`rubro: «…»`) contra el oficial de la evidencia.
++- **B-02.** Nueva compuerta humana (`_comun.compuerta_humana`): pregunta solo en los modos que de verdad preguntan (default, acceptEdits, plan); en auto, dontAsk o bypassPermissions deniega. Lista curada por el operador en `acciones_externas_permitidas`; no salta el control de citas.
++- **D-10.** `lint_itosturre.py --diff` examina también los archivos nuevos sin rastrear, falla ante un error de Git y sale con 2 si no examinó nada; reporta archivos y líneas examinados.
++- **D-16.** El grader `explica-contexto` de `pass-advertencia-sala` exige «sala extinta»: la solución rota baja de 0.80 a 0.60.
++- **Segunda ronda (revisión adversarial de Codex sobre el diff: «rechazar», 11 hallazgos).** El juez de Codex corre sin herramientas (`--disable shell_tool`, navegador, apps, plugins); prueba en vivo: un artefacto que le ordenaba leer un archivo secreto no obtuvo su contenido. El veredicto exige cobertura exacta de los criterios de la rúbrica (omitir uno es BLOCKED), un «si» sin evidencia cuenta como «no», el material que no cabe es BLOCKED en vez de recortarse, y cada veredicto lleva las huellas de sus artefactos y de su rúbrica y queda en `.itostack/bitacora/juez.tsv`. La compuerta: `reservar` consume el intento antes de correr el holdout; resultados y veredictos deben ser posteriores a la reserva, de una rúbrica congelada, sin reciclar artefactos de desarrollo ni presentar un aprobado después de un reprobado del mismo juez; una candidata congelada no se re-congela; sin juez, la aceptación lo dice. La marca ⚠/❌ exime solo a la cita de su segmento («;» o fin de oración) y de su referencia, no a toda la línea o el párrafo. Un rubro declarado sin comillas debe empezar con el rubro oficial. `revisar_ollama.py` valida el endpoint con un parser de URL (rechaza `localhost.atacante.example`, credenciales, https) y no sigue redirecciones. El guardia de lectura deniega búsquedas de contenido sobre `evals/` y `evals/<skill>/`. El lint ya no se salta archivos cuyo nombre contiene «node_modules».
++- **Tercera ronda (segunda revisión de Codex: «rechazar», 16 hallazgos).** Los criterios del veredicto se identifican por número y deben cubrir 1..N sin repetir; la evidencia de cada «si» debe ser un fragmento literal entre «» que exista en el artefacto (si no, cuenta como «no»); el artefacto se lee una sola vez para el mensaje y su huella; la huella de la rúbrica es de bytes en el revisor y en la compuerta (CRLF); `--caso` ata el veredicto a su caso y el holdout exige uno por caso; el antecedente de la bitácora solo veta si es del mismo juez y no depende del orden de los artefactos; la decisión del holdout se escribe una sola vez (marca exclusiva); re-congelar se comprueba contra el historial; «RUBRO:» en mayúsculas y rubros entrecomillados cortos se cotejan; con varias citas en una línea, cada rubro va a la referencia que lo contiene o a la más cercana de su segmento; la marca ⚠/❌ exime solo al grupo de citas pegado a ella y los cortes ignoran la puntuación entre comillas; Ollama sin proxies del entorno; el guardia de Bash deniega lectores y buscadores sobre `evals/` y `evals/<skill>/`; el lint lista archivos nuevos con `-z` (nombres no ASCII).
++- `tests/test_auditoria_codex.py`: 123 regresiones, una por defecto y variante.
++
+ ## 0.1.1 — 2026-11-18
+ 
+ Corrige los defectos de la fase 0 de pruebas de integración en Windows 11 nativo.
+diff --git a/itostack/README.md b/itostack/README.md
+index 3b83de5..1e94e7a 100644
+--- a/itostack/README.md
++++ b/itostack/README.md
+@@ -7,7 +7,7 @@ Plugin de Claude Code que convierte la metodología de ingeniería de agentes de
+ | Pilar | Qué hace en itostack | Piezas |
+ |---|---|---|
+ | **1 · Feedback Loop** | Nada funciona hasta verlo funcionar: citas contra el portal oficial y funcionalidades contra la app en ejecución, con veredicto PASS/FAIL/BLOCKED | `scripts/verificar.py`, `scripts/lib/navegador_forense.ts`, `verificador_fuente.ts`, `evidencia_web.ts`, `arrancar_app.py`, skills `verificar-cita`, `validar-documento`, `demuestra-que-funciona`, `reproducir-y-corregir` |
+-| **2 · Agent Evals** | Pruebas unitarias para skills sobre `claude plugin eval`, con soluciones de referencia y rotas, compuerta holdout de un solo intento y juez de otra familia | `evals/*/*/case.yaml`, `evals/autoprueba.py`, `evals/compuerta_holdout.py`, `scripts/revisar_ollama.py`, `tests/test_propiedades.py` |
++| **2 · Agent Evals** | Pruebas unitarias para skills sobre `claude plugin eval`, con soluciones de referencia y rotas, compuerta holdout de un solo intento y juez de otra familia | `evals/*/*/case.yaml`, `evals/autoprueba.py`, `evals/compuerta_holdout.py`, `scripts/revisar_codex.py` (juez de otra familia en desarrollo), `scripts/revisar_ollama.py` (local), `tests/test_propiedades.py` |
+ | **3 · Mejora de skills** | Cada corrección repetida se registra y se eleva a una regla; chequeos de salud de transcripciones y tokens; palancas deterministas | hook `captura_correcciones.py`, `registrar_correccion.py`, `salud_transcripciones.py`, `salud_rutinas.py`, skills `corregir`, `mejorar-skill`, `construir-palanca`, `revision-salud` |
+ | **4 · Guardrails** | Pirámide invertida: diseño → lint/hooks → verificación → prosa | `[[CITA:]]` + `ensamblar_documento.py` (capa 1), `guardias/lint_itosturre.py` IT001–IT008 y `hooks/*` (capa 2), verificación y evals (capa 3), `CLAUDE.itostack.md` mínimo (capa 4) |
+ 
+@@ -67,7 +67,7 @@ Para desarrollo local del plugin: `claude --plugin-dir ./itostack`.
+ 
+ - Consulta en tiempo real con Playwright; **no hay base masiva de jurisprudencia** (solo un registro de evidencia por consulta, inmutable). Regla IT006.
+ - Toda visita a la SCJN deja captura forense (IT001 + hook de Bash).
+-- Los datos legales no salen de la máquina (IT004, IT005, hook de Bash, compuerta MCP).
++- En producción, los datos legales no salen de la máquina (IT004, IT005, hook de Bash, compuerta MCP). En desarrollo (`"entorno": "desarrollo"`) se permite el juez de otra familia en la nube (`revisar_codex.py`).
+ - Flask y SQLite para el MVP (IT002, IT003).
+ - Commits descriptivos en español; PRs de agente solo en borrador.
+ 
+@@ -81,7 +81,7 @@ itostack/
+ ├── hooks/           hooks.json + 6 guardias en Python estándar
+ ├── guardias/        lint_itosturre.py (IT001–IT008)
+ ├── scripts/         núcleo Python + observadores TypeScript (Playwright)
+-├── evals/           17 casos nativos (12 desarrollo, 5 holdout), fixtures ficticios, autoprueba, compuerta
++├── evals/           18 casos nativos (13 desarrollo, 5 holdout), fixtures ficticios, autoprueba, compuerta
+ ├── plantillas/      CLAUDE.itostack.md, mapa, skill de verificación, modelos, cron
+ ├── docs/            arquitectura, contrato, pirámide, evals, adopción, validación de la fuente
+ └── tests/           pytest (unidad, hooks, propiedades, flujos con navegador)
+diff --git a/itostack/agents/juez-evals.md b/itostack/agents/juez-evals.md
+index 42e0ad1..49f6090 100644
+--- a/itostack/agents/juez-evals.md
++++ b/itostack/agents/juez-evals.md
+@@ -1,15 +1,21 @@
+ ---
+ name: juez-evals
+-description: Juez de evaluación de solo lectura que califica artefactos de una corrida (informe, escrito, resultado de verificación) contra una rúbrica congelada de evals/rubricas, sin premiar estilo. Úsalo para una segunda calificación cualitativa cuando los graders deterministas no alcanzan.
++description: Juez de evaluación de solo lectura que califica artefactos de una corrida (informe, escrito, resultado de verificación) contra una rúbrica congelada de evals/rubricas, sin premiar estilo. Úsalo para una calificación cualitativa de la misma familia cuando los graders deterministas no alcanzan; la calificación que cuenta para la compuerta la da el juez de otra familia (scripts/revisar_codex.py --rol juez).
+ tools: Read, Glob, Grep
+ model: haiku
+ ---
+ 
+ Calificas contra la rúbrica que se te indique (`evals/rubricas/*.md`), criterio por criterio, con evidencia textual del artefacto. No hay puntos por estilo ni por esfuerzo.
+ 
++Para cada criterio, `cumple` es uno de tres valores:
++- `"si"`: lo cumple; la evidencia copia entre «» un fragmento literal del artefacto que corresponde a ESE criterio (no a otro).
++- `"no"`: no lo cumple, o no encuentras evidencia textual de que lo cumpla.
++- `"no_aplicable"`: el artefacto no ofrece ocasión de ejercerlo (p. ej. pide trasladar advertencias de contexto y ninguna cita las dispara). Explica en la evidencia por qué no hay ocasión.
++
+ Reglas:
+-- Si la rúbrica define fallos críticos y alguno ocurre, el puntaje es 0.
+-- No eres el mismo modelo que produjo el artefacto: si lo fueras, dilo y abstente.
++- No calculas puntaje: lo calcula `scripts/nucleo/juez.py` (10 × cumplidos / aplicables; 0 si hay un fallo crítico). Una rúbrica binaria no define un 10 que tú puedas otorgar.
++- Lista en `fallos_criticos` los que la rúbrica define como críticos y ocurren.
++- Eres de la familia Claude, como el agente que produjo el artefacto: tu calificación es orientativa, no la de la compuerta.
+ - No modificas nada.
+ 
+-Responde solo JSON: `{"puntaje": 0-10, "criterios": [{"criterio": "...", "cumple": true|false, "evidencia": "..."}], "fallos_criticos": ["..."]}`.
++Responde solo JSON, un criterio por cada criterio numerado de la rúbrica, con su número: `{"criterios": [{"numero": 1, "criterio": "...", "cumple": "si"|"no"|"no_aplicable", "evidencia": "«fragmento literal del artefacto»"}], "fallos_criticos": ["..."], "observaciones": "..."}`.
+diff --git a/itostack/docs/arquitectura.md b/itostack/docs/arquitectura.md
+index f2bfee3..b405fa6 100644
+--- a/itostack/docs/arquitectura.md
++++ b/itostack/docs/arquitectura.md
+@@ -30,7 +30,7 @@ flowchart LR
+ | `/create-verification-skill` + Feature Map | `crear-skill-verificacion`, `mantener-skill-verificacion`, `mapa_rutas_flask.py` | Autoprueba de seis pasos antes de entregar la skill |
+ | Veredictos PASS / FAIL / BLOCKED | `nucleo/veredicto.py` | Mapeados a ✅ / ❌ / ⚠ y a VVCA (Verificado, Validado, Contextualizado, Auditable) |
+ | Benny (triaje → reproducción doble → TDD → PR en borrador) | `reproducir-y-corregir` + subagente `reproductor` | `gh pr merge` bloqueado por hook; PR sin `--draft` bloqueado |
+-| Agent Evals, juez de otra familia, holdout | `claude plugin eval` + `autoprueba.py` + `compuerta_holdout.py` + `revisar_ollama.py --rol juez` | Juez local con Ollama (privacidad); holdout protegido contra edición del agente |
++| Agent Evals, juez de otra familia, holdout | `claude plugin eval` + `autoprueba.py` + `compuerta_holdout.py` + `revisar_codex.py --rol juez` | La compuerta exige el visto bueno del juez de otra familia (Codex en desarrollo; Ollama local en producción) y no deja cambiarlo tras congelar; el puntaje lo calcula `nucleo/juez.py`, no el modelo; holdout protegido contra edición y lectura del agente |
+ | TLA+ / Lean / Bombadil | `tests/test_propiedades.py` (Hypothesis + exploración exhaustiva del contrato) | Proporcional al dominio: el invariante crítico es «no hay PASS sin evidencia» |
+ | `/correct`, transcript-healthcheck, routine-healthcheck | `captura_correcciones.py`, `/corregir`, `salud_transcripciones.py`, `salud_rutinas.py` | Silenciosos sin hallazgos; proponen y esperan selección |
+ | *Build the Lever* | `construir-palanca` | Ejemplo vivo: el verificador es la palanca que sustituye scripts ad hoc |
+@@ -38,7 +38,7 @@ flowchart LR
+ | dr eggbot: un trabajo + anti-trabajos | 6 subagentes con `tools` restringidas y anti-trabajos explícitos | Los roles no son fronteras de credenciales: un worktree por escritor |
+ | `show-me-your-work` (TSV) | `muestra-tu-trabajo` + `bitacora.py` | Decisión irreversible → código 3 y detención |
+ | `/unslop` | `sin-relleno` + `detectar_relleno.py` | Respeta fórmulas forenses legítimas |
+-| `/interrogate`, `/arena` | `interrogar` + `revisor-adversarial` + revisor Ollama | Coincide con el flujo multimodelo del operador (revisión adversarial) |
++| `/interrogate`, `/arena` | `interrogar` + `revisor-adversarial` + `revisar_codex.py` (u Ollama local) | Coincide con el flujo multimodelo del operador (revisión adversarial) |
+ | `models.md` (`/setup-pstack`) | `plantillas/modelos.json` + `model:` de cada subagente | |
+ 
+ ## Flujo de una cita
+diff --git a/itostack/docs/evals.md b/itostack/docs/evals.md
+index 0cd96e7..68808c7 100644
+--- a/itostack/docs/evals.md
++++ b/itostack/docs/evals.md
+@@ -7,14 +7,14 @@
+ | Autoprueba | `evals/autoprueba.py` | Gratis | Cada caso es resoluble (referencia = 1.00) y discrimina (agente que no verifica < 1.00) |
+ | Desarrollo | `claude plugin eval --tag desarrollo` | Tokens | La skill guía al agente real; el brazo sin plugin mide su aporte |
+ | Holdout | `compuerta_holdout.py holdout` | Tokens, una vez | La skill generaliza a casos que no vio quien la mejoró |
+-| Juez local | `revisar_ollama.py --rol juez` | Local | Segunda calificación de otra familia de modelos contra rúbrica congelada |
++| Juez de otra familia | `revisar_codex.py --rol juez` (desarrollo) o `revisar_ollama.py --rol juez` (local, producción) | Tokens de Codex / local | Calificación por criterio (`si`/`no`/`no_aplicable`) contra la rúbrica congelada; el puntaje lo calcula `nucleo/juez.py`. Requisito de la compuerta |
+ | Propiedades | `tests/test_propiedades.py` | Gratis | Invariantes del contrato en todo el espacio de estados |
+ 
+ ## Casos incluidos (datos ficticios `FICT-####`)
+ 
+ | Skill | Desarrollo | Holdout |
+ |---|---|---|
+-| verificar-cita | pass-exacto, fail-rubro-alterado, fail-inexistente, blocked-portal-caido, blocked-sin-registro, pass-advertencia-sala | holdout-fail-clave, holdout-blocked-estructura, holdout-pass-normalizacion |
++| verificar-cita | pass-exacto, fail-rubro-alterado, fail-inexistente, fail-epoca-discrepante, blocked-portal-caido, blocked-sin-registro, pass-advertencia-sala | holdout-fail-clave, holdout-blocked-estructura, holdout-pass-normalizacion |
+ | validar-documento | dev-tres-citas | holdout-rubro-truncado |
+ | demuestra-que-funciona | dev-pass, dev-blocked-selector | holdout-fail-bug |
+ | reproducir-y-corregir | dev-bug-minusculas | — |
+@@ -25,9 +25,10 @@
+ 
+ 1. `python3 evals/autoprueba.py --caso "<skill>/*"` → todos coherentes.
+ 2. `claude plugin eval ./itostack --tag desarrollo --case "<skill>.*" --scaffold --allow-tools Bash Write Edit --judge-model sonnet --json dev.json` hasta 1.0 en todos los casos (iterar con `/loop` y `mejorar-skill`).
+-3. `python3 evals/compuerta_holdout.py congelar --skill <skill> --resultados dev.json` (fija la huella de skill + scripts + hooks + casos de desarrollo).
+-4. `python3 evals/compuerta_holdout.py holdout --skill <skill>` → una sola corrida; si falla, RECHAZADA y esa huella no puede reintentar.
+-5. Conserva las trazas (`evals/results/…/report.html`) para auditoría humana. 10/10 no es certificación de producción.
++3. Califica los artefactos de desarrollo con el juez de otra familia: `python3 scripts/revisar_codex.py --rol juez --rubrica evals/rubricas/<rúbrica>.md --archivo <artefacto> > juez-dev.json` (exit 0 = aprobado).
++4. `python3 evals/compuerta_holdout.py congelar --skill <skill> --resultados dev.json --juez juez-dev.json` (fija la huella de skill + scripts + hooks + agentes + rúbricas + fixtures + casos de desarrollo, la huella de la reserva y la identidad del juez). Sin juez, solo con `--sin-juez-externo "motivo"`, que queda en el historial.
++5. Holdout: `python3 evals/compuerta_holdout.py reservar --skill <skill>` consume el único intento ANTES de correr nada (también si después se interrumpe). Luego corre `claude plugin eval --tag holdout --case "<skill>.*" --runs 1 --scaffold --json h.json`, califica el artefacto de CADA caso holdout con el MISMO juez (`revisar_codex.py --rol juez --caso <skill>.<caso> …`, uno por caso) y registra: `python3 evals/compuerta_holdout.py holdout --skill <skill> --resultados h.json --juez juez-holdout.json`. Resultados y veredictos deben ser posteriores a la reserva; un veredicto que califica artefactos de desarrollo no vale, y un artefacto que el juez ya reprobó en otra corrida (bitácora `.itostack/bitacora/juez.tsv`) cuenta como reprobado. Si falla, RECHAZADA y esa huella no puede reintentar. Cambiar de juez o de reserva después de congelar se rechaza, y una candidata congelada no se vuelve a congelar. Sin juez externo, la aceptación queda como «ACEPTADA SIN JUEZ EXTERNO».
++6. Conserva las trazas (`evals/results/…/report.html`) y los veredictos del juez para auditoría humana. 10/10 no es certificación de producción.
+ 
+ ## Requisitos de `claude plugin eval`
+ 
+diff --git a/itostack/docs/piramide-guardias.md b/itostack/docs/piramide-guardias.md
+index 083247c..92f8458 100644
+--- a/itostack/docs/piramide-guardias.md
++++ b/itostack/docs/piramide-guardias.md
+@@ -13,16 +13,18 @@ Regla: cada corrección repetida se resuelve en el nivel más fuerte posible. La
+ | 2 · Estático | Lint IT006 | `executemany` sobre tesis, `/tesis/ids`, descargas masivas | Bases masivas de jurisprudencia |
+ | 2 · Estático | Lint IT007 | `waitForTimeout` | Esperas fijas que ocultan la causa raíz |
+ | 2 · Estático | Lint IT008 | Comentarios HACK/FIXME/workaround/«por ahora» | Parches que los agentes copian |
+-| 2 · Hook | `guardia_bash.py` | Push forzado, `gh pr merge`, PR sin `--draft`, `--no-verify`, `rm -rf` de raíces, scp/rsync/curl de subida, curl a portales oficiales, dependencias fuera de stack, commits en inglés o poco descriptivos | Acciones irreversibles o fuera de política |
++| 2 · Hook | `guardia_bash.py` | Push forzado, `gh pr merge`, PR sin `--draft`, `--no-verify`, `rm -rf` de raíces, scp/rsync/curl de subida, curl a portales oficiales, dependencias fuera de stack, commits en inglés o poco descriptivos, leer casos `holdout-*`; push a `main`/`master` o con `--force-with-lease` pasa por la compuerta humana | Acciones irreversibles o fuera de política |
+ | 2 · Hook | `guardia_escritura.py` | Lint sobre código nuevo; citas sin evidencia en `salidas/`, `escritos/`, `dictamenes/`; edición de evidencia, holdout y compuerta | Entregables jurídicos con citas no verificadas; enseñar al examen |
+-| 2 · Hook | `guardia_externo.py` | Enviar, publicar o compartir vía MCP requiere aprobación; con citas sin evidencia se deniega | Mensajes externos no revisados |
++| 2 · Hook | `guardia_lectura.py` | Leer o buscar dentro de un caso `holdout-*` (Read, Grep, Glob) | Enseñar al examen |
++| 2 · Hook | `guardia_externo.py` | Enviar, publicar o compartir vía MCP pasa por la compuerta humana; con citas sin evidencia se deniega | Mensajes externos no revisados |
++| 2 · Hook | Compuerta humana (`_comun.compuerta_humana`) | Pregunta solo en los modos que de verdad preguntan (default, acceptEdits, plan); en auto, dontAsk o bypassPermissions deniega (B-02). Excepciones curadas por el operador en `acciones_externas_permitidas` | Un «ask» que el anfitrión aprueba sin mostrarlo |
+ | 2 · Hook | `guardia_cierre.py` | Afirmar «verificado», «funciona» o «las pruebas pasan» sin la salida que lo pruebe | Éxitos declarados sin evidencia |
+ | 3 · Verificación | `verificar.py`, rutas del mapa, pytest, evals, propiedades | Regresiones funcionales y de contrato |
+ | 4 · Prosa | `CLAUDE.itostack.md` (7 líneas), skills, playbooks | Juicio que aún no se puede automatizar |
+ 
+ ## Excepciones auditables
+ 
+-En código: `# itostack: permitir IT00X — <justificación de al menos 10 caracteres>` en la misma línea o la anterior. Sin justificación, la excepción no vale. En salidas jurídicas, una cita ajena se reporta marcándola en su línea con ⚠ o ❌.
++En código: `# itostack: permitir IT00X — <justificación de al menos 10 caracteres>` en la misma línea o la anterior. Sin justificación, la excepción no vale. En salidas jurídicas, una cita ajena se reporta marcándola en su línea, fuera de las comillas, con «⚠ NO VERIFICADO» o «❌»: una advertencia de contexto (⚠ suelto) o una palabra del rubro no eximen de la evidencia. Si la cita trae un rubro explícito (`rubro: «…»`), debe ser el de su evidencia.
+ 
+ ## Agregar una regla
+ 
+diff --git a/itostack/evals/compuerta_holdout.py b/itostack/evals/compuerta_holdout.py
+index bad3141..5eb0e30 100644
+--- a/itostack/evals/compuerta_holdout.py
++++ b/itostack/evals/compuerta_holdout.py
+@@ -2,14 +2,22 @@
+ """Compuerta holdout: protocolo de aceptación de una skill candidata (sobre `claude plugin eval`).
+ 
+ 1. Itera la skill con los casos de desarrollo hasta 10/10 sin fallos críticos (mejorar-skill + /loop).
+-2. `congelar`: con los resultados de desarrollo en 1.0, fija la huella de la candidata (skill + scripts + casos dev).
+-3. `holdout`: corre UNA sola vez los casos holdout-* de esa skill. Si falla, la candidata queda RECHAZADA y esa
+-   huella no puede volver a intentarlo: hay que rediseñar la skill (y quizá la eval) y volver al paso 1.
++2. `congelar`: con los resultados de desarrollo en 1.0 y el visto bueno de un juez de OTRA familia de modelos
++   (revisar_codex.py o revisar_ollama.py --rol juez contra una rúbrica congelada de evals/rubricas), fija la huella de
++   la candidata, la de la reserva y la identidad del juez. Una candidata congelada no se vuelve a congelar.
++3. `reservar`: consume el ÚNICO intento holdout antes de correr nada (creación exclusiva de una marca).
++4. Se corre `claude plugin eval --tag holdout` y el MISMO juez califica sus artefactos; después `holdout` registra la
++   decisión con resultados y veredictos posteriores a la reserva. Si falla —o si el juez no aprueba, o ya reprobó esos
++   artefactos en otra corrida—, la candidata queda RECHAZADA y esa huella no puede volver a intentarlo.
++   Sin juez externo (exención declarada), `holdout` sin --resultados reserva y corre la evaluación él mismo.
+ 
+ Uso:
+   compuerta_holdout.py huella --skill verificar-cita
+-  compuerta_holdout.py congelar --skill verificar-cita --resultados dev.json
+-  compuerta_holdout.py holdout --skill verificar-cita [--resultados holdout.json] [-- <argumentos extra para claude plugin eval>]
++  compuerta_holdout.py congelar --skill verificar-cita --resultados dev.json --juez v1.json [--juez v2.json]
++  compuerta_holdout.py congelar --skill verificar-cita --resultados dev.json --sin-juez-externo "motivo"
++  compuerta_holdout.py reservar --skill verificar-cita
++  compuerta_holdout.py holdout --skill verificar-cita --resultados holdout.json --juez vh.json
++  compuerta_holdout.py holdout --skill verificar-cita [-- <argumentos extra para claude plugin eval>]   (sin juez)
+   compuerta_holdout.py estado
+ Los resultados se obtienen con: claude plugin eval <plugin> --tag desarrollo --case "verificar-cita.*" --scaffold --json dev.json
+ """
+@@ -23,27 +31,74 @@ import shutil
+ import subprocess
+ import sys
+ import tempfile
++import time
+ from datetime import datetime, timezone
+ from pathlib import Path
+ 
+ EVALS = Path(__file__).resolve().parent
+ PLUGIN = EVALS.parent
++sys.path.insert(0, str(PLUGIN / "scripts"))
++
++from nucleo import config as cfg  # noqa: E402
++from nucleo import juez as contrato_juez  # noqa: E402
++
+ COMPUERTA = EVALS / "compuerta"
+ HISTORIAL = COMPUERTA / "historial.tsv"
++RUBRICAS = EVALS / "rubricas"
+ EXCLUIR = {"node_modules", "__pycache__", "results"}
++CAMPOS_JUEZ = ("familia", "herramienta", "modelo", "esfuerzo", "version")
++
++
++def _archivos(raiz: Path) -> list[Path]:
++    if raiz.is_file():
++        return [raiz]
++    return sorted(p for p in raiz.rglob("*") if p.is_file()) if raiz.exists() else []
+ 
+ 
+ def huella(skill: str) -> str:
++    """Huella de la candidata: la skill y todo lo que la evaluación usa (N-08), sin la reserva holdout.
++
++    Incluye scripts, hooks, guardias y agentes (el juez), las rúbricas, los fixtures, el andamiaje común de los casos
++    y los propios instrumentos (autoprueba y compuerta): cambiar cualquiera invalida lo congelado.
++    """
+     resumen = hashlib.sha256()
+-    fuentes = [PLUGIN / "skills" / skill, PLUGIN / "scripts", PLUGIN / "hooks", PLUGIN / "guardias", EVALS / skill]
++    resumen.update(b"config:" + _configuracion_evaluada())
++    fuentes = [
++        PLUGIN / "skills" / skill, PLUGIN / "scripts", PLUGIN / "hooks", PLUGIN / "guardias", PLUGIN / "agents",
++        EVALS / skill, RUBRICAS, EVALS / "fixtures", EVALS / "_comun", EVALS / "autoprueba.py", EVALS / "compuerta_holdout.py",
++    ]
+     for raiz in fuentes:
+-        if not raiz.exists():
+-            continue
+-        for archivo in sorted(p for p in raiz.rglob("*") if p.is_file()):
++        for archivo in _archivos(raiz):
+             relativo = archivo.relative_to(PLUGIN)
+             if any(parte in EXCLUIR for parte in relativo.parts) or any(parte.startswith("holdout-") for parte in relativo.parts):
+                 continue
+-            resumen.update(str(relativo).encode())
++            resumen.update(relativo.as_posix().encode())
++            resumen.update(archivo.read_bytes())
++    return resumen.hexdigest()
++
++
++def _configuracion_evaluada() -> bytes:
++    """Los valores de .itostack/config.json que cambian lo que verifican scripts y guardias (no rutas de la máquina
++    ni el entorno): cambiarlos entre desarrollo y holdout invalida la candidata."""
++    config = cfg.cargar(cfg.raiz_proyecto())
++    sjf = config.get("sjf") or {}
++    datos = {k: config.get(k) for k in ("modo", "comparacion", "cortes_temporales", "dominios_oficiales")}
++    datos["vigencia_dias"] = (config.get("evidencia") or {}).get("vigencia_dias")
++    datos["sjf"] = {k: sjf.get(k) for k in ("base", "ruta_detalle", "ruta_api")}
++    fixture = Path(sjf["fixture"]) if sjf.get("fixture") else None
++    datos["sjf_fixture"] = contrato_juez.sha256(fixture.read_bytes()) if fixture and fixture.is_file() else None
++    return json.dumps(datos, sort_keys=True, ensure_ascii=False).encode("utf-8")
++
++
++def huella_holdout(skill: str) -> str:
++    """Huella de la reserva: si cambia después de congelar, el holdout ya no mide lo mismo."""
++    resumen = hashlib.sha256()
++    for directorio in sorted((EVALS / skill).glob("holdout-*")):
++        for archivo in _archivos(directorio):
++            relativo = archivo.relative_to(PLUGIN)
++            if any(parte in EXCLUIR for parte in relativo.parts):
++                continue
++            resumen.update(relativo.as_posix().encode())
+             resumen.update(archivo.read_bytes())
+     return resumen.hexdigest()
+ 
+@@ -91,62 +146,270 @@ def _historial() -> list[list[str]]:
+     return [l.split("\t") for l in HISTORIAL.read_text(encoding="utf-8").splitlines()[1:] if l.strip()]
+ 
+ 
+-def _anotar(skill: str, huella_actual: str, evento: str, puntaje: float, decision: str) -> None:
++def _anotar(skill: str, huella_actual: str, evento: str, puntaje: float, decision: str, juez: str = "") -> None:
+     COMPUERTA.mkdir(parents=True, exist_ok=True)
+     if not HISTORIAL.exists():
+-        HISTORIAL.write_text("fecha\tskill\thuella\tevento\tpuntaje_min\tdecision\n", encoding="utf-8")
++        HISTORIAL.write_text("fecha\tskill\thuella\tevento\tpuntaje_min\tdecision\tjuez\n", encoding="utf-8")
++    juez = " ".join(juez.split())
+     with open(HISTORIAL, "a", encoding="utf-8") as archivo:
+-        archivo.write(f"{datetime.now(timezone.utc).isoformat(timespec='seconds')}\t{skill}\t{huella_actual}\t{evento}\t{puntaje:.2f}\t{decision}\n")
++        archivo.write(f"{datetime.now(timezone.utc).isoformat(timespec='seconds')}\t{skill}\t{huella_actual}\t{evento}\t{puntaje:.2f}\t{decision}\t{juez}\n")
++
++
++def _rubricas_congeladas() -> dict[str, int]:
++    """{sha256 de la rúbrica: cantidad de criterios} de evals/rubricas (forman parte de la huella)."""
++    return {contrato_juez.sha256(r.read_bytes()): len(contrato_juez.criterios_de_rubrica(r.read_text(encoding="utf-8"))) for r in RUBRICAS.glob("*.md")}
++
++
++def veredictos_juez(rutas: list[Path], desde: float | None = None, proyecto: Path | None = None) -> tuple[dict | None, list[str], list[str], set[str], set[str]]:
++    """Lee veredictos de revisar_codex.py / revisar_ollama.py --rol juez.
++
++    Devuelve (identidad común del juez, errores, artefactos no aprobados, huellas de los artefactos calificados,
++    casos de eval calificados).
++    Exige: rol juez de otra familia, una rúbrica congelada de evals/rubricas, cobertura exacta de sus criterios (el
++    puntaje se recalcula: un `aprobado` editado a mano no cuenta) y, con `desde`, archivos posteriores a la reserva.
++    Con `proyecto`, un artefacto que ESE MISMO juez ya reprobó en otra corrida registrada en la bitácora cuenta como
++    reprobado: repetir el juicio hasta obtener un aprobado no sirve.
++    """
++    errores: list[str] = []
++    desaprobados: list[str] = []
++    identidades: set[str] = set()
++    huellas: set[str] = set()
++    casos: set[str] = set()
++    rubricas = _rubricas_congeladas()
++    bitacora = contrato_juez.leer_bitacora(proyecto) if proyecto else []
++    for ruta in rutas:
++        ruta = Path(ruta)
++        try:
++            veredicto = json.loads(ruta.read_text(encoding="utf-8"))
++        except (OSError, json.JSONDecodeError):
++            errores.append(f"{ruta}: no es un veredicto JSON legible")
++            continue
++        datos_juez = veredicto.get("juez") or {}
++        if datos_juez.get("rol") != "juez":
++            errores.append(f"{ruta}: no es un veredicto del rol juez")
++            continue
++        modelo = str(datos_juez.get("modelo") or "")
++        if not modelo or contrato_juez.es_familia_claude(modelo) or datos_juez.get("familia") in (None, "anthropic"):
++            errores.append(f"{ruta}: el juez no es de otra familia de modelos que Claude")
++            continue
++        materia = veredicto.get("material") or {}
++        huella_rubrica = (materia.get("rubrica") or {}).get("sha256")
++        artefactos = sorted(h for h in materia.get("sha256_artefactos") or [] if h)
++        if huella_rubrica not in rubricas:
++            errores.append(f"{ruta}: la rúbrica calificada no es una rúbrica congelada de evals/rubricas")
++            continue
++        if not artefactos:
++            errores.append(f"{ruta}: el veredicto no identifica los artefactos que calificó")
++            continue
++        if desde is not None and ruta.stat().st_mtime < desde:
++            errores.append(f"{ruta}: el veredicto es anterior a la reserva del holdout")
++            continue
++        identidades.add(json.dumps({k: datos_juez.get(k) for k in CAMPOS_JUEZ}, sort_keys=True))
++        huellas.update(artefactos)
++        if materia.get("caso"):
++            casos.add(str(materia["caso"]))
++        calificado = contrato_juez.calificar(veredicto, rubricas[huella_rubrica])
++        if not calificado["aprobado"]:
++            desaprobados.append(f"{ruta}: puntaje {calificado['puntaje']}, {calificado.get('cobertura')}, fallos críticos {calificado['fallos_criticos'] or 'ninguno'}")
++            continue
++        clave = ",".join(artefactos)
++        if any(",".join(sorted((f.get("sha256_artefactos") or "").split(","))) == clave and f.get("sha256_rubrica") == huella_rubrica
++               and all(f.get(k) == str(datos_juez.get(k)) for k in CAMPOS_JUEZ) and f.get("aprobado") == "no" for f in bitacora):
++            desaprobados.append(f"{ruta}: el juez ya reprobó estos mismos artefactos en otra corrida (bitácora del juez)")
++    if len(identidades) > 1:
++        errores.append("los veredictos vienen de jueces distintos")
++    identidad = json.loads(next(iter(identidades))) if len(identidades) == 1 and not errores else None
++    return identidad, errores, desaprobados, huellas, casos
++
++
++def _describir(identidad: dict | None) -> str:
++    if not identidad:
++        return ""
++    return f"{identidad.get('herramienta')}:{identidad.get('modelo')}@{identidad.get('esfuerzo')} ({identidad.get('version')})"
+ 
+ 
+ def _evaluar(skill: str, conjunto: str, ruta: Path) -> tuple[float, dict[str, float], set[str]]:
+-    obtenidos = puntajes(json.loads(ruta.read_text(encoding="utf-8")))
++    try:
++        obtenidos = puntajes(json.loads(Path(ruta).read_text(encoding="utf-8")))
++    except (OSError, json.JSONDecodeError) as error:
++        print(f"Resultados ilegibles ({ruta}): {error}")
++        obtenidos = {}
+     esperados = _casos(skill, conjunto)
+     faltantes = esperados - obtenidos.keys()
+     minimo = min((obtenidos[n] for n in esperados if n in obtenidos), default=0.0)
+     return (0.0 if faltantes else minimo), obtenidos, faltantes
+ 
+ 
+-def congelar(skill: str, resultados: Path) -> int:
++def congelar(skill: str, resultados: Path, jueces: list[Path] | tuple = (), sin_juez_externo: str | None = None) -> int:
++    actual = huella(skill)
++    candidata_ruta = COMPUERTA / f"{skill}.json"
++    if any(f[1] == skill and f[2] == actual and f[3] == "congelado" for f in _historial()):
++        print("Esta candidata ya se congeló antes (historial): su juez (o su exención) no se cambia. Para otro intento, cambia la skill.")
++        return 1
+     minimo, obtenidos, faltantes = _evaluar(skill, "desarrollo", resultados)
+     if faltantes or minimo < 1.0:
+         print(f"No se congela: desarrollo debe estar en 1.0 en todos los casos. Mínimo {minimo:.2f}; faltan {sorted(faltantes) or 'ninguno'}.")
+         for nombre in sorted(_casos(skill, "desarrollo")):
+             print(f"  {nombre}: {obtenidos.get(nombre, 'sin resultado')}")
+         return 1
+-    actual = huella(skill)
++    motivo = (sin_juez_externo or "").strip()
++    identidad, huellas = None, set()
++    if jueces:
++        identidad, errores, desaprobados, huellas, _ = veredictos_juez(list(jueces), proyecto=cfg.raiz_proyecto())
++        if errores or desaprobados:
++            print("No se congela: el juez de otra familia no da su visto bueno.")
++            for problema in errores + desaprobados:
++                print(f"  {problema}")
++            return 1
++    elif not motivo:
++        print("No se congela: falta el juez de otra familia. Califica los artefactos de desarrollo con "
++              "`revisar_codex.py --rol juez --rubrica <rúbrica congelada>` y pásalos con --juez, o declara por qué no "
++              "con --sin-juez-externo \"motivo\" (queda en el historial y la aceptación lo dirá).")
++        return 1
+     COMPUERTA.mkdir(parents=True, exist_ok=True)
+-    (COMPUERTA / f"{skill}.json").write_text(json.dumps({"skill": skill, "huella": actual, "congelado": datetime.now(timezone.utc).isoformat(timespec="seconds")}, indent=2), encoding="utf-8")
+-    _anotar(skill, actual, "congelado", minimo, "CANDIDATA")
+-    print(f"Candidata congelada: {skill} · huella {actual[:16]}…  Siguiente: compuerta_holdout.py holdout --skill {skill}")
++    # Congelar es una transición única por huella: dos invocaciones simultáneas (o una interrumpida) no pueden dejar
++    # jueces o exenciones distintos para la misma candidata.
++    try:
++        with open(COMPUERTA / f"{skill}.{actual[:16]}.congelado", "x", encoding="utf-8") as marca:
++            marca.write(json.dumps({"juez": identidad, "sin_juez_externo": motivo or None}, ensure_ascii=False) + "\n")
++    except FileExistsError:
++        print("Esta candidata ya se congeló (o se está congelando): su juez o su exención no se cambian.")
++        return 1
++    candidata = {
++        "skill": skill, "huella": actual, "huella_holdout": huella_holdout(skill),
++        "congelado": datetime.now(timezone.utc).isoformat(timespec="seconds"), "juez": identidad,
++        "artefactos_desarrollo": sorted(huellas),
++    }
++    if not identidad:
++        candidata["sin_juez_externo"] = motivo
++    candidata_ruta.write_text(json.dumps(candidata, ensure_ascii=False, indent=2), encoding="utf-8")
++    _anotar(skill, actual, "congelado", minimo, "CANDIDATA", _describir(identidad) or f"sin juez externo: {motivo}")
++    print(f"Candidata congelada: {skill} · huella {actual[:16]}… · juez {_describir(identidad) or 'ninguno (declarado)'}")
++    print(f"Siguiente: compuerta_holdout.py reservar --skill {skill}" if identidad else f"Siguiente: compuerta_holdout.py holdout --skill {skill}")
+     return 0
+ 
+ 
+-def holdout(skill: str, resultados: Path | None, extra: list[str]) -> int:
++def _candidata_vigente(skill: str) -> tuple[dict | None, str]:
+     candidata_ruta = COMPUERTA / f"{skill}.json"
+     if not candidata_ruta.is_file():
+         print("No hay candidata congelada: ejecuta primero `congelar` con resultados de desarrollo en 1.0.")
+-        return 1
++        return None, ""
+     candidata = json.loads(candidata_ruta.read_text(encoding="utf-8"))
+     actual = huella(skill)
+     if actual != candidata["huella"]:
+         print("La skill o sus scripts cambiaron después de congelar. Vuelve a correr desarrollo y a congelar.")
+-        return 1
++        return None, ""
++    if candidata.get("huella_holdout") and candidata["huella_holdout"] != huella_holdout(skill):
++        print("La reserva holdout cambió después de congelar: el resultado ya no mediría lo mismo. Vuelve a congelar.")
++        return None, ""
+     if any(f[1] == skill and f[2] == actual and f[3] == "holdout" for f in _historial()):
+         print("El holdout ya se consumió para esta candidata. Rediseña la skill (y la eval si hace falta) y repite el ciclo.")
++        return None, ""
++    return candidata, actual
++
++
++def _marca(skill: str, actual: str) -> Path:
++    return COMPUERTA / f"{skill}.{actual[:16]}.consumido"
++
++
++def _tomar_reserva(skill: str, actual: str, candidata: dict) -> bool:
++    """N-07: el intento se consume ANTES de correr. Una interrupción, una salida ilegible o una segunda invocación
++    simultánea ya no permiten repetir el holdout (la creación exclusiva del archivo es atómica)."""
++    try:
++        with open(_marca(skill, actual), "x", encoding="utf-8") as marca:
++            marca.write(f"{datetime.now(timezone.utc).isoformat(timespec='seconds')}\n{time.time():.6f}\n")
++    except FileExistsError:
++        print("El holdout ya se reservó para esta candidata: su único intento está en curso o consumido.")
++        return False
++    _anotar(skill, actual, "holdout-iniciado", 0.0, "EN CURSO", _describir(candidata.get("juez")))
++    return True
++
++
++def _instante_de_reserva(marca: Path) -> float:
++    """Instante exacto de la reserva (segunda línea de la marca), sin tolerancia: un archivo anterior no cuenta."""
++    lineas = marca.read_text(encoding="utf-8").split()
++    try:
++        return float(lineas[1])
++    except (IndexError, ValueError):
++        return datetime.fromisoformat(lineas[0]).timestamp() + 1  # marca sin instante preciso: el segundo siguiente
++
++
++def reservar(skill: str) -> int:
++    candidata, actual = _candidata_vigente(skill)
++    if not candidata or not _tomar_reserva(skill, actual, candidata):
++        return 1
++    print(f"Intento holdout reservado y consumido: {skill} · huella {actual[:16]}….")
++    print(f"Ahora: claude plugin eval <plugin> --tag holdout --case \"{skill}.*\" --runs 1 --scaffold --json h.json; "
++          "califica sus artefactos con el juez congelado y registra con: compuerta_holdout.py holdout --skill "
++          f"{skill} --resultados h.json --juez <veredicto.json>")
++    return 0
++
++
++def holdout(skill: str, resultados: Path | None, extra: list[str], jueces: list[Path] | tuple = ()) -> int:
++    candidata, actual = _candidata_vigente(skill)
++    if not candidata:
+         return 1
++    congelado_con = candidata.get("juez")
++    marca = _marca(skill, actual)
++    desaprobados: list[str] = []
+     if resultados is None:
++        if congelado_con:
++            print("Esta candidata tiene juez de otra familia: usa `reservar`, corre el holdout, califica sus artefactos y "
++                  "registra con --resultados y --juez.")
++            return 1
++        if not _tomar_reserva(skill, actual, candidata):
++            return 1
+         resultados = Path(tempfile.mkstemp(suffix=".json")[1])
+         comando = [shutil.which("claude") or "claude", "plugin", "eval", str(PLUGIN), "--tag", "holdout", "--case", f"{skill}.*", "--runs", "1", "--scaffold", "--json", str(resultados), *extra]
+         print("Ejecutando:", " ".join(comando))
+         subprocess.run(comando, check=False)
++    else:
++        if not marca.is_file():
++            print(f"Primero reserva el intento (compuerta_holdout.py reservar --skill {skill}) y después corre el holdout: "
++                  "unos resultados obtenidos sin reserva podrían ser el mejor de varios intentos.")
++            return 1
++        reserva = _instante_de_reserva(marca)
++        if Path(resultados).is_file() and Path(resultados).stat().st_mtime < reserva:
++            print("Los resultados son anteriores a la reserva: no corresponden al intento reservado.")
++            return 1
++        if congelado_con:
++            if not jueces:
++                print("Falta el veredicto del juez congelado sobre los artefactos del holdout (--juez).")
++                return 1
++            identidad, errores, desaprobados, huellas, casos = veredictos_juez(list(jueces), desde=reserva, proyecto=cfg.raiz_proyecto())
++            reutilizados = huellas & set(candidata.get("artefactos_desarrollo") or [])
++            if reutilizados:
++                errores.append("un veredicto califica artefactos de desarrollo, no del holdout")
++            sin_juicio = _casos(skill, "holdout") - casos
++            if sin_juicio:
++                errores.append(f"falta el veredicto del juez para cada caso holdout (--caso en revisar_codex.py): {sorted(sin_juicio)}")
++            if errores:
++                print("Veredictos del juez inválidos; corrígelos y vuelve a registrar (el intento sigue reservado):")
++                for problema in errores:
++                    print(f"  {problema}")
++                return 1
++            if identidad != congelado_con:
++                print(f"El juez cambió después de congelar ({_describir(congelado_con)} → {_describir(identidad)}): "
++                      "califica con el juez congelado.")
++                return 1
++    # La decisión se escribe una sola vez: dos registros simultáneos de la misma reserva no pueden dejar un
++    # ACEPTADA después de un RECHAZADA.
++    try:
++        with open(COMPUERTA / f"{skill}.{actual[:16]}.decidido", "x", encoding="utf-8") as decidido:
++            decidido.write(datetime.now(timezone.utc).isoformat(timespec="seconds") + "\n")
++    except FileExistsError:
++        print("La decisión de este holdout ya se registró (u otra invocación la está registrando).")
++        return 1
+     minimo, obtenidos, faltantes = _evaluar(skill, "holdout", resultados)
+-    decision = "ACEPTADA" if minimo == 1.0 and not faltantes else "RECHAZADA"
+-    _anotar(skill, actual, "holdout", minimo, decision)
++    aprobada = minimo == 1.0 and not faltantes and not desaprobados
++    decision = ("ACEPTADA" if congelado_con else "ACEPTADA SIN JUEZ EXTERNO") if aprobada else "RECHAZADA"
++    _anotar(skill, actual, "holdout", minimo, decision, _describir(congelado_con) or f"sin juez externo: {candidata.get('sin_juez_externo', '')}")
+     for nombre in sorted(_casos(skill, "holdout")):
+         print(f"  {nombre}: {obtenidos.get(nombre, 'sin resultado')}")
++    for problema in desaprobados:
++        print(f"  juez: {problema}")
+     print(f"Holdout {skill}: {decision} (mínimo {minimo:.2f}). Trazas completas en el directorio de resultados de claude plugin eval.")
+-    return 0 if decision == "ACEPTADA" else 1
++    return 0 if aprobada else 1
+ 
+ 
+ def principal() -> int:
+@@ -162,20 +425,27 @@ def principal() -> int:
+     p_c = sub.add_parser("congelar")
+     p_c.add_argument("--skill", required=True)
+     p_c.add_argument("--resultados", type=Path, required=True)
++    p_c.add_argument("--juez", type=Path, action="append", default=[], help="veredicto de revisar_codex.py/revisar_ollama.py --rol juez")
++    p_c.add_argument("--sin-juez-externo", metavar="MOTIVO", help="congelar sin juez de otra familia, con el motivo en el historial")
++    p_r = sub.add_parser("reservar")
++    p_r.add_argument("--skill", required=True)
+     p_o = sub.add_parser("holdout")
+     p_o.add_argument("--skill", required=True)
+     p_o.add_argument("--resultados", type=Path)
++    p_o.add_argument("--juez", type=Path, action="append", default=[])
+     sub.add_parser("estado")
+     args = analizador.parse_args(argv)
+     if args.accion == "huella":
+         print(huella(args.skill))
+         return 0
+     if args.accion == "congelar":
+-        return congelar(args.skill, args.resultados)
++        return congelar(args.skill, args.resultados, args.juez, args.sin_juez_externo)
++    if args.accion == "reservar":
++        return reservar(args.skill)
+     if args.accion == "holdout":
+-        return holdout(args.skill, args.resultados, extra)
++        return holdout(args.skill, args.resultados, extra, args.juez)
+     for fila in _historial():
+-        print(" · ".join([fila[0], fila[1], fila[2][:12], fila[3], fila[4], fila[5]]))
++        print(" · ".join([fila[0], fila[1], fila[2][:12], *fila[3:]]))
+     return 0
+ 
+ 
+diff --git a/itostack/evals/verificar-cita/pass-advertencia-sala/case.yaml b/itostack/evals/verificar-cita/pass-advertencia-sala/case.yaml
+index b1cd3c7..21d3ed7 100644
+--- a/itostack/evals/verificar-cita/pass-advertencia-sala/case.yaml
++++ b/itostack/evals/verificar-cita/pass-advertencia-sala/case.yaml
+@@ -45,6 +45,7 @@ graders:
+ - type: regex
+   name: explica-contexto
+   target: last_message
+-  pattern: sala|superad|corte temporal|reforma
++  # D-16: «sala» suelto coincidía dentro de «úsala». Se exige la frase completa.
++  pattern: sala extinta|superad|corte temporal|reforma
+   flags: i
+   weight: 1
+diff --git a/itostack/guardias/lint_itosturre.py b/itostack/guardias/lint_itosturre.py
+index bc9ebe6..e80a00f 100644
+--- a/itostack/guardias/lint_itosturre.py
++++ b/itostack/guardias/lint_itosturre.py
+@@ -18,6 +18,7 @@ import fnmatch
+ import re
+ import subprocess
+ import sys
++import tokenize
+ from dataclasses import dataclass
+ from pathlib import Path
+ 
+@@ -145,8 +146,25 @@ def revisar_archivos(rutas: list[Path]) -> list[Hallazgo]:
+     return hallazgos
+ 
+ 
+-def revisar_diff(base: str) -> list[Hallazgo]:
+-    salida = subprocess.run(["git", "diff", "-U0", base, "--", *[f"*{s}" for s in CODIGO]], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False).stdout
++class ErrorGit(RuntimeError):
++    pass
++
++
++def _git(*argumentos: str) -> str:
++    proceso = subprocess.run(["git", *argumentos], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
++    if proceso.returncode != 0:
++        raise ErrorGit(f"git {' '.join(argumentos[:2])} falló ({proceso.returncode}): {proceso.stderr.strip()[:300]}")
++    return proceso.stdout
++
++
++def revisar_diff(base: str) -> tuple[list[Hallazgo], int, int, list[str]]:
++    """Líneas añadidas respecto a BASE y archivos nuevos sin rastrear (D-10: `git diff` no los ve).
++
++    Devuelve (hallazgos, archivos examinados, líneas examinadas, archivos que no se pudieron leer). Un error de Git
++    es un error, no un verde vacío.
++    """
++    globs = [f"*{s}" for s in CODIGO]
++    salida = _git("diff", "-U0", base, "--", *globs)
+     hallazgos, archivo, numero = [], "", 0
+     lineas_por_archivo: dict[str, tuple[list[str], list[int]]] = {}
+     for linea in salida.splitlines():
+@@ -160,25 +178,62 @@ def revisar_diff(base: str) -> list[Hallazgo]:
+             textos.append(linea[1:])
+             numeros.append(numero)
+             numero += 1
++    raiz = Path(_git("rev-parse", "--show-toplevel").strip())
++    no_examinados: list[str] = []
++    # -z: sin él, Git entrecomilla y escapa los nombres no ASCII («nuevo_ñ.py») y el archivo se saltaría.
++    for relativo in _git("ls-files", "--others", "--exclude-standard", "--full-name", "-z", "--", *globs).split("\0"):
++        if not relativo.strip() or "node_modules" in Path(relativo).parts:
++            continue
++        try:
++            contenido = _leer_codigo(raiz / relativo).splitlines()
++        except (UnicodeDecodeError, SyntaxError, LookupError, OSError):
++            no_examinados.append(relativo)
++            continue
++        lineas_por_archivo[relativo] = (contenido, list(range(1, len(contenido) + 1)))
+     for archivo, (textos, numeros) in lineas_por_archivo.items():
+         hallazgos.extend(revisar_texto("\n".join(textos), archivo, numeros))
+-    return hallazgos
++    return hallazgos, len(lineas_por_archivo), sum(len(textos) for textos, _ in lineas_por_archivo.values()), no_examinados
++
++
++def _leer_codigo(ruta: Path) -> str:
++    """UTF-8, o la codificación que declare un .py («# coding: cp1252»): un archivo válido no se salta."""
++    try:
++        return ruta.read_text(encoding="utf-8")
++    except UnicodeDecodeError:
++        if ruta.suffix != ".py":
++            raise
++        with tokenize.open(ruta) as archivo:
++            return archivo.read()
+ 
+ 
+ def principal() -> int:
+     analizador = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+     analizador.add_argument("rutas", nargs="*", type=Path)
+-    analizador.add_argument("--diff", nargs="?", const="HEAD", help="revisa solo líneas añadidas respecto a BASE")
++    analizador.add_argument("--diff", nargs="?", const="HEAD", help="revisa las líneas añadidas respecto a BASE y los archivos nuevos sin rastrear; sale con 2 si no examinó nada")
+     args = analizador.parse_args()
++    cobertura = ""
+     if args.diff:
+-        hallazgos = revisar_diff(args.diff)
++        try:
++            hallazgos, archivos, lineas, no_examinados = revisar_diff(args.diff)
++        except ErrorGit as error:
++            print(f"lint itosturre: {error}. Sin diff no hay comprobación.")
++            return 2
++        if no_examinados:
++            for hallazgo in hallazgos:
++                print(hallazgo.formato())
++            print(f"lint itosturre: no se pudieron leer {len(no_examinados)} archivo(s) nuevos: {', '.join(no_examinados)}. Resultado incompleto.")
++            return 2
++        cobertura = f" · examinados {archivos} archivo(s), {lineas} línea(s) nuevas o añadidas"
++        if not archivos:
++            print("lint itosturre: 0 archivos de código examinados: el diff no tiene cambios de código. Esto no acredita el cambio.")
++            return 2
+     elif args.rutas:
+         hallazgos = revisar_archivos(args.rutas)
+     else:
+         analizador.error("indica rutas o --diff")
+     for hallazgo in hallazgos:
+         print(hallazgo.formato())
+-    print(f"lint itosturre: {len(hallazgos)} hallazgo(s)")
++    print(f"lint itosturre: {len(hallazgos)} hallazgo(s){cobertura}")
+     return 1 if hallazgos else 0
+ 
+ 
+diff --git a/itostack/hooks/_comun.py b/itostack/hooks/_comun.py
+index fa2f573..c58a55b 100644
+--- a/itostack/hooks/_comun.py
++++ b/itostack/hooks/_comun.py
+@@ -50,6 +50,23 @@ def preguntar(razon: str) -> None:
+     _emitir({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask", "permissionDecisionReason": f"itostack: {razon}"}})
+ 
+ 
++# Modos de permiso en los que el anfitrión SÍ muestra la pregunta al operador. En los demás (auto, dontAsk,
++# bypassPermissions, sin dato) un «ask» se resuelve solo: así pasó el push a main de B-02 sin que nadie lo viera.
++MODOS_QUE_PREGUNTAN = {"default", "acceptEdits", "plan"}
++
++
++def compuerta_humana(entrada: dict, razon: str) -> None:
++    """Pide confirmación humana solo donde el anfitrión de verdad pregunta; en otro modo, deniega (falla cerrado)."""
++    modo = entrada.get("permission_mode")
++    if modo in MODOS_QUE_PREGUNTAN:
++        preguntar(razon)
++        return
++    denegar(
++        f"{razon} En el modo de permisos «{modo or 'desconocido'}» el anfitrión aprueba las preguntas sin mostrarlas, "
++        "así que la compuerta humana deniega. Que el operador lo haga él mismo, o que cambie al modo default para confirmarlo."
++    )
++
++
+ def contexto(evento: str, texto: str) -> None:
+     _emitir({"hookSpecificOutput": {"hookEventName": evento, "additionalContext": texto}})
+ 
+diff --git a/itostack/hooks/guardia_bash.py b/itostack/hooks/guardia_bash.py
+index 1aae730..bc1b9ca 100644
+--- a/itostack/hooks/guardia_bash.py
++++ b/itostack/hooks/guardia_bash.py
+@@ -26,6 +26,8 @@ REGLAS: list[tuple[str, re.Pattern, str]] = [
+      "push con --force-with-lease: requiere confirmación humana."),
+     ("preguntar", re.compile(r"\bgit\s+push\b[^|;&]*\b(?:main|master)\b"),
+      "push directo a la rama principal: requiere confirmación humana."),
++    ("denegar", re.compile(r"(?i)\b(?:cat|head|tail|less|more|type|bat|sed|awk|grep|rg|findstr|Get-Content|gc|code|Select-String|sls)\b[^|;&]*\bholdout-"),
++     "los casos holdout son la reserva de evaluación: el agente que mejora una skill no puede leerlos."),
+     ("denegar", re.compile(r"\bgh\s+pr\s+merge\b"),
+      "un agente no fusiona PRs. Deja el PR en borrador con evidencia; la fusión la decide una persona."),
+     ("denegar", re.compile(r"\bgit\s+commit\b.*--no-verify|\bgit\s+push\b.*--no-verify"),
+@@ -72,7 +74,39 @@ def problema_commit(mensaje: str) -> str | None:
+     return None
+ 
+ 
+-def evaluar(comando: str) -> tuple[str, str] | None:
++# PowerShell no distingue mayúsculas: «get-content» es Get-Content.
++RE_LECTOR = re.compile(r"\b(?:rg|grep|egrep|fgrep|ag|ack|findstr|Select-String|sls|cat|type|Get-Content|gc|head|tail|less|more|sed|awk|bat)\b", re.IGNORECASE)
++RE_VARIABLE = re.compile(r"\$\{?\w+|%\w+%")
++
++
++def _contiene_reserva(ruta: Path) -> bool:
++    return ruta.is_dir() and (any(ruta.glob("holdout-*")) or any(ruta.glob("*/holdout-*")))
++
++
++def recorre_reserva(comando: str, cwd: str | None) -> str | None:
++    """Un lector o buscador apuntado a evals/ o evals/<skill>/ (o a un glob dentro) recorre la reserva holdout sin
++    nombrarla: «rg -n . evals/verificar-cita», «cat evals/verificar-cita/*/case.yaml»."""
++    if not RE_LECTOR.search(comando):
++        return None
++    # Desde evals/ o evals/<skill>/, un buscador sin ruta («rg .») recorre la reserva.
++    if cwd and _contiene_reserva(Path(cwd)):
++        return cwd
++    for ficha in re.findall(r"""[^\s"'|;&<>]*evals[^\s"'|;&<>]*""", comando):
++        # Una variable sin expandir («$R/evals/verificar-cita») no se puede resolver con certeza: se deniega.
++        if RE_VARIABLE.search(ficha):
++            return ficha
++        base = re.split(r"[*?\[]", ficha)[0] or "."
++        ruta = Path(base)
++        ruta = ruta if ruta.is_absolute() else Path(cwd or ".") / ruta
++        if _contiene_reserva(ruta):
++            return ficha
++    return None
++
++
++def evaluar(comando: str, cwd: str | None = None) -> tuple[str, str] | None:
++    ficha = recorre_reserva(comando, cwd)
++    if ficha:
++        return "denegar", f"«{ficha}» abarca la reserva holdout: busca o lee dentro de un caso de desarrollo concreto (evals/<skill>/<caso>)."
+     for accion, patron, razon in REGLAS:
+         if patron.search(comando):
+             return accion, razon
+@@ -88,10 +122,13 @@ def evaluar(comando: str) -> tuple[str, str] | None:
+ def principal() -> int:
+     entrada = _comun.leer_entrada()
+     comando = (entrada.get("tool_input") or {}).get("command", "")
+-    decision = evaluar(comando)
++    decision = evaluar(comando, entrada.get("cwd"))
+     if decision:
+         accion, razon = decision
+-        (_comun.denegar if accion == "denegar" else _comun.preguntar)(razon)
++        if accion == "denegar":
++            _comun.denegar(razon)
++        else:
++            _comun.compuerta_humana(entrada, razon)
+     return 0
+ 
+ 
+diff --git a/itostack/hooks/guardia_escritura.py b/itostack/hooks/guardia_escritura.py
+index 7c81d37..196ab44 100644
+--- a/itostack/hooks/guardia_escritura.py
++++ b/itostack/hooks/guardia_escritura.py
+@@ -10,6 +10,7 @@
+ from __future__ import annotations
+ 
+ import fnmatch
++import json
+ import os
+ import sys
+ from pathlib import Path
+@@ -66,9 +67,22 @@ def citas_sin_evidencia(texto: str, config: dict) -> list[str]:
+         )
+         if not vigente:
+             problemas.append(f"línea {cita.linea}: {cita.tipo} «{cita.valor}»")
++    problemas.extend(detector.rubros_discrepantes(texto, oficial_vigente(almacen, dias, modos), config["comparacion"]["ignorar_acentos"]))
+     return problemas
+ 
+ 
++def oficial_vigente(almacen: AlmacenEvidencia, dias: int, modos: tuple[str, ...]):
++    """Datos oficiales de la evidencia vigente de un registro o clave (para cotejar el rubro escrito)."""
++
++    def buscar(registro: str | None, clave: str | None) -> dict | None:
++        fila = (almacen.vigente("tesis", registro, dias, modos) if registro else None) or (
++            almacen.vigente_por_clave(clave, dias, modos) if clave else None
++        )
++        return json.loads(fila["datos_oficiales"]) if fila else None
++
++    return buscar
++
++
+ def principal() -> int:
+     entrada = _comun.leer_entrada()
+     nombre = entrada.get("tool_name", "")
+diff --git a/itostack/hooks/guardia_externo.py b/itostack/hooks/guardia_externo.py
+index 705fb92..aa09949 100644
+--- a/itostack/hooks/guardia_externo.py
++++ b/itostack/hooks/guardia_externo.py
+@@ -7,6 +7,7 @@ programar requiere aprobación; y si el contenido trae citas sin evidencia vigen
+ 
+ from __future__ import annotations
+ 
++import fnmatch
+ import re
+ import sys
+ from pathlib import Path
+@@ -40,13 +41,18 @@ def principal() -> int:
+     accion = herramienta.split("__")[-1]
+     if not RE_ACCION_EXTERNA.search(accion):
+         return 0
++    permitidas: list[str] = []
+     if _comun.tiene_itostack(entrada):
+         config = _comun.configuracion(entrada)
+         problemas = citas_sin_evidencia("\n".join(cadenas(entrada.get("tool_input") or {})), config)
+         if problemas:
+             _comun.denegar("el contenido que saldría hacia afuera trae citas sin evidencia vigente: " + "; ".join(problemas[:5]))
+             return 0
+-    _comun.preguntar(f"compuerta humana: «{herramienta}» envía o publica fuera de la máquina. Confirma destinatario y contenido.")
++        permitidas = config.get("acciones_externas_permitidas") or []
++    # Lista que cura el operador en .itostack/config.json (p. ej. responderle a él mismo por Telegram).
++    if any(fnmatch.fnmatchcase(herramienta, patron) for patron in permitidas):
++        return 0
++    _comun.compuerta_humana(entrada, f"compuerta humana: «{herramienta}» envía o publica fuera de la máquina. Confirma destinatario y contenido.")
+     return 0
+ 
+ 
+diff --git a/itostack/hooks/hooks.json b/itostack/hooks/hooks.json
+index 15fa698..c7975fc 100644
+--- a/itostack/hooks/hooks.json
++++ b/itostack/hooks/hooks.json
+@@ -28,6 +28,12 @@
+           { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_escritura.py cerrado PreToolUse", "timeout": 20 }
+         ]
+       },
++      {
++        "matcher": "Read|Grep|Glob",
++        "hooks": [
++          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_lectura.py cerrado PreToolUse", "timeout": 20 }
++        ]
++      },
+       {
+         "matcher": "mcp__.*",
+         "hooks": [
+diff --git a/itostack/hooks/inicio_sesion.py b/itostack/hooks/inicio_sesion.py
+index c446a63..d34c623 100644
+--- a/itostack/hooks/inicio_sesion.py
++++ b/itostack/hooks/inicio_sesion.py
+@@ -48,6 +48,8 @@ def principal() -> int:
+     ]
+     if config["modo"] == "fixture":
+         lineas.append("MODO FIXTURE: la evidencia usa datos ficticios y no sirve para uso procesal.")
++    if config.get("entorno") == "desarrollo":
++        lineas.append("ENTORNO DESARROLLO: se permite el revisor y juez de otra familia en la nube (scripts/revisar_codex.py). En producción, solo revisar_ollama.py.")
+     if pendientes:
+         lineas.append(f"Hay {pendientes} corrección(es) repetida(s) sin elevar: proponer /corregir al cerrar la tarea.")
+     _comun.contexto("SessionStart", "\n".join(lineas))
+diff --git a/itostack/plantillas/modelos.json b/itostack/plantillas/modelos.json
+index 191b391..0dab1ce 100644
+--- a/itostack/plantillas/modelos.json
++++ b/itostack/plantillas/modelos.json
+@@ -8,8 +8,20 @@
+     "jardinero": "sonnet",
+     "juez_evals": "haiku"
+   },
+-  "panel_interrogar": ["revisor-adversarial", "ollama:qwen2.5:14b"],
+-  "juez_otra_familia": "ollama:qwen2.5:14b",
++  "panel_interrogar": [
++    "revisor-adversarial",
++    "codex:gpt-6.1-sol"
++  ],
++  "juez_otra_familia": "codex:gpt-6.1-sol",
++  "codex": {
++    "modelo": "gpt-6.1-sol",
++    "esfuerzo": "high",
++    "_nota": "revisar_codex.py fija modelo y esfuerzo desde aquí e ignora ~/.codex/config.toml: el juez de desarrollo y el de holdout son el mismo. El texto sale a OpenAI: solo corre con \"entorno\": \"desarrollo\" en config.json."
++  },
++  "ollama": {
++    "modelo": "qwen2.5:14b",
++    "_nota": "Alternativa 100 % local (revisar_ollama.py): la que corresponde en producción."
++  },
+   "ollama_endpoint": "http://127.0.0.1:11434",
+-  "regla": "El juez no debe ser el mismo modelo que el agente evaluado; para evals nativos usa --judge-model distinto de --model."
++  "regla": "El juez no debe ser de la misma familia que el agente evaluado (Claude). Para evals nativos, --judge-model distinto de --model; la segunda calificación la da juez_otra_familia."
+ }
+diff --git a/itostack/scripts/ensamblar_documento.py b/itostack/scripts/ensamblar_documento.py
+index 9825092..8b18313 100644
+--- a/itostack/scripts/ensamblar_documento.py
++++ b/itostack/scripts/ensamblar_documento.py
+@@ -74,8 +74,9 @@ def ensamblar(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[str
+     return resultado, pendientes, notas
+ 
+ 
+-def citas_a_mano(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[str, ...]) -> list[str]:
+-    """Registros o claves escritos fuera de marcadores, sin evidencia vigente y sin marca ⚠/❌."""
++def citas_a_mano(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[str, ...], ignorar_acentos: bool = True) -> list[str]:
++    """Registros o claves escritos fuera de marcadores sin evidencia vigente (y sin marca ⚠/❌), o con un rubro
++    explícito que no es el de su evidencia (N-01)."""
+     problemas = []
+     for cita in citas.extraer(texto):
+         if cita.tipo == "marcador" or cita.marcada_no_verificada:
+@@ -86,6 +87,14 @@ def citas_a_mano(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[
+         )
+         if not vigente:
+             problemas.append(f"línea {cita.linea}: {cita.tipo} «{cita.valor}» escrito a mano sin evidencia vigente")
++
++    def oficial_de(registro: str | None, clave: str | None) -> dict | None:
++        fila = (almacen.vigente("tesis", registro, dias, modos) if registro else None) or (
++            almacen.vigente_por_clave(clave, dias, modos) if clave else None
++        )
++        return json.loads(fila["datos_oficiales"]) if fila else None
++
++    problemas.extend(citas.rubros_discrepantes(texto, oficial_de, ignorar_acentos))
+     return problemas
+ 
+ 
+@@ -102,7 +111,7 @@ def principal() -> int:
+     dias, modos = config["evidencia"]["vigencia_dias"], modos_validos(config)
+     texto = args.borrador.read_text(encoding="utf-8")
+ 
+-    manuales = citas_a_mano(texto, almacen, dias, modos)
++    manuales = citas_a_mano(texto, almacen, dias, modos, config["comparacion"]["ignorar_acentos"])
+     cuerpo, pendientes, notas = ensamblar(texto, almacen, dias, modos)
+     if (manuales or pendientes) and not args.permitir_pendientes:
+         for problema in manuales:
+diff --git a/itostack/scripts/inicializar.py b/itostack/scripts/inicializar.py
+index ca867fd..db27d1d 100644
+--- a/itostack/scripts/inicializar.py
++++ b/itostack/scripts/inicializar.py
+@@ -3,7 +3,7 @@
+ 
+ Uso:
+   inicializar.py [--proyecto .] [--perfil juridico|desarrollo|ambos] [--modo real|fixture]
+-                 [--sjf-fixture RUTA] [--silencioso]
++                 [--entorno desarrollo|produccion] [--sjf-fixture RUTA] [--silencioso]
+ Es idempotente: no pisa archivos existentes salvo los valores pasados explícitamente.
+ """
+ 
+@@ -24,7 +24,7 @@ PLANTILLAS = cfg.RAIZ_PLUGIN / "plantillas"
+ GITIGNORE = "evidencia/\n*.db\n*.db-journal\nraiz_plugin\nultimo_resultado.json\nultimo_lote.json\napp.json\n"
+ 
+ 
+-def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | None, silencioso: bool) -> Path:
++def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | None, silencioso: bool, entorno: str | None = None) -> Path:
+     base = proyecto / cfg.DIR_ITOSTACK
+     for sub in ("evidencia", "mejora/reportes", "bitacora"):
+         (base / sub).mkdir(parents=True, exist_ok=True)
+@@ -35,6 +35,8 @@ def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | No
+     propia = json.loads(ruta_config.read_text(encoding="utf-8")) if ruta_config.is_file() else {"version": 1, "perfil": perfil}
+     if modo:
+         propia["modo"] = modo
++    if entorno:
++        propia["entorno"] = entorno
+     if fixture:
+         propia.setdefault("sjf", {})["fixture"] = str(Path(fixture).resolve())
+     if not propia.get("navegador", {}).get("ejecutable"):
+@@ -64,7 +66,7 @@ def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | No
+ 
+     if not silencioso:
+         print(f"itostack inicializado en {base}")
+-        print(f"  modo: {config['modo']} · perfil: {propia.get('perfil', perfil)}")
++        print(f"  modo: {config['modo']} · perfil: {propia.get('perfil', perfil)} · entorno: {config['entorno']}")
+         print(f"  navegador: {config['navegador'].get('ejecutable') or 'el de Playwright (npx playwright install chromium)'}")
+         print("Siguiente paso: agrega esta línea a tu CLAUDE.md →  @.itostack/CLAUDE.itostack.md")
+         if not (cfg.RAIZ_PLUGIN / "scripts" / "node_modules" / "playwright").is_dir():
+@@ -77,10 +79,11 @@ def principal() -> int:
+     analizador.add_argument("--proyecto", default=".")
+     analizador.add_argument("--perfil", choices=["juridico", "desarrollo", "ambos"], default="ambos")
+     analizador.add_argument("--modo", choices=["real", "fixture"])
++    analizador.add_argument("--entorno", choices=["desarrollo", "produccion"], help="desarrollo permite revisores en la nube (Codex)")
+     analizador.add_argument("--sjf-fixture")
+     analizador.add_argument("--silencioso", action="store_true")
+     args = analizador.parse_args()
+-    inicializar(Path(args.proyecto).resolve(), args.perfil, args.modo, args.sjf_fixture, args.silencioso)
++    inicializar(Path(args.proyecto).resolve(), args.perfil, args.modo, args.sjf_fixture, args.silencioso, args.entorno)
+     return 0
+ 
+ 
+diff --git a/itostack/scripts/nucleo/citas.py b/itostack/scripts/nucleo/citas.py
+index 1550209..b3f9b5b 100644
+--- a/itostack/scripts/nucleo/citas.py
++++ b/itostack/scripts/nucleo/citas.py
+@@ -6,6 +6,7 @@ Detecta registros digitales, claves de tesis y marcadores [[CITA:registro]]. No
+ 
+ from __future__ import annotations
+ 
++import bisect
+ import re
+ from dataclasses import dataclass, field
+ 
+@@ -16,9 +17,22 @@ RE_CLAVE = re.compile(
+     r"(?<![\w/])((?:P|\d{1,2}a|[IVXLC]{1,6}|PR|PC|FICT)\.[^\n()\"“”]{0,40}?\((?:[5-9]|1[0-2])a\.\))"
+ )
+ RE_MARCADOR = re.compile(r"\[\[CITA:([^\]|\s]+)(?:\|([a-z]+))?\]\]")
+-RE_MARCA_NO_VERIFICADA = re.compile(r"⚠|❌|NO VERIFICAD|NO VERIFICABLE|BLOQUEAD|INEXISTENTE", re.IGNORECASE)
+-RE_RUBRO_ENTRECOMILLADO = re.compile(r"(?i)rubro\s*:?\s*[\"“«]([^\"”»]{10,800})[\"”»]")
++# Marca explícita de cita no verificada: «⚠ NO VERIFICADO», «⚠ CITA NO VERIFICADA», «⚠ NO VERIFICABLE» o «❌».
++# D-04: solo cuenta FUERA del texto entrecomillado. Una palabra del rubro («…INEXISTENTE…») o una advertencia de
++# contexto («⚠ Tesis aislada») no exime a la cita de la evidencia.
++RE_MARCA_NO_VERIFICADA = re.compile(r"❌|⚠\ufe0f?\s*(?:CITA\s+)?NO\s+VERIFICA(?:D[AO]S?|BLES?)\b", re.IGNORECASE)
++RE_ENTRECOMILLADO = re.compile(r"«[^»]*»|“[^”]*”|\"[^\"\n]*\"")
++# Sin límite de longitud: un rubro largo no puede quedar fuera del cotejo por exceder la expresión.
++RE_RUBRO_ENTRECOMILLADO = re.compile(r"(?i)rubro\s*:?\s*[\"“«]([^\"”»]+)[\"”»]")
+ RE_RUBRO_MAYUSCULAS = re.compile(r"([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ0-9 ,;:()\-\"“”'’]{30,800}[.])")
++# Un rubro declarado sin comillas («Rubro: LA VERIFICACIÓN…», «RUBRO LA…»): lo que sigue debe empezar con el rubro
++# oficial. No cotejarlo dejaría pasar un rubro falso respaldado por la evidencia del registro (N-01).
++RE_RUBRO_DECLARADO = re.compile(r"(?i:\brubro)\s*:\s*(?=[^\s\"“«])|(?i:\brubro)\s+(?=[A-ZÁÉÍÓÚÑÜ]{3,})")
++# Entre una cita y su marca (o entre citas de un mismo grupo) solo puede haber puntuación y estas palabras.
++CONECTORES = {"registro", "digital", "ius", "num", "núm", "numero", "número", "no", "de", "rubro", "tesis", "jurisprudencia", "clave"}
++# Cortes de segmento: «;» o un fin de oración. Un corte que cae dentro de una cita (las claves llevan puntos:
++# «P. J/9») no cuenta, y se calculan sin el texto entrecomillado (el punto de un rubro no corta).
++RE_CORTE = re.compile(r";|(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡\[])")
+ 
+ 
+ @dataclass
+@@ -38,20 +52,81 @@ class Cita:
+         }
+ 
+ 
++def _sin_comillas(texto: str) -> str:
++    """Borra el texto entrecomillado conservando las posiciones."""
++    return RE_ENTRECOMILLADO.sub(lambda m: " " * len(m.group(0)), texto)
++
++
++def _declaraciones(texto: str) -> list[re.Match]:
++    """Declaraciones de rubro sin comillas que no están dentro de un texto entrecomillado."""
++    comillas = [(m.start(), m.end()) for m in RE_ENTRECOMILLADO.finditer(texto)]
++    return [m for m in RE_RUBRO_DECLARADO.finditer(texto) if not any(a <= m.start() < b for a, b in comillas)]
++
++
++def _texto_tras_rubro(texto: str) -> str | None:
++    """Texto que sigue a un «rubro» declarado sin comillas (None si no hay declaración)."""
++    declaraciones = _declaraciones(texto)
++    if not declaraciones:
++        return None
++    return re.sub(r"\s+", " ", texto[declaraciones[0].end():]).strip()
++
++
+ def extraer(texto: str) -> list[Cita]:
+     encontradas: list[Cita] = []
+     for numero, linea in enumerate(texto.splitlines(), start=1):
+-        marcada = bool(RE_MARCA_NO_VERIFICADA.search(linea))
++        halladas: list[tuple[str, str, int, int, int, str | None]] = []  # tipo, valor, columna, inicio, fin, forma
+         for m in RE_MARCADOR.finditer(linea):
+-            encontradas.append(Cita("marcador", m.group(1), numero, m.start() + 1, linea, marcada, m.group(2)))
++            halladas.append(("marcador", m.group(1), m.start() + 1, m.start(), m.end(), m.group(2)))
+         sin_marcadores = RE_MARCADOR.sub(lambda m: " " * len(m.group(0)), linea)
+         for m in RE_REGISTRO.finditer(sin_marcadores):
+-            encontradas.append(Cita("registro", m.group(1).upper(), numero, m.start(1) + 1, linea, marcada))
++            halladas.append(("registro", m.group(1).upper(), m.start(1) + 1, m.start(), m.end(), None))
+         for m in RE_CLAVE.finditer(sin_marcadores):
+-            encontradas.append(Cita("clave", m.group(1).strip(), numero, m.start(1) + 1, linea, marcada))
++            halladas.append(("clave", m.group(1).strip(), m.start(1) + 1, m.start(1), m.end(1), None))
++        if not halladas:
++            continue
++        marcadas = _citas_marcadas(_sin_comillas(linea), halladas)
++        for indice, (tipo, valor, columna, _, _, forma) in enumerate(halladas):
++            encontradas.append(Cita(tipo, valor, numero, columna, linea, indice in marcadas, forma))
+     return encontradas
+ 
+ 
++def _contiguas(visibles: str, desde: int, hasta: int) -> bool:
++    """Entre dos posiciones solo hay puntuación, cifras y palabras conectoras («registro digital», «de rubro»)."""
++    return all(p in CONECTORES for p in re.findall(r"[^\W\d_]+", visibles[desde:hasta].lower()))
++
++
++def _citas_marcadas(visibles: str, halladas: list) -> set[int]:
++    """Índices de las citas que una marca ⚠/❌ exime: el grupo contiguo pegado a la marca, dentro de su segmento.
++
++    La marca se asocia a las citas que la preceden sin palabras de por medio (o, si no hay, a las que la siguen):
++    «registro FICT-0404 ❌, pero se aplica el registro FICT-0009» no exime a FICT-0009, y «1a./J. 45/2019 (10a.),
++    registro digital 1999999 ⚠ NO VERIFICADO» exime a la clave y al registro de la misma cita.
++    """
++    citas = sorted((inicio, fin, i) for i, (tipo, _, _, inicio, fin, _) in enumerate(halladas) if tipo != "marcador")
++    cortes = [m.start() for m in RE_CORTE.finditer(visibles) if not any(a <= m.start() < b for a, b, _ in citas)]
++    marcadas: set[int] = set()
++    for marca in RE_MARCA_NO_VERIFICADA.finditer(visibles):
++        segmento = bisect.bisect_right(cortes, marca.start())
++        mismas = [c for c in citas if bisect.bisect_right(cortes, c[0]) == segmento]
++        previas = [c for c in mismas if c[1] <= marca.start()]
++        siguientes = [c for c in mismas if c[0] >= marca.end()]
++        grupo: list = []
++        if previas and _contiguas(visibles, previas[-1][1], marca.start()):
++            grupo = [previas[-1]]
++            for cita in reversed(previas[:-1]):
++                if not _contiguas(visibles, cita[1], grupo[-1][0]):
++                    break
++                grupo.append(cita)
++        elif siguientes and _contiguas(visibles, marca.end(), siguientes[0][0]):
++            grupo = [siguientes[0]]
++            for cita in siguientes[1:]:
++                if not _contiguas(visibles, grupo[-1][1], cita[0]):
++                    break
++                grupo.append(cita)
++        marcadas.update(c[2] for c in grupo)
++    return marcadas
++
++
+ @dataclass
+ class Referencia:
+     """Agrupa lo que parece una misma cita dentro de un párrafo: registro, clave y rubro candidato."""
+@@ -64,6 +139,14 @@ class Referencia:
+     marcada_no_verificada: bool = False
+     extracto: str = ""
+     lineas: list[int] = field(default_factory=list)
++    # True si el rubro vino de «rubro: "…"» explícito; False si se infirió de un bloque en mayúsculas.
++    rubro_explicito: bool = False
++    # True si el texto dice «rubro: …» o «rubro LA …» sin comillas: afirma un rubro aunque no se pueda aislar.
++    rubro_declarado: bool = False
++    # Lo que sigue a la palabra «rubro» en ese caso: debe empezar con el rubro oficial completo.
++    texto_tras_rubro: str | None = None
++    # Rubros del párrafo que no se pudieron asociar a una sola cita: con evidencia de por medio, se rechazan.
++    rubros_ambiguos: int = 0
+ 
+     def como_dict(self) -> dict:
+         return {
+@@ -89,6 +172,72 @@ def _parrafos(texto: str) -> list[tuple[int, str]]:
+     return bloques
+ 
+ 
++def _referencias_del_parrafo(parrafo: str, registros: list[Cita], claves: list[Cita]) -> tuple[list[list[Cita]], dict[int, tuple[str | None, str | None]], int]:
++    """Varias citas en un párrafo: arma las referencias por proximidad y les asigna sus rubros.
++
++    - Cada clave se une al registro libre más cercano de su segmento (no por orden de aparición): en
++      «registro A, rubro «X», registro B, clave K, rubro «Y»», K va con B.
++    - Cada rubro (entrecomillado o declarado) va a la referencia que lo contiene (clave … rubro … registro, el formato
++      de ensamblar_documento.py), si no a la más cercana que lo precede en su segmento y, si no, a la que lo sigue. Las
++      posiciones son del párrafo completo: un rubro en la línea siguiente a su registro también se asigna.
++    - Un rubro sin dueño claro (ninguno, o la referencia ya tiene otro) se cuenta como ambiguo.
++    """
++    desplazamientos, acumulado = [], 0
++    for linea in parrafo.split("\n"):
++        desplazamientos.append(acumulado)
++        acumulado += len(linea) + 1
++
++    def tramo(c: Cita) -> tuple[int, int]:
++        inicio = desplazamientos[c.linea - 1] + c.columna - 1
++        return inicio, inicio + len(c.valor)
++
++    visibles = _sin_comillas(parrafo)
++    todas = [tramo(c) for c in registros + claves]
++    cortes = [m.start() for m in RE_CORTE.finditer(visibles) if not any(a <= m.start() < b for a, b in todas)]
++
++    def segmento(posicion: int) -> int:
++        return bisect.bisect_right(cortes, posicion)
++
++    referencias: list[list[Cita]] = [[r] for r in registros]
++    for clave in claves:
++        inicio = tramo(clave)[0]
++        libres = [(abs(inicio - tramo(r[0])[0]), i) for i, r in enumerate(referencias)
++                  if len(r) == 1 and r[0].tipo == "registro" and segmento(tramo(r[0])[0]) == segmento(inicio)]
++        if libres:
++            referencias[min(libres)[1]].append(clave)
++        else:
++            referencias.append([clave])
++    referencias.sort(key=lambda r: min(tramo(c)[0] for c in r))
++    tramos = [(min(tramo(c)[0] for c in r), max(tramo(c)[1] for c in r)) for r in referencias]
++
++    def dueno(inicio: int, fin: int) -> int | None:
++        dentro = [k for k, (a, b) in enumerate(tramos) if a <= inicio and fin <= b]
++        if dentro:
++            return dentro[0]
++        previas = [(inicio - b, k) for k, (a, b) in enumerate(tramos) if b <= inicio and segmento(a) == segmento(inicio)]
++        if previas:
++            return min(previas)[1]
++        siguientes = [(a - fin, k) for k, (a, b) in enumerate(tramos) if a >= fin and segmento(a) == segmento(inicio)]
++        return min(siguientes)[1] if siguientes else None
++
++    asignados: dict[int, tuple[str | None, str | None]] = {}
++    ambiguos = 0
++    for m in RE_RUBRO_ENTRECOMILLADO.finditer(parrafo):
++        k = dueno(m.start(), m.end())
++        if k is None or k in asignados:
++            ambiguos += 1
++            continue
++        asignados[k] = (re.sub(r"\s+", " ", m.group(1)).strip(), None)
++    for m in _declaraciones(parrafo):
++        k = dueno(m.start(), m.end())
++        if k is None or k in asignados:
++            ambiguos += 1
++            continue
++        fin = min([a for a, _ in tramos if a > m.end()] + [c for c in cortes if c > m.end()] + [len(parrafo)])
++        asignados[k] = (None, re.sub(r"\s+", " ", parrafo[m.end():fin]).strip())
++    return referencias, asignados, ambiguos
++
++
+ def agrupar_referencias(texto: str) -> list[Referencia]:
+     referencias: list[Referencia] = []
+     for indice, (linea_inicio, parrafo) in enumerate(_parrafos(texto), start=1):
+@@ -97,35 +246,81 @@ def agrupar_referencias(texto: str) -> list[Referencia]:
+         claves = [c for c in citas if c.tipo == "clave"]
+         if not registros and not claves:
+             continue
+-        rubro = None
+-        entrecomillado = RE_RUBRO_ENTRECOMILLADO.search(parrafo)
+-        if entrecomillado:
+-            rubro = re.sub(r"\s+", " ", entrecomillado.group(1)).strip()
+-        else:
+-            mayusculas = [m.group(1) for m in RE_RUBRO_MAYUSCULAS.finditer(parrafo) if len(m.group(1).split()) >= 6]
+-            if mayusculas:
+-                rubro = re.sub(r"\s+", " ", max(mayusculas, key=len)).strip()
+-        total = max(len(registros), len(claves))
+-        lineas_parrafo = parrafo.splitlines()
+-        for posicion in range(total):
+-            registro = registros[posicion].valor if posicion < len(registros) else None
+-            clave = claves[posicion].valor if posicion < len(claves) else None
+-            ancla = registros[posicion] if posicion < len(registros) else claves[posicion]
+-            lineas = sorted({c.linea + linea_inicio - 1 for c in citas})
+-            rubro_propio = rubro if total == 1 else None
+-            if total > 1:
+-                en_linea = RE_RUBRO_ENTRECOMILLADO.search(lineas_parrafo[ancla.linea - 1])
+-                rubro_propio = re.sub(r"\s+", " ", en_linea.group(1)).strip() if en_linea else None
+-            referencias.append(
+-                Referencia(
+-                    id=f"c{len(referencias) + 1:02d}",
+-                    parrafo=indice,
+-                    registro=registro,
+-                    clave=clave,
+-                    rubro=rubro_propio,
+-                    marcada_no_verificada=any(c.marcada_no_verificada for c in citas),
+-                    extracto=re.sub(r"\s+", " ", parrafo)[:300],
+-                    lineas=lineas,
+-                )
+-            )
++        lineas = sorted({c.linea + linea_inicio - 1 for c in citas})
++        extracto = re.sub(r"\s+", " ", parrafo)[:300]
++        if len(registros) <= 1 and len(claves) <= 1:
++            # Una sola cita: el rubro del párrafo (entrecomillado o, para validar documentos, el bloque en mayúsculas).
++            entrecomillado = RE_RUBRO_ENTRECOMILLADO.search(parrafo)
++            rubro = re.sub(r"\s+", " ", entrecomillado.group(1)).strip() if entrecomillado else None
++            if not entrecomillado:
++                mayusculas = [m.group(1) for m in RE_RUBRO_MAYUSCULAS.finditer(parrafo) if len(m.group(1).split()) >= 6]
++                if mayusculas:
++                    rubro = re.sub(r"\s+", " ", max(mayusculas, key=len)).strip()
++            tras = _texto_tras_rubro(parrafo)
++            propias = registros + claves
++            referencias.append(Referencia(
++                id=f"c{len(referencias) + 1:02d}", parrafo=indice,
++                registro=registros[0].valor if registros else None, clave=claves[0].valor if claves else None,
++                rubro=rubro, marcada_no_verificada=any(c.marcada_no_verificada for c in propias),
++                extracto=extracto, lineas=lineas, rubro_explicito=bool(entrecomillado),
++                rubro_declarado=tras is not None, texto_tras_rubro=tras,
++            ))
++            continue
++        grupos, asignados, ambiguos = _referencias_del_parrafo(parrafo, registros, claves)
++        for k, propias in enumerate(grupos):
++            rubro, tras = asignados.get(k, (None, None))
++            referencias.append(Referencia(
++                id=f"c{len(referencias) + 1:02d}", parrafo=indice,
++                registro=next((c.valor for c in propias if c.tipo == "registro"), None),
++                clave=next((c.valor for c in propias if c.tipo == "clave"), None),
++                rubro=rubro,
++                # La marca ⚠/❌ de UNA cita no exime a las demás del párrafo: solo cuentan el registro y la clave propios.
++                marcada_no_verificada=any(c.marcada_no_verificada for c in propias),
++                extracto=extracto, lineas=lineas, rubro_explicito=rubro is not None,
++                rubro_declarado=tras is not None, texto_tras_rubro=tras, rubros_ambiguos=ambiguos,
++            ))
+     return referencias
++
++
++def rubros_discrepantes(texto: str, oficial_de, ignorar_acentos: bool = True) -> list[str]:
++    """N-01: la evidencia de un registro no respalda otra tesis.
++
++    `oficial_de(registro, clave)` devuelve los datos oficiales de la evidencia vigente, o None si no hay evidencia
++    (eso ya lo reporta la comprobación de evidencia). Para cada referencia con evidencia:
++    - si trae registro y clave, la clave debe ser la de la evidencia del registro (no la de otra tesis);
++    - un rubro entrecomillado debe coincidir con el oficial y uno declarado sin comillas («Rubro: LA …») debe empezar
++      con el rubro oficial completo;
++    - un rubro del párrafo que no se puede asociar a una sola cita se rechaza.
++    Un bloque en mayúsculas sin la palabra «rubro» no se coteja: es una heurística y daría falsos rechazos.
++    """
++    from . import normalizacion as norm
++
++    problemas = []
++    ambiguos_reportados: set[int] = set()
++    for referencia in agrupar_referencias(texto):
++        if referencia.marcada_no_verificada:
++            continue
++        identificador = referencia.registro or referencia.clave
++        linea = referencia.lineas[0] if referencia.lineas else "?"
++        oficial = oficial_de(referencia.registro, None if referencia.registro else referencia.clave)
++        if oficial is None:
++            continue
++        if referencia.registro and referencia.clave and oficial.get("clave"):
++            cotejo_clave = norm.cotejar_clave(referencia.clave, oficial.get("clave"))
++            if cotejo_clave.estado not in {"coincide", "tipografica"}:
++                problemas.append(f"línea {linea}: la clave «{referencia.clave}» no es la del registro {referencia.registro} según su evidencia")
++        if referencia.rubros_ambiguos and referencia.parrafo not in ambiguos_reportados:
++            ambiguos_reportados.add(referencia.parrafo)
++            problemas.append(f"línea {linea}: hay rubros que no se pueden asociar a una sola cita; pon cada rubro junto a su registro "
++                             "o usa marcadores [[CITA:registro|rubro]]")
++        if referencia.rubro_explicito and referencia.rubro:
++            cotejo = norm.cotejar_rubro(referencia.rubro, oficial.get("rubro"), ignorar_acentos)
++            if cotejo.estado not in {"coincide", "tipografica"}:
++                problemas.append(f"línea {linea}: el rubro escrito para «{identificador}» no es el de su evidencia ({cotejo.detalle or cotejo.estado})")
++        elif referencia.rubro_declarado:
++            escrito = norm.normalizar_texto(referencia.texto_tras_rubro or "", ignorar_acentos)
++            esperado = norm.normalizar_texto(oficial.get("rubro"), ignorar_acentos)
++            if not esperado or not escrito.startswith(esperado):
++                problemas.append(f"línea {linea}: el rubro declarado para «{identificador}» no empieza con el rubro oficial de su evidencia; "
++                                 f"escríbelo completo y entre comillas («…») o usa [[CITA:{identificador}|rubro]]")
++    return problemas
+diff --git a/itostack/scripts/nucleo/config.py b/itostack/scripts/nucleo/config.py
+index f037ef8..66749da 100644
+--- a/itostack/scripts/nucleo/config.py
++++ b/itostack/scripts/nucleo/config.py
+@@ -20,6 +20,9 @@ DIR_ITOSTACK = ".itostack"
+ CONFIG_DEFECTO: dict = {
+     "version": 1,
+     "modo": "real",
++    # Principio privacidad-local: en "produccion" los datos no salen de la máquina. Solo con "desarrollo" se
++    # permiten revisores en la nube (revisar_codex.py). Sin declararlo se asume producción: falla cerrado.
++    "entorno": "produccion",
+     "sjf": {
+         "base": "https://sjf2.scjn.gob.mx",
+         "ruta_detalle": "/detalle/tesis/{registro}",
+@@ -42,6 +45,9 @@ CONFIG_DEFECTO: dict = {
+     },
+     "comparacion": {"ignorar_acentos": True},
+     "salidas_juridicas": ["salidas/**", "escritos/**", "dictamenes/**", "**/*.juridico.md"],
++    # Herramientas MCP que salen de la máquina sin pasar por la compuerta humana (patrones fnmatch sobre el nombre,
++    # p. ej. "mcp__plugin_telegram_telegram__reply"). Vacío por omisión: toda salida pasa por la compuerta.
++    "acciones_externas_permitidas": [],
+     "modo_estricto_md": False,
+     "navegador": {"ejecutable": None, "canal": None, "timeout_ms": 45000},
+     "app": {"fallar_con_errores_consola": True, "timeout_ms": 8000},
+diff --git a/itostack/scripts/revisar_ollama.py b/itostack/scripts/revisar_ollama.py
+index b4e5194..a0922fb 100644
+--- a/itostack/scripts/revisar_ollama.py
++++ b/itostack/scripts/revisar_ollama.py
+@@ -6,6 +6,7 @@ Uso:
+   revisar_ollama.py --modelo qwen2.5:14b --archivo escrito.md [--rubrica rubrica.md] [--rol adversarial|juez]
+   git diff | revisar_ollama.py --modelo llama3.1:8b --rol adversarial
+ Rechaza modelos de la familia Claude: el sentido es tener un punto de vista distinto del trabajador.
++Es la alternativa 100 % local a revisar_codex.py (la que corresponde en producción). Mismo contrato: nucleo/juez.py.
+ """
+ 
+ from __future__ import annotations
+@@ -14,30 +15,42 @@ import argparse
+ import json
+ import sys
+ import urllib.error
++import urllib.parse
+ import urllib.request
+ from pathlib import Path
+ 
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++
++from nucleo import config as cfg  # noqa: E402
++from nucleo import juez  # noqa: E402
++
+ ENDPOINT = "http://127.0.0.1:11434/api/generate"
++HOSTS_LOCALES = {"127.0.0.1", "localhost", "::1"}
++LIMITE_CARACTERES = 60_000
++
++
++class _SinRedirecciones(urllib.request.HTTPRedirectHandler):
++    """Una redirección podría llevar el texto fuera de la máquina: se rechaza."""
+ 
+-INSTRUCCIONES = {
+-    "adversarial": (
+-        "Eres un revisor adversarial de un despacho jurídico mexicano. Busca errores, no virtudes. Señala: citas sin fuente "
+-        "verificable, afirmaciones sin sustento, riesgos procesales (plazos, competencia, improcedencia), contradicciones y "
+-        "atajos técnicos. Responde SOLO JSON: {\"hallazgos\": [{\"gravedad\": \"alta|media|baja\", \"ubicacion\": \"...\", "
+-        "\"problema\": \"...\", \"sugerencia\": \"...\"}], \"veredicto\": \"aprobar|corregir|rechazar\"}"
+-    ),
+-    "juez": (
+-        "Eres un juez de evaluación. Califica el artefacto SOLO contra la rúbrica congelada que se te da; no premies estilo. "
+-        "Responde SOLO JSON: {\"puntaje\": 0-10, \"criterios\": [{\"criterio\": \"...\", \"cumple\": true|false, \"evidencia\": \"...\"}], "
+-        "\"fallos_criticos\": [\"...\"]}"
+-    ),
+-}
++    def redirect_request(self, *args, **kwargs):
++        return None
++
++
++def endpoint_local(url: str) -> bool:
++    """Solo http a 127.0.0.1, localhost o ::1, sin credenciales. «localhost.atacante.example» no es local."""
++    try:
++        partes = urllib.parse.urlsplit(url)
++        partes.port  # noqa: B018 — valida el puerto (lanza ValueError si no es numérico)
++    except ValueError:
++        return False
++    return partes.scheme == "http" and partes.hostname in HOSTS_LOCALES and not partes.username and not partes.password
+ 
+ 
+ def consultar(modelo: str, prompt: str, endpoint: str = ENDPOINT, timeout: int = 600) -> dict:
+     cuerpo = json.dumps({"model": modelo, "prompt": prompt, "stream": False, "format": "json", "options": {"temperature": 0}}).encode("utf-8")
+     solicitud = urllib.request.Request(endpoint, data=cuerpo, headers={"Content-Type": "application/json"})
+-    with urllib.request.urlopen(solicitud, timeout=timeout) as respuesta:
++    # ProxyHandler({}): un http_proxy del entorno sacaría el texto de la máquina aunque el endpoint sea 127.0.0.1.
++    with urllib.request.build_opener(urllib.request.ProxyHandler({}), _SinRedirecciones).open(solicitud, timeout=timeout) as respuesta:
+         datos = json.loads(respuesta.read().decode("utf-8"))
+     return json.loads(datos.get("response") or "{}")
+ 
+@@ -47,18 +60,32 @@ def principal() -> int:
+     analizador.add_argument("--modelo", required=True)
+     analizador.add_argument("--archivo", type=Path, action="append", default=[])
+     analizador.add_argument("--rubrica", type=Path)
+-    analizador.add_argument("--rol", choices=sorted(INSTRUCCIONES), default="adversarial")
++    analizador.add_argument("--rol", choices=sorted(juez.INSTRUCCIONES), default="adversarial")
+     analizador.add_argument("--endpoint", default=ENDPOINT)
++    analizador.add_argument("--caso", help="caso de eval que se califica (skill.caso); la compuerta exige uno por caso holdout")
+     args = analizador.parse_args()
+-    if "claude" in args.modelo.lower():
++    if juez.es_familia_claude(args.modelo):
+         print("El revisor local debe ser de otra familia de modelos (p. ej. qwen, llama, gemma, mistral).", file=sys.stderr)
+         return 3
+-    if not args.endpoint.startswith(("http://127.0.0.1", "http://localhost")):
+-        print("El revisor solo opera contra Ollama local: los datos no salen de la máquina.", file=sys.stderr)
++    if not endpoint_local(args.endpoint):
++        print("El revisor solo opera contra Ollama local (http://127.0.0.1, localhost o [::1]): los datos no salen de la máquina.", file=sys.stderr)
+         return 3
+-    artefactos = "\n\n".join(f"=== {a} ===\n{a.read_text(encoding='utf-8')}" for a in args.archivo) or sys.stdin.read()
+-    rubrica = f"\n\nRÚBRICA CONGELADA:\n{args.rubrica.read_text(encoding='utf-8')}" if args.rubrica else ""
+-    prompt = f"{INSTRUCCIONES[args.rol]}{rubrica}\n\nARTEFACTO:\n{artefactos[:60000]}"
++    if args.rol == "juez" and not args.rubrica:
++        print("El rol juez exige --rubrica: sin rúbrica congelada no hay contra qué calificar.", file=sys.stderr)
++        return 3
++    entrada = "" if args.archivo else sys.stdin.read()
++    artefactos, huellas = juez.instantanea(args.archivo, entrada)
++    rubrica_bytes = args.rubrica.read_bytes() if args.rubrica else None
++    rubrica = rubrica_bytes.decode("utf-8") if rubrica_bytes is not None else None
++    esperados = len(juez.criterios_de_rubrica(rubrica)) if rubrica is not None else None
++    if args.rol == "juez" and not esperados:
++        print("La rúbrica no tiene criterios numerados («1. …»): no hay cobertura que exigir.", file=sys.stderr)
++        return 3
++    try:
++        prompt = juez.armar_prompt(args.rol, artefactos, rubrica, LIMITE_CARACTERES)
++    except juez.MaterialExcedido as error:
++        print(f"BLOCKED: {error}. Un recorte silencioso dejaría material sin revisar.", file=sys.stderr)
++        return 2
+     try:
+         resultado = consultar(args.modelo, prompt, args.endpoint)
+     except (urllib.error.URLError, OSError) as error:
+@@ -67,10 +94,13 @@ def principal() -> int:
+     except json.JSONDecodeError:
+         print("El modelo no devolvió JSON válido; repite con un modelo más capaz.", file=sys.stderr)
+         return 2
+-    print(json.dumps(resultado, ensure_ascii=False, indent=2))
+     if args.rol == "juez":
+-        return 0 if resultado.get("puntaje") == 10 and not resultado.get("fallos_criticos") else 1
+-    return 0 if resultado.get("veredicto") == "aprobar" else 1
++        resultado = juez.calificar(resultado, esperados, artefactos)
++    resultado["juez"] = {"familia": "ollama", "herramienta": "ollama", "modelo": args.modelo, "esfuerzo": None, "version": None, "rol": args.rol}
++    resultado["material"] = juez.material(huellas, rubrica_bytes, args.caso)
++    juez.anotar_bitacora(cfg.raiz_proyecto(), resultado)
++    print(json.dumps(resultado, ensure_ascii=False, indent=2))
++    return juez.codigo_salida(args.rol, resultado)
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/itostack/skills/correr-evals/SKILL.md b/itostack/skills/correr-evals/SKILL.md
+index 594216f..15cdd98 100644
+--- a/itostack/skills/correr-evals/SKILL.md
++++ b/itostack/skills/correr-evals/SKILL.md
+@@ -19,5 +19,5 @@ Raíz del plugin: `R=$(cat .itostack/raiz_plugin)`.
+    - Por defecto añade un brazo sin plugin: la diferencia mide cuánto aporta la skill.
+    - El juez no debe ser el mismo modelo que el agente (`--model` vs `--judge-model`).
+ 3. **Lee las trazas** de los casos con puntaje < 1.0 y de los que se cortaron por tiempo o turnos, aunque el puntaje parezca bueno.
+-4. **Juez de otra familia (opcional, local)**: `python3 "$R/scripts/revisar_ollama.py" --rol juez --modelo <ollama> --rubrica "$R/evals/rubricas/<rubrica>.md" --archivo <artefacto>`.
+-5. Reporta por caso: puntaje con plugin, sin plugin, graders fallidos y causa probable. Un 10/10 en desarrollo no certifica producción: es la entrada a la compuerta holdout.
++4. **Juez de otra familia (requisito para congelar)**: `python3 "$R/scripts/revisar_codex.py" --rol juez --rubrica "$R/evals/rubricas/<rubrica>.md" --archivo <artefacto> > juez.json`. Exit 0 aprobado, 1 no aprobado, 2 BLOCKED (sin respuesta o nada aplicable), 3 configuración rechazada (p. ej. entorno de producción: ahí usa `revisar_ollama.py --modelo <ollama>`, mismo contrato). Guarda el JSON: `compuerta_holdout.py congelar --juez juez.json` lo exige. El veredicto exige un criterio por cada número de la rúbrica (omitir o repetir uno es BLOCKED), evidencia literal entre «» que exista en el artefacto (si no, el «si» cuenta como «no») y registra las huellas del artefacto y de la rúbrica; con `--caso <skill>.<caso>` queda atado al caso (la compuerta exige uno por caso holdout). Cada corrida queda en `.itostack/bitacora/juez.tsv`.
++5. Reporta por caso: puntaje con plugin, sin plugin, graders fallidos, veredicto del juez de otra familia y causa probable. Un 10/10 en desarrollo no certifica producción: es la entrada a la compuerta holdout.
+diff --git a/itostack/skills/interrogar/SKILL.md b/itostack/skills/interrogar/SKILL.md
+index 3a15897..bcbfda0 100644
+--- a/itostack/skills/interrogar/SKILL.md
++++ b/itostack/skills/interrogar/SKILL.md
+@@ -1,6 +1,6 @@
+ ---
+ name: interrogar
+-description: Revisión adversarial multi-modelo de un escrito, dictamen o diff - un subagente abogado del diablo y, si hay Ollama, un modelo local de otra familia - con hallazgos consolidados por gravedad. Úsala antes de entregar trabajo de alto impacto, cuando el usuario pida contraargumentos, una segunda opinión o "que otro modelo lo revise".
++description: Revisión adversarial multi-modelo de un escrito, dictamen o diff - un subagente abogado del diablo y un modelo de otra familia (Codex en desarrollo, Ollama local en producción) - con hallazgos consolidados por gravedad. Úsala antes de entregar trabajo de alto impacto, cuando el usuario pida contraargumentos, una segunda opinión o "que otro modelo lo revise".
+ ---
+ 
+ # Interrogar
+@@ -10,14 +10,17 @@ Raíz del plugin: `R=$(cat .itostack/raiz_plugin)`. Modelos por rol en `.itostac
+ 1. Fija qué se revisa (archivo o `git diff`) y el criterio de éxito.
+ 2. Lanza en paralelo:
+    - Subagente `revisor-adversarial` (modelo según `modelos.json`, rol `revisor`).
+-   - Revisor local de otra familia, si Ollama responde:
++   - Revisor de otra familia. En desarrollo, Codex:
+ 
+      ```bash
+-     python3 "$R/scripts/revisar_ollama.py" --modelo <modelo local> --archivo <archivo> --rol adversarial
++     python3 "$R/scripts/revisar_codex.py" --archivo <archivo> --rol adversarial
++     git diff | python3 "$R/scripts/revisar_codex.py" --rol adversarial
+      ```
+ 
++     En producción (o si el script responde 3 por el entorno), el local: `revisar_ollama.py --modelo <modelo local> --archivo <archivo> --rol adversarial`.
++
+ 3. Consolida en una tabla: gravedad, ubicación, problema, quién lo detectó, acción. Dos revisores que coinciden elevan la prioridad; un hallazgo aislado se valida contra la evidencia antes de aceptarlo.
+ 4. Toda cita que un revisor proponga pasa por /verificar-cita antes de incorporarse.
+ 5. Entrega la tabla y la decisión (aprobar, corregir, rechazar) al operador; no apliques cambios sustantivos sin su visto bueno.
+ 
+-Privacidad: el revisor local corre en `127.0.0.1`; el script rechaza endpoints remotos y modelos de la familia Claude.
++Privacidad: `revisar_codex.py` envía el texto a OpenAI y solo corre con `"entorno": "desarrollo"` en `.itostack/config.json`; corre con sandbox de solo lectura, sin sesión persistida y desde un directorio neutro. `revisar_ollama.py` corre en `127.0.0.1` y rechaza endpoints remotos. Ambos rechazan modelos de la familia Claude.
+diff --git a/itostack/skills/mejorar-skill/SKILL.md b/itostack/skills/mejorar-skill/SKILL.md
+index f3c5e92..ac024d4 100644
+--- a/itostack/skills/mejorar-skill/SKILL.md
++++ b/itostack/skills/mejorar-skill/SKILL.md
+@@ -10,7 +10,7 @@ Raíz del plugin: `R=$(cat .itostack/raiz_plugin)`. Detalle del protocolo: `$R/d
+ 1. **Describe el defecto** con evidencia: qué pidió el usuario, qué hizo el agente, qué debió hacer (traza o transcripción).
+ 2. **Caso que falla**: crea un caso de desarrollo con /crear-eval que reproduzca el defecto. Corre la autoprueba para confirmar que la solución de referencia pasa y la rota falla.
+ 3. **Corrige en el nivel más fuerte**: un script que haga la mecánica (/construir-palanca) o una guardia antes que más texto en la skill. Si editas la skill, mantén la descripción con los disparadores reales.
+-4. **Itera** con /correr-evals sobre los casos de desarrollo de esa skill hasta 1.0 en todos (usa `/loop` si está disponible). No mires ni edites los casos `holdout-*`: el hook lo impide.
++4. **Itera** con /correr-evals sobre los casos de desarrollo de esa skill hasta 1.0 en todos (usa `/loop` si está disponible). No mires ni edites los casos `holdout-*`: los guardias de escritura, lectura y Bash lo deniegan (una búsqueda amplia sobre todo el repositorio todavía puede tocarlos: no la dirijas a `evals/`).
+ 5. **Congela y corre el holdout una vez**:
+ 
+    ```bash
+diff --git a/itostack/skills/modo-itosturre/principios/privacidad-local.md b/itostack/skills/modo-itosturre/principios/privacidad-local.md
+index f2088dd..da2aa72 100644
+--- a/itostack/skills/modo-itosturre/principios/privacidad-local.md
++++ b/itostack/skills/modo-itosturre/principios/privacidad-local.md
+@@ -1,5 +1,7 @@
+ # Privacidad local
+ 
+-**Regla.** Los datos legales nunca salen de la máquina. Procesamiento con modelos locales (Ollama), almacenamiento en SQLite local, consultas solo a portales oficiales. Toda acción hacia afuera (correo, Slack, publicación) pasa por la compuerta humana.
++**Regla.** Los datos legales no deben salir de la máquina. Procesamiento con modelos locales (Ollama) u otro disponible, almacenamiento en SQLite local, consultas solo a portales oficiales. Toda acción hacia afuera (correo, Slack, publicación) pasa por la compuerta humana.
+ 
+-**Cómo.** El hook de Bash bloquea subidas y copias remotas; el lint IT004/IT005 bloquea envíos y LLM en la nube en código de producto; el hook de MCP pide aprobación para enviar.
++La anterior regla sólo aplica cuando el proyecto se encuentre en producción, mientras se trabaje en local no aplica
++
++**Cómo.** `"entorno"` en `.itostack/config.json` decide: sin declararlo se asume `produccion` (falla cerrado); `revisar_codex.py` solo corre con `"desarrollo"`. El hook de Bash bloquea subidas y copias remotas; el lint IT004/IT005 bloquea envíos y LLM en la nube en código de producto; el hook de MCP pide aprobación para enviar, y en un modo de permisos que aprueba solo (auto, dontAsk, bypassPermissions) deniega.
+diff --git a/itostack/hooks/guardia_lectura.py b/itostack/hooks/guardia_lectura.py
+new file mode 100644
+index 0000000..e49f20e
+--- /dev/null
++++ b/itostack/hooks/guardia_lectura.py
+@@ -0,0 +1,53 @@
++#!/usr/bin/env python3
++"""PreToolUse(Read|Grep|Glob): la reserva holdout no se lee desde la sesión que mejora las skills (N-08).
++
++Deniega leer un caso `holdout-*`, las búsquedas dirigidas a uno (ruta o glob) y las búsquedas de contenido sobre
++`evals/` o `evals/<skill>/`, que la recorren sin nombrarla. El guardia de Bash repite la regla para cat/grep/sed y
++similares. Límites conocidos: una búsqueda sobre todo el repositorio o un intérprete (python -c) todavía pueden
++tocarla; la protección completa es separar físicamente la reserva del árbol de trabajo (pendiente). El operador la
++abre con ITOSTACK_EDITAR_HOLDOUT=1.
++"""
++
++from __future__ import annotations
++
++import os
++import sys
++from pathlib import Path
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++
++import _comun  # noqa: E402
++
++CAMPOS = {"Read": ("file_path",), "Grep": ("path", "glob"), "Glob": ("pattern", "path")}
++
++
++def apunta_a_holdout(nombre: str, datos: dict, cwd: str | None = None) -> str | None:
++    for campo in CAMPOS.get(nombre, ()):
++        valor = str(datos.get(campo) or "")
++        if "holdout-" in valor.replace("\\", "/"):
++            return valor
++    if nombre == "Grep":
++        # Una búsqueda de contenido sobre evals/ o evals/<skill>/ recorre la reserva aunque no la nombre; sin ruta,
++        # Grep busca desde el directorio de trabajo.
++        base = Path(str(datos.get("path") or cwd or os.getcwd()))
++        base = base if base.is_absolute() else Path(cwd or os.getcwd()) / base
++        if base.is_dir() and (any(base.glob("holdout-*")) or any(base.glob("*/holdout-*"))):
++            return str(datos.get("path") or base)
++    return None
++
++
++def principal() -> int:
++    entrada = _comun.leer_entrada()
++    if os.environ.get("ITOSTACK_EDITAR_HOLDOUT") == "1":
++        return 0
++    valor = apunta_a_holdout(entrada.get("tool_name", ""), entrada.get("tool_input") or {}, entrada.get("cwd"))
++    if valor:
++        _comun.denegar(
++            f"«{valor}» es parte de la reserva holdout: el agente que mejora una skill no puede verla, o el holdout "
++            "deja de medir generalización. Trabaja con los casos de desarrollo."
++        )
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(_comun.ejecutar(principal, "PreToolUse", "cerrado"))
+diff --git a/itostack/scripts/nucleo/juez.py b/itostack/scripts/nucleo/juez.py
+new file mode 100644
+index 0000000..9d9c120
+--- /dev/null
++++ b/itostack/scripts/nucleo/juez.py
+@@ -0,0 +1,304 @@
++"""Contrato común de los revisores de otra familia de modelos (Codex y Ollama): instrucciones, esquema y puntaje.
++
++El modelo solo califica cada criterio de la rúbrica (`si`, `no` o `no_aplicable`, con evidencia textual). El
++puntaje lo calcula este módulo: así el juez no puede inventar un 10 que la rúbrica no define (D-17), y un
++criterio que el artefacto no ofrece ocasión de ejercer no se cuenta como cumplido ni como fallado. La calificación
++exige cobertura exacta de la rúbrica: un veredicto que omite criterios no aprueba.
++"""
++
++from __future__ import annotations
++
++import hashlib
++import json
++import re
++import unicodedata
++from datetime import datetime, timezone
++from pathlib import Path
++
++from . import config as cfg
++
++# Marcas de la familia Claude: el juez debe ver el trabajo con otros ojos que el modelo que lo produjo.
++FAMILIA_CLAUDE = re.compile(r"claude|anthropic|\bopus\b|\bsonnet\b|\bhaiku\b|\bfable\b", re.IGNORECASE)
++
++INSTRUCCIONES = {
++    "adversarial": (
++        "Eres un revisor adversarial de un despacho jurídico mexicano. Busca errores, no virtudes. Señala: citas sin fuente "
++        "verificable, afirmaciones sin sustento, riesgos procesales (plazos, competencia, improcedencia), contradicciones, "
++        "atajos técnicos y, si es código, defectos que un caso concreto haría fallar. Cada hallazgo debe poder comprobarse "
++        "en el material recibido; no inventes ubicaciones. Todo lo que necesitas está en este mensaje: no busques archivos.\n"
++        "Responde SOLO JSON: {\"hallazgos\": [{\"gravedad\": \"alta|media|baja\", \"ubicacion\": \"...\", "
++        "\"problema\": \"...\", \"sugerencia\": \"...\"}], \"veredicto\": \"aprobar|corregir|rechazar\"}"
++    ),
++    "juez": (
++        "Eres un juez de evaluación. Califica el artefacto SOLO contra la rúbrica congelada que se te da, criterio por "
++        "criterio y en su orden, uno por cada criterio numerado, con su número en \"numero\"; no premies estilo ni "
++        "esfuerzo. Para cada criterio responde:\n"
++        "- \"si\": el artefacto lo cumple; la evidencia copia entre «» un fragmento LITERAL del artefacto que corresponde a "
++        "ESE criterio (el programa comprueba que el fragmento exista).\n"
++        "- \"no\": no lo cumple o no encuentras evidencia textual de que lo cumpla.\n"
++        "- \"no_aplicable\": el artefacto no ofrece ocasión de ejercerlo (p. ej. pide trasladar advertencias y ninguna "
++        "cita las dispara); explica en la evidencia por qué no hay ocasión.\n"
++        "Lista en fallos_criticos los que la rúbrica define como críticos y ocurren. No calcules puntaje: lo calcula el "
++        "programa. Todo lo que necesitas está en este mensaje: no busques archivos.\n"
++        "Responde SOLO JSON: {\"criterios\": [{\"numero\": 1, \"criterio\": \"...\", \"cumple\": \"si|no|no_aplicable\", "
++        "\"evidencia\": \"...\"}], \"fallos_criticos\": [\"...\"], \"observaciones\": \"...\"}"
++    ),
++}
++
++_TEXTO = {"type": "string"}
++
++ESQUEMAS = {
++    "adversarial": {
++        "type": "object",
++        "additionalProperties": False,
++        "required": ["hallazgos", "veredicto"],
++        "properties": {
++            "hallazgos": {
++                "type": "array",
++                "items": {
++                    "type": "object",
++                    "additionalProperties": False,
++                    "required": ["gravedad", "ubicacion", "problema", "sugerencia"],
++                    "properties": {
++                        "gravedad": {"type": "string", "enum": ["alta", "media", "baja"]},
++                        "ubicacion": _TEXTO,
++                        "problema": _TEXTO,
++                        "sugerencia": _TEXTO,
++                    },
++                },
++            },
++            "veredicto": {"type": "string", "enum": ["aprobar", "corregir", "rechazar"]},
++        },
++    },
++    "juez": {
++        "type": "object",
++        "additionalProperties": False,
++        "required": ["criterios", "fallos_criticos", "observaciones"],
++        "properties": {
++            "criterios": {
++                "type": "array",
++                "items": {
++                    "type": "object",
++                    "additionalProperties": False,
++                    "required": ["numero", "criterio", "cumple", "evidencia"],
++                    "properties": {
++                        "numero": {"type": "integer"},
++                        "criterio": _TEXTO,
++                        "cumple": {"type": "string", "enum": ["si", "no", "no_aplicable"]},
++                        "evidencia": _TEXTO,
++                    },
++                },
++            },
++            "fallos_criticos": {"type": "array", "items": _TEXTO},
++            "observaciones": _TEXTO,
++        },
++    },
++}
++
++_EQUIVALENCIAS = {True: "si", False: "no", "sí": "si", "true": "si", "false": "no", "n/a": "no_aplicable", "na": "no_aplicable", "no aplica": "no_aplicable"}
++_CRITERIO = re.compile(r"^\s*(\d+)\.\s+\S")
++_FIN_CRITERIOS = re.compile(r"^\s*fallos?\s+cr[ií]ticos?", re.IGNORECASE)
++
++
++class MaterialExcedido(ValueError):
++    """El material no cabe en el mensaje: recortarlo dejaría parte sin revisar y el veredicto no lo diría."""
++
++
++def es_familia_claude(modelo: str) -> bool:
++    return bool(FAMILIA_CLAUDE.search(modelo or ""))
++
++
++def criterios_de_rubrica(texto: str) -> list[str]:
++    """Criterios numerados de una rúbrica congelada (hasta la línea de fallos críticos)."""
++    criterios = []
++    for linea in texto.splitlines():
++        if _FIN_CRITERIOS.match(linea):
++            break
++        if _CRITERIO.match(linea):
++            criterios.append(linea.strip())
++    return criterios
++
++
++def sha256(texto: str | bytes) -> str:
++    return hashlib.sha256(texto.encode("utf-8") if isinstance(texto, str) else texto).hexdigest()
++
++
++def _normalizar(valor) -> str:
++    """Acepta el formato anterior (booleanos) de modelos locales que no respetan el esquema."""
++    if isinstance(valor, str):
++        valor = valor.strip().lower()
++    elif not isinstance(valor, bool):
++        return "no"
++    return _EQUIVALENCIAS.get(valor, valor if valor in {"si", "no", "no_aplicable"} else "no")
++
++
++_FRAGMENTO = re.compile(r"«([^»]+)»|“([^”]+)”|\"([^\"]+)\"")
++_RELLENO_MD = re.compile(r"[`*_]+")
++
++
++def _comparable(texto: str) -> str:
++    from .normalizacion import _COMILLAS
++
++    limpio = unicodedata.normalize("NFC", str(texto)).translate(_COMILLAS)
++    return re.sub(r"\s+", " ", _RELLENO_MD.sub("", limpio)).strip().casefold()
++
++
++def evidencia_en_artefacto(evidencia: str, artefacto: str) -> bool:
++    """La evidencia de un «si» debe traer al menos un fragmento entre comillas que exista en el artefacto.
++
++    Un fragmento con elisión («inicio … fin») vale si todos sus tramos aparecen en ese orden. Sin fragmento
++    comprobable, el juez pudo haber inventado la cita.
++    """
++    texto = _comparable(artefacto)
++    for grupos in _FRAGMENTO.findall(evidencia or ""):
++        fragmento = next((g for g in grupos if g), "")
++        tramos = [t for t in (_comparable(t) for t in re.split(r"…|\.\.\.", fragmento)) if t]
++        if not tramos or sum(len(t) for t in tramos) < 4:
++            continue
++        # Todos los tramos, sin descartar ninguno, y en el orden en que la evidencia los declara.
++        desde, completo = 0, True
++        for tramo in tramos:
++            posicion = texto.find(tramo, desde)
++            if posicion < 0:
++                completo = False
++                break
++            desde = posicion + len(tramo)
++        if completo:
++            return True
++    return False
++
++
++def calificar(resultado: dict, esperados: int | None = None, artefacto: str | None = None) -> dict:
++    """Añade puntaje, conteos y `aprobado` calculados a partir de los criterios. Nunca confía en un puntaje del modelo.
++
++    - Un «si» sin evidencia comprobable cuenta como «no». Con `artefacto`, se comprueba que el fragmento citado exista
++      y se anota `evidencia_verificada`; sin él (la compuerta), se respeta esa anotación.
++    - Con `esperados`, los criterios deben llevar los números 1..N, cada uno una sola vez: repetir un criterio u
++      omitir otro deja el veredicto sin puntaje (BLOCKED).
++    """
++    criterios = []
++    for criterio in resultado.get("criterios") or []:
++        if not isinstance(criterio, dict):
++            continue
++        criterio = dict(criterio, cumple=_normalizar(criterio.get("cumple")))
++        if criterio["cumple"] == "si":
++            if artefacto is not None:
++                criterio["evidencia_verificada"] = evidencia_en_artefacto(str(criterio.get("evidencia") or ""), artefacto)
++            if not str(criterio.get("evidencia") or "").strip() or criterio.get("evidencia_verificada") is False:
++                criterio["cumple"] = "no"
++                criterio["motivo"] = "sin evidencia literal comprobable en el artefacto"
++        criterios.append(criterio)
++    fallos = [f for f in resultado.get("fallos_criticos") or [] if str(f).strip()]
++    aplicables = [c for c in criterios if c["cumple"] != "no_aplicable"]
++    cumplidos = sum(1 for c in aplicables if c["cumple"] == "si")
++    if esperados is None:
++        cobertura_ok = True
++    else:
++        # Enteros JSON de verdad: ni booleanos (true == 1) ni decimales truncados (1.9 → 1).
++        numeros = [c.get("numero") if isinstance(c.get("numero"), int) and not isinstance(c.get("numero"), bool) else None for c in criterios]
++        cobertura_ok = None not in numeros and sorted(numeros) == list(range(1, esperados + 1))
++    if fallos:
++        puntaje = 0.0
++    elif aplicables and cobertura_ok:
++        puntaje = round(10 * cumplidos / len(aplicables), 2)
++    else:
++        puntaje = None
++    calificado = {k: v for k, v in resultado.items() if k != "puntaje"}
++    calificado.update(
++        criterios=criterios,
++        fallos_criticos=fallos,
++        aplicables=len(aplicables),
++        cumplidos=cumplidos,
++        no_aplicables=len(criterios) - len(aplicables),
++        puntaje=puntaje,
++        # Por conteos, no por el puntaje redondeado: 2499 de 2500 da 9.996 → «10», y no debe aprobar.
++        aprobado=bool(aplicables) and cumplidos == len(aplicables) and not fallos and cobertura_ok,
++    )
++    if esperados is not None:
++        calificado["cobertura"] = f"{len(criterios)} criterio(s) para {esperados} de la rúbrica" + ("" if cobertura_ok else " (números 1..N incompletos o repetidos)")
++    return calificado
++
++
++def codigo_salida(rol: str, resultado: dict) -> int:
++    """0 aprobado · 1 no aprobado · 2 nada que calificar o cobertura incompleta: BLOCKED, no PASS."""
++    if rol == "juez":
++        if resultado.get("puntaje") is None:
++            return 2
++        return 0 if resultado.get("aprobado") else 1
++    return 0 if resultado.get("veredicto") == "aprobar" else 1
++
++
++def armar_prompt(rol: str, artefactos: str, rubrica: str | None, limite: int) -> str:
++    if len(artefactos) > limite:
++        raise MaterialExcedido(f"el material tiene {len(artefactos)} caracteres y el límite es {limite}: divide la revisión")
++    seccion_rubrica = f"\n\nRÚBRICA CONGELADA:\n{rubrica}" if rubrica else ""
++    return f"{INSTRUCCIONES[rol]}{seccion_rubrica}\n\nARTEFACTO:\n{artefactos}"
++
++
++def instantanea(archivos: list[Path], entrada: str) -> tuple[str, list[str]]:
++    """Lee cada artefacto UNA vez: el mensaje y sus huellas salen de la misma lectura, así que un archivo corregido
++    mientras corre el juez no queda asociado a un veredicto que no lo revisó. Los artefactos se rotulan con un número,
++    no con su ruta: la ruta puede delatar un examen (holdout-*, evals/)."""
++    if not archivos:
++        return entrada, [sha256(entrada)]
++    datos = [a.read_bytes() for a in archivos]
++    texto = "\n\n".join(f"=== documento {i} ===\n{d.decode('utf-8')}" for i, d in enumerate(datos, 1))
++    return texto, [sha256(d) for d in datos]
++
++
++def material(huellas: list[str], rubrica: bytes | None, caso: str | None = None) -> dict:
++    """Huellas de lo calificado: atan el veredicto a sus artefactos y a su rúbrica (bytes, igual que la compuerta)."""
++    datos: dict = {"sha256_artefactos": sorted(huellas)}
++    if rubrica is not None:
++        datos["rubrica"] = {"sha256": sha256(rubrica), "criterios": len(criterios_de_rubrica(rubrica.decode("utf-8")))}
++    if caso:
++        datos["caso"] = caso
++    return datos
++
++
++def anotar_bitacora(proyecto: Path, resultado: dict) -> None:
++    """Toda corrida del juez queda registrada: la compuerta ve si un artefacto ya fue reprobado por ese mismo juez."""
++    datos_juez = resultado.get("juez") or {}
++    if datos_juez.get("rol") != "juez":
++        return
++    carpeta = proyecto / cfg.DIR_ITOSTACK / "bitacora"
++    if not carpeta.parent.is_dir():
++        return
++    carpeta.mkdir(parents=True, exist_ok=True)
++    ruta = carpeta / "juez.tsv"
++    nueva = not ruta.exists()
++    materia = resultado.get("material") or {}
++    with open(ruta, "a", encoding="utf-8") as archivo:
++        if nueva:
++            archivo.write("fecha\tfamilia\therramienta\tmodelo\tesfuerzo\tversion\tcaso\tsha256_artefactos\tsha256_rubrica\tpuntaje\taprobado\n")
++        archivo.write("\t".join([
++            datetime.now(timezone.utc).isoformat(timespec="seconds"),
++            str(datos_juez.get("familia")),
++            str(datos_juez.get("herramienta")),
++            str(datos_juez.get("modelo")),
++            str(datos_juez.get("esfuerzo")),
++            str(datos_juez.get("version")),
++            str(materia.get("caso") or ""),
++            ",".join(sorted(materia.get("sha256_artefactos") or [])),
++            str((materia.get("rubrica") or {}).get("sha256", "")),
++            str(resultado.get("puntaje")),
++            "si" if resultado.get("aprobado") else "no",
++        ]) + "\n")
++
++
++def leer_bitacora(proyecto: Path) -> list[dict]:
++    ruta = proyecto / cfg.DIR_ITOSTACK / "bitacora" / "juez.tsv"
++    if not ruta.is_file():
++        return []
++    lineas = ruta.read_text(encoding="utf-8").splitlines()
++    campos = lineas[0].split("\t") if lineas else []
++    return [dict(zip(campos, l.split("\t"))) for l in lineas[1:] if l.strip()]
++
++
++def cargar_modelos(proyecto: Path | None = None) -> dict:
++    """La plantilla del plugin con el `modelos.json` del proyecto encima (un proyecto antiguo hereda las claves nuevas)."""
++    plantilla = json.loads((cfg.RAIZ_PLUGIN / "plantillas" / "modelos.json").read_text(encoding="utf-8"))
++    ruta = (proyecto or cfg.raiz_proyecto()) / cfg.DIR_ITOSTACK / "modelos.json"
++    if ruta.is_file():
++        return cfg._mezclar(plantilla, json.loads(ruta.read_text(encoding="utf-8")))
++    return plantilla
+diff --git a/itostack/scripts/revisar_codex.py b/itostack/scripts/revisar_codex.py
+new file mode 100644
+index 0000000..fc10c17
+--- /dev/null
++++ b/itostack/scripts/revisar_codex.py
+@@ -0,0 +1,177 @@
++#!/usr/bin/env python3
++"""Revisor y juez de otra familia de modelos con Codex CLI (OpenAI).
++
++Sirve a /interrogar (rol adversarial) y al juez de evals (rol juez), con el mismo contrato de salida que
++revisar_ollama.py. Uso:
++  revisar_codex.py --archivo escrito.md [--rubrica rubrica.md] [--rol adversarial|juez] [--modelo M] [--esfuerzo E]
++  git diff | revisar_codex.py --rol adversarial
++
++Salida: JSON en stdout. Código: 0 aprobado · 1 no aprobado · 2 BLOCKED (Codex no respondió, salida inválida, material
++demasiado grande, cobertura incompleta de la rúbrica o nada que calificar) · 3 configuración rechazada.
++
++Reglas (falla cerrado):
++- Privacidad (principio privacidad-local): el texto sale a OpenAI. Solo corre con "entorno": "desarrollo" en
++  .itostack/config.json; sin ese valor se niega.
++- Codex es un agente, no solo un modelo: corre sin herramientas (shell, navegador, apps y plugins desactivados), con
++  sandbox de solo lectura, sin sesión persistida y desde un directorio vacío de nombre neutro. Así no puede leer
++  soluciones de referencia, casos holdout ni rutas que delaten un examen. Los artefactos van dentro del mensaje,
++  numerados, sin su ruta.
++- Modelo y esfuerzo fijos desde modelos.json, con la configuración del usuario ignorada: el juez de desarrollo y el
++  de holdout son el mismo, y el veredicto registra cuál fue, junto con las huellas de lo que calificó.
++"""
++
++from __future__ import annotations
++
++import argparse
++import glob
++import json
++import os
++import shutil
++import subprocess
++import sys
++import tempfile
++from pathlib import Path
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++
++from nucleo import config as cfg  # noqa: E402
++from nucleo import juez  # noqa: E402
++
++LIMITE_CARACTERES = 150_000
++# Sin herramientas el juez solo ve el mensaje. El sandbox de solo lectura impide escribir, no leer.
++HERRAMIENTAS_DESACTIVADAS = ("shell_tool", "browser_use", "browser_use_external", "computer_use", "in_app_browser", "apps", "plugins")
++
++
++def ejecutable_codex() -> list[str] | None:
++    """Comando base de Codex. En Windows se prefiere codex.exe: pasar argumentos por codex.cmd los expone a cmd.exe."""
++    propio = os.environ.get("ITOSTACK_CODEX")
++    if propio:
++        return [sys.executable, propio] if propio.endswith(".py") else [propio]
++    if os.name == "nt" and os.environ.get("LOCALAPPDATA"):
++        nativos = sorted(glob.glob(os.path.join(os.environ["LOCALAPPDATA"], "OpenAI", "Codex", "bin", "*", "codex.exe")), key=os.path.getmtime, reverse=True)
++        if nativos:
++            return [nativos[0]]
++    encontrado = shutil.which("codex")
++    return [encontrado] if encontrado else None
++
++
++def version(base: list[str]) -> str:
++    try:
++        salida = subprocess.run([*base, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
++    except (OSError, subprocess.TimeoutExpired):
++        return "desconocida"
++    return (salida.stdout or salida.stderr).strip() or "desconocida"
++
++
++def configuracion_juez(modelos: dict, modelo: str | None, esfuerzo: str | None) -> tuple[str | None, str]:
++    seccion = modelos.get("codex") or {}
++    designado = modelos.get("juez_otra_familia") or ""
++    modelo = modelo or seccion.get("modelo") or (designado.split(":", 1)[1] if designado.startswith("codex:") else None)
++    return modelo, esfuerzo or seccion.get("esfuerzo") or "high"
++
++
++def comando(base: list[str], neutro: Path, modelo: str, esfuerzo: str, esquema: Path, salida: Path) -> list[str]:
++    desactivar = [opcion for nombre in HERRAMIENTAS_DESACTIVADAS for opcion in ("--disable", nombre)]
++    return [
++        *base, "exec",
++        "-C", str(neutro),
++        "-s", "read-only",
++        "--skip-git-repo-check",
++        "--ephemeral",
++        "--ignore-user-config",
++        *desactivar,
++        "--color", "never",
++        "-m", modelo,
++        "-c", f"model_reasoning_effort={esfuerzo}",
++        "--output-schema", str(esquema),
++        "-o", str(salida),
++        "-",
++    ]
++
++
++def principal() -> int:
++    analizador = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
++    analizador.add_argument("--archivo", type=Path, action="append", default=[])
++    analizador.add_argument("--rubrica", type=Path)
++    analizador.add_argument("--rol", choices=sorted(juez.INSTRUCCIONES), default="adversarial")
++    analizador.add_argument("--modelo", help="por omisión, codex.modelo de modelos.json")
++    analizador.add_argument("--esfuerzo", help="model_reasoning_effort; por omisión, codex.esfuerzo de modelos.json")
++    analizador.add_argument("--tiempo", type=int, default=1800, help="segundos máximos de la corrida")
++    analizador.add_argument("--caso", help="caso de eval que se califica (skill.caso); la compuerta exige uno por caso holdout")
++    args = analizador.parse_args()
++
++    proyecto = cfg.raiz_proyecto()
++    config = cfg.cargar(proyecto)
++    if config.get("entorno") != "desarrollo":
++        print(
++            f"Codex envía el texto a OpenAI y este proyecto está en entorno «{config.get('entorno')}». Solo se permite "
++            "con \"entorno\": \"desarrollo\" en .itostack/config.json (principio privacidad-local). En producción usa "
++            "revisar_ollama.py.",
++            file=sys.stderr,
++        )
++        return 3
++    modelo, esfuerzo = configuracion_juez(juez.cargar_modelos(proyecto), args.modelo, args.esfuerzo)
++    if not modelo:
++        print("Falta el modelo: define codex.modelo en .itostack/modelos.json o pasa --modelo.", file=sys.stderr)
++        return 3
++    if juez.es_familia_claude(modelo):
++        print("El revisor debe ser de otra familia de modelos que Claude: el sentido es un punto de vista distinto del trabajador.", file=sys.stderr)
++        return 3
++    if args.rol == "juez" and not args.rubrica:
++        print("El rol juez exige --rubrica: sin rúbrica congelada no hay contra qué calificar.", file=sys.stderr)
++        return 3
++    base = ejecutable_codex()
++    if not base:
++        print("No se encontró Codex CLI (npm install -g @openai/codex, o la app de Codex).", file=sys.stderr)
++        return 2
++
++    entrada = "" if args.archivo else sys.stdin.read()
++    artefactos, huellas = juez.instantanea(args.archivo, entrada)
++    if not artefactos.strip():
++        print("No hay nada que revisar: pasa --archivo o el texto por la entrada estándar.", file=sys.stderr)
++        return 3
++    rubrica_bytes = args.rubrica.read_bytes() if args.rubrica else None
++    rubrica = rubrica_bytes.decode("utf-8") if rubrica_bytes is not None else None
++    esperados = len(juez.criterios_de_rubrica(rubrica)) if rubrica is not None else None
++    if args.rol == "juez" and not esperados:
++        print("La rúbrica no tiene criterios numerados («1. …»): no hay cobertura que exigir.", file=sys.stderr)
++        return 3
++    try:
++        prompt = juez.armar_prompt(args.rol, artefactos, rubrica, LIMITE_CARACTERES)
++    except juez.MaterialExcedido as error:
++        print(f"BLOCKED: {error}. Un recorte silencioso dejaría material sin revisar.", file=sys.stderr)
++        return 2
++
++    neutro = Path(tempfile.mkdtemp(prefix="trabajo-"))
++    control = Path(tempfile.mkdtemp(prefix="ctl-"))
++    try:
++        esquema = control / "esquema.json"
++        esquema.write_text(json.dumps(juez.ESQUEMAS[args.rol], ensure_ascii=False), encoding="utf-8")
++        salida = control / "respuesta.json"
++        try:
++            corrida = subprocess.run(comando(base, neutro, modelo, esfuerzo, esquema, salida), input=prompt, capture_output=True,
++                                     text=True, encoding="utf-8", errors="replace", timeout=args.tiempo, cwd=neutro)
++        except subprocess.TimeoutExpired:
++            print(f"Codex no terminó en {args.tiempo} s: BLOCKED.", file=sys.stderr)
++            return 2
++        try:
++            resultado = json.loads(salida.read_text(encoding="utf-8"))
++        except (OSError, json.JSONDecodeError):
++            cola = (corrida.stderr or corrida.stdout or "").strip()[-1500:]
++            print(f"Codex no devolvió una respuesta válida (código {corrida.returncode}): BLOCKED.\n{cola}", file=sys.stderr)
++            return 2
++    finally:
++        shutil.rmtree(neutro, ignore_errors=True)
++        shutil.rmtree(control, ignore_errors=True)
++
++    if args.rol == "juez":
++        resultado = juez.calificar(resultado, esperados, artefactos)
++    resultado["juez"] = {"familia": "openai", "herramienta": "codex", "modelo": modelo, "esfuerzo": esfuerzo, "version": version(base), "rol": args.rol}
++    resultado["material"] = juez.material(huellas, rubrica_bytes, args.caso)
++    juez.anotar_bitacora(proyecto, resultado)
++    print(json.dumps(resultado, ensure_ascii=False, indent=2))
++    return juez.codigo_salida(args.rol, resultado)
++
++
++if __name__ == "__main__":
++    sys.exit(principal())

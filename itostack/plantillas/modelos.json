@@ -8,8 +8,20 @@
     "jardinero": "sonnet",
     "juez_evals": "haiku"
   },
-  "panel_interrogar": ["revisor-adversarial", "ollama:qwen2.5:14b"],
-  "juez_otra_familia": "ollama:qwen2.5:14b",
+  "panel_interrogar": [
+    "revisor-adversarial",
+    "codex:gpt-6.1-sol"
+  ],
+  "juez_otra_familia": "codex:gpt-6.1-sol",
+  "codex": {
+    "modelo": "gpt-6.1-sol",
+    "esfuerzo": "high",
+    "_nota": "revisar_codex.py fija modelo y esfuerzo desde aquí e ignora ~/.codex/config.toml: el juez de desarrollo y el de holdout son el mismo. El texto sale a OpenAI: solo corre con \"entorno\": \"desarrollo\" en config.json."
+  },
+  "ollama": {
+    "modelo": "qwen2.5:14b",
+    "_nota": "Alternativa 100 % local (revisar_ollama.py): la que corresponde en producción."
+  },
   "ollama_endpoint": "http://127.0.0.1:11434",
-  "regla": "El juez no debe ser el mismo modelo que el agente evaluado; para evals nativos usa --judge-model distinto de --model."
+  "regla": "El juez no debe ser de la misma familia que el agente evaluado (Claude). Para evals nativos, --judge-model distinto de --model; la segunda calificación la da juez_otra_familia."
 }

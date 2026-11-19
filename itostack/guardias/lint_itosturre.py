@@ -18,6 +18,7 @@ import fnmatch
 import re
 import subprocess
 import sys
+import tokenize
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -145,8 +146,25 @@ def revisar_archivos(rutas: list[Path]) -> list[Hallazgo]:
     return hallazgos
 
 
-def revisar_diff(base: str) -> list[Hallazgo]:
-    salida = subprocess.run(["git", "diff", "-U0", base, "--", *[f"*{s}" for s in CODIGO]], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False).stdout
+class ErrorGit(RuntimeError):
+    pass
+
+
+def _git(*argumentos: str) -> str:
+    proceso = subprocess.run(["git", *argumentos], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+    if proceso.returncode != 0:
+        raise ErrorGit(f"git {' '.join(argumentos[:2])} falló ({proceso.returncode}): {proceso.stderr.strip()[:300]}")
+    return proceso.stdout
+
+
+def revisar_diff(base: str) -> tuple[list[Hallazgo], int, int, list[str]]:
+    """Líneas añadidas respecto a BASE y archivos nuevos sin rastrear (D-10: `git diff` no los ve).
+
+    Devuelve (hallazgos, archivos examinados, líneas examinadas, archivos que no se pudieron leer). Un error de Git
+    es un error, no un verde vacío.
+    """
+    globs = [f"*{s}" for s in CODIGO]
+    salida = _git("diff", "-U0", base, "--", *globs)
     hallazgos, archivo, numero = [], "", 0
     lineas_por_archivo: dict[str, tuple[list[str], list[int]]] = {}
     for linea in salida.splitlines():
@@ -160,25 +178,62 @@ def revisar_diff(base: str) -> list[Hallazgo]:
             textos.append(linea[1:])
             numeros.append(numero)
             numero += 1
+    raiz = Path(_git("rev-parse", "--show-toplevel").strip())
+    no_examinados: list[str] = []
+    # -z: sin él, Git entrecomilla y escapa los nombres no ASCII («nuevo_ñ.py») y el archivo se saltaría.
+    for relativo in _git("ls-files", "--others", "--exclude-standard", "--full-name", "-z", "--", *globs).split("\0"):
+        if not relativo.strip() or "node_modules" in Path(relativo).parts:
+            continue
+        try:
+            contenido = _leer_codigo(raiz / relativo).splitlines()
+        except (UnicodeDecodeError, SyntaxError, LookupError, OSError):
+            no_examinados.append(relativo)
+            continue
+        lineas_por_archivo[relativo] = (contenido, list(range(1, len(contenido) + 1)))
     for archivo, (textos, numeros) in lineas_por_archivo.items():
         hallazgos.extend(revisar_texto("\n".join(textos), archivo, numeros))
-    return hallazgos
+    return hallazgos, len(lineas_por_archivo), sum(len(textos) for textos, _ in lineas_por_archivo.values()), no_examinados
+
+
+def _leer_codigo(ruta: Path) -> str:
+    """UTF-8, o la codificación que declare un .py («# coding: cp1252»): un archivo válido no se salta."""
+    try:
+        return ruta.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        if ruta.suffix != ".py":
+            raise
+        with tokenize.open(ruta) as archivo:
+            return archivo.read()
 
 
 def principal() -> int:
     analizador = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     analizador.add_argument("rutas", nargs="*", type=Path)
-    analizador.add_argument("--diff", nargs="?", const="HEAD", help="revisa solo líneas añadidas respecto a BASE")
+    analizador.add_argument("--diff", nargs="?", const="HEAD", help="revisa las líneas añadidas respecto a BASE y los archivos nuevos sin rastrear; sale con 2 si no examinó nada")
     args = analizador.parse_args()
+    cobertura = ""
     if args.diff:
-        hallazgos = revisar_diff(args.diff)
+        try:
+            hallazgos, archivos, lineas, no_examinados = revisar_diff(args.diff)
+        except ErrorGit as error:
+            print(f"lint itosturre: {error}. Sin diff no hay comprobación.")
+            return 2
+        if no_examinados:
+            for hallazgo in hallazgos:
+                print(hallazgo.formato())
+            print(f"lint itosturre: no se pudieron leer {len(no_examinados)} archivo(s) nuevos: {', '.join(no_examinados)}. Resultado incompleto.")
+            return 2
+        cobertura = f" · examinados {archivos} archivo(s), {lineas} línea(s) nuevas o añadidas"
+        if not archivos:
+            print("lint itosturre: 0 archivos de código examinados: el diff no tiene cambios de código. Esto no acredita el cambio.")
+            return 2
     elif args.rutas:
         hallazgos = revisar_archivos(args.rutas)
     else:
         analizador.error("indica rutas o --diff")
     for hallazgo in hallazgos:
         print(hallazgo.formato())
-    print(f"lint itosturre: {len(hallazgos)} hallazgo(s)")
+    print(f"lint itosturre: {len(hallazgos)} hallazgo(s){cobertura}")
     return 1 if hallazgos else 0
 
 

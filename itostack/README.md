@@ -7,7 +7,7 @@ Plugin de Claude Code que convierte la metodología de ingeniería de agentes de
 | Pilar | Qué hace en itostack | Piezas |
 |---|---|---|
 | **1 · Feedback Loop** | Nada funciona hasta verlo funcionar: citas contra el portal oficial y funcionalidades contra la app en ejecución, con veredicto PASS/FAIL/BLOCKED | `scripts/verificar.py`, `scripts/lib/navegador_forense.ts`, `verificador_fuente.ts`, `evidencia_web.ts`, `arrancar_app.py`, skills `verificar-cita`, `validar-documento`, `demuestra-que-funciona`, `reproducir-y-corregir` |
-| **2 · Agent Evals** | Pruebas unitarias para skills sobre `claude plugin eval`, con soluciones de referencia y rotas, compuerta holdout de un solo intento y juez de otra familia | `evals/*/*/case.yaml`, `evals/autoprueba.py`, `evals/compuerta_holdout.py`, `scripts/revisar_ollama.py`, `tests/test_propiedades.py` |
+| **2 · Agent Evals** | Pruebas unitarias para skills sobre `claude plugin eval`, con soluciones de referencia y rotas, compuerta holdout de un solo intento y juez de otra familia | `evals/*/*/case.yaml`, `evals/autoprueba.py`, `evals/compuerta_holdout.py`, `scripts/revisar_codex.py` (juez de otra familia en desarrollo), `scripts/revisar_ollama.py` (local), `tests/test_propiedades.py` |
 | **3 · Mejora de skills** | Cada corrección repetida se registra y se eleva a una regla; chequeos de salud de transcripciones y tokens; palancas deterministas | hook `captura_correcciones.py`, `registrar_correccion.py`, `salud_transcripciones.py`, `salud_rutinas.py`, skills `corregir`, `mejorar-skill`, `construir-palanca`, `revision-salud` |
 | **4 · Guardrails** | Pirámide invertida: diseño → lint/hooks → verificación → prosa | `[[CITA:]]` + `ensamblar_documento.py` (capa 1), `guardias/lint_itosturre.py` IT001–IT008 y `hooks/*` (capa 2), verificación y evals (capa 3), `CLAUDE.itostack.md` mínimo (capa 4) |
 
@@ -67,7 +67,7 @@ Para desarrollo local del plugin: `claude --plugin-dir ./itostack`.
 
 - Consulta en tiempo real con Playwright; **no hay base masiva de jurisprudencia** (solo un registro de evidencia por consulta, inmutable). Regla IT006.
 - Toda visita a la SCJN deja captura forense (IT001 + hook de Bash).
-- Los datos legales no salen de la máquina (IT004, IT005, hook de Bash, compuerta MCP).
+- En producción, los datos legales no salen de la máquina (IT004, IT005, hook de Bash, compuerta MCP). En desarrollo (`"entorno": "desarrollo"`) se permite el juez de otra familia en la nube (`revisar_codex.py`).
 - Flask y SQLite para el MVP (IT002, IT003).
 - Commits descriptivos en español; PRs de agente solo en borrador.
 
@@ -81,7 +81,7 @@ itostack/
 ├── hooks/           hooks.json + 6 guardias en Python estándar
 ├── guardias/        lint_itosturre.py (IT001–IT008)
 ├── scripts/         núcleo Python + observadores TypeScript (Playwright)
-├── evals/           17 casos nativos (12 desarrollo, 5 holdout), fixtures ficticios, autoprueba, compuerta
+├── evals/           18 casos nativos (13 desarrollo, 5 holdout), fixtures ficticios, autoprueba, compuerta
 ├── plantillas/      CLAUDE.itostack.md, mapa, skill de verificación, modelos, cron
 ├── docs/            arquitectura, contrato, pirámide, evals, adopción, validación de la fuente
 └── tests/           pytest (unidad, hooks, propiedades, flujos con navegador)

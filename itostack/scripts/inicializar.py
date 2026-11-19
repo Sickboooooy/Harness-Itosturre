@@ -3,7 +3,7 @@
 
 Uso:
   inicializar.py [--proyecto .] [--perfil juridico|desarrollo|ambos] [--modo real|fixture]
-                 [--sjf-fixture RUTA] [--silencioso]
+                 [--entorno desarrollo|produccion] [--sjf-fixture RUTA] [--silencioso]
 Es idempotente: no pisa archivos existentes salvo los valores pasados explícitamente.
 """
 
@@ -24,7 +24,7 @@ PLANTILLAS = cfg.RAIZ_PLUGIN / "plantillas"
 GITIGNORE = "evidencia/\n*.db\n*.db-journal\nraiz_plugin\nultimo_resultado.json\nultimo_lote.json\napp.json\n"
 
 
-def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | None, silencioso: bool) -> Path:
+def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | None, silencioso: bool, entorno: str | None = None) -> Path:
     base = proyecto / cfg.DIR_ITOSTACK
     for sub in ("evidencia", "mejora/reportes", "bitacora"):
         (base / sub).mkdir(parents=True, exist_ok=True)
@@ -35,6 +35,8 @@ def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | No
     propia = json.loads(ruta_config.read_text(encoding="utf-8")) if ruta_config.is_file() else {"version": 1, "perfil": perfil}
     if modo:
         propia["modo"] = modo
+    if entorno:
+        propia["entorno"] = entorno
     if fixture:
         propia.setdefault("sjf", {})["fixture"] = str(Path(fixture).resolve())
     if not propia.get("navegador", {}).get("ejecutable"):
@@ -64,7 +66,7 @@ def inicializar(proyecto: Path, perfil: str, modo: str | None, fixture: str | No
 
     if not silencioso:
         print(f"itostack inicializado en {base}")
-        print(f"  modo: {config['modo']} · perfil: {propia.get('perfil', perfil)}")
+        print(f"  modo: {config['modo']} · perfil: {propia.get('perfil', perfil)} · entorno: {config['entorno']}")
         print(f"  navegador: {config['navegador'].get('ejecutable') or 'el de Playwright (npx playwright install chromium)'}")
         print("Siguiente paso: agrega esta línea a tu CLAUDE.md →  @.itostack/CLAUDE.itostack.md")
         if not (cfg.RAIZ_PLUGIN / "scripts" / "node_modules" / "playwright").is_dir():
@@ -77,10 +79,11 @@ def principal() -> int:
     analizador.add_argument("--proyecto", default=".")
     analizador.add_argument("--perfil", choices=["juridico", "desarrollo", "ambos"], default="ambos")
     analizador.add_argument("--modo", choices=["real", "fixture"])
+    analizador.add_argument("--entorno", choices=["desarrollo", "produccion"], help="desarrollo permite revisores en la nube (Codex)")
     analizador.add_argument("--sjf-fixture")
     analizador.add_argument("--silencioso", action="store_true")
     args = analizador.parse_args()
-    inicializar(Path(args.proyecto).resolve(), args.perfil, args.modo, args.sjf_fixture, args.silencioso)
+    inicializar(Path(args.proyecto).resolve(), args.perfil, args.modo, args.sjf_fixture, args.silencioso, args.entorno)
     return 0
 
 

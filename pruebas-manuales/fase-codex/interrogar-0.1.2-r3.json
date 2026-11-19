@@ -1,0 +1,102 @@
+{
+  "hallazgos": [
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: congelar",
+      "problema": "La prohibición de re-congelar no es atómica: se consulta el historial, se sobrescribe la candidata con write_text y después se anota el evento. Dos invocaciones simultáneas pueden superar la comprobación y guardar jueces o exenciones diferentes para la misma huella. Una interrupción entre escritura y anotación también permite repetir el congelamiento.",
+      "sugerencia": "Serializar la operación completa y registrar de forma recuperable la identidad congelada antes de permitir reservas."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: huella",
+      "problema": "La huella omite la configuración efectiva de .itostack/config.json. Cambiar modo, sjf.fixture o comparacion.ignorar_acentos modifica el comportamiento de scripts y guardias sin invalidar la candidata. Se puede evaluar desarrollo y holdout bajo configuraciones distintas conservando la misma huella.",
+      "sugerencia": "Congelar y comprobar los valores de configuración que afectan la evaluación, además de los archivos del plugin."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: agrupar_referencias, construcción de rubros_por_ref",
+      "problema": "Con varias referencias, solo se buscan rubros en las líneas que contienen sus anclas. El párrafo sin líneas vacías 'registro FICT-0001\\nRUBRO: «FALSO A»\\nregistro FICT-0002\\nRUBRO: «FALSO B»' deja ambos rubros sin asignar. Con evidencia vigente de los registros, rubros_discrepantes omite las dos discrepancias.",
+      "sugerencia": "Recorrer todas las declaraciones de rubro del párrafo y asociarlas mediante posiciones completas, incluidas las líneas posteriores al identificador."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: propias_por_ref y _asignar_rubros",
+      "problema": "Registros y claves siguen emparejándose por posición. En 'registro FICT-0001, rubro: «RUBRO A», registro FICT-0002, clave FICT.J/9 (11a.), rubro: «FALSO»', la única clave se une al primer registro. Ese tramo queda más cerca del segundo rubro, que se descarta porque la referencia ya tiene uno asignado. El rubro falso del segundo registro queda sin cotejar.",
+      "sugerencia": "Construir referencias por proximidad y estructura textual antes de asociar rubros; detectar declaraciones que queden descartadas o ambiguas."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/hooks/guardia_escritura.py: oficial_vigente; itostack/scripts/ensamblar_documento.py: oficial_de",
+      "problema": "Cuando una referencia contiene registro y clave, se prefiere la evidencia del registro sin comprobar la correspondencia de ambos identificadores. Si existen evidencias vigentes de dos tesis distintas, una cita con registro de A, clave de B y rubro de A supera tanto la comprobación individual de evidencia como el cotejo del rubro.",
+      "sugerencia": "Consultar ambos identificadores y rechazar la referencia si no identifican la misma tesis."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/hooks/guardia_lectura.py: apunta_a_holdout; itostack/hooks/guardia_bash.py: recorre_reserva",
+      "problema": "Persisten búsquedas dirigidas a la reserva que no son búsquedas sobre todo el repositorio. Grep sin path, ejecutado con cwd en evals/<skill>, no se comprueba; tampoco Bash 'rg .' desde ese directorio. Además, 'rg -n . \"$R/evals/verificar-cita\"' se comprueba como una ruta literal con $R, por lo que normalmente no se reconoce el directorio y se permite.",
+      "sugerencia": "Comprobar el cwd cuando se omite la ruta y denegar destinos dirigidos a evals cuya expansión no pueda resolverse con certeza."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: anotar_bitacora; itostack/evals/compuerta_holdout.py: veredictos_juez",
+      "problema": "El antecedente no identifica al mismo juez según CAMPOS_JUEZ: solo compara modelo y versión. La bitácora ni siquiera guarda esfuerzo, herramienta o familia. Un rechazo con esfuerzo low veta una aprobación del juez congelado con esfuerzo high, aunque sean identidades diferentes para la propia compuerta.",
+      "sugerencia": "Registrar y comparar todos los campos que forman la identidad congelada del juez."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: _tomar_reserva y cálculo de reserva en holdout",
+      "problema": "La condición de posterioridad admite archivos anteriores a la reserva: la marca trunca la hora a segundos y después se resta otro segundo. Un resultado o veredicto producido casi dos segundos antes de reservar puede superar la comprobación.",
+      "sugerencia": "Guardar una referencia temporal precisa y comparar sin esa tolerancia; tratar explícitamente las limitaciones de resolución del sistema de archivos."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: evidencia_en_artefacto",
+      "problema": "La evidencia no se verifica como fragmento literal: los tramos separados por elipsis pueden aparecer en orden inverso y se descartan los menores de ocho caracteres. '«FALSO … fragmento realmente presente»' puede aprobar porque FALSO se ignora. A la inversa, una evidencia literal y suficiente como '«PASS»' siempre falla por su longitud.",
+      "sugerencia": "Comprobar fragmentos literales sin descartar contenido; si se permiten elisiones, exigir que todos sus tramos aparezcan en el orden declarado."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: RE_RUBRO_ENTRECOMILLADO y rubros_discrepantes",
+      "problema": "Un rubro entrecomillado de más de 800 caracteres desaparece de la comprobación. La expresión regular no lo reconoce y _sin_comillas elimina su contenido antes de buscar declaraciones sin comillas. Así, 'RUBRO: «' seguido de 801 letras y '»' no se coteja aunque sea falso y el registro tenga evidencia vigente.",
+      "sugerencia": "Reconocer la declaración independientemente de su longitud y rechazar explícitamente los rubros que excedan el límite admitido."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/hooks/guardia_bash.py: REGLAS y RE_LECTOR",
+      "problema": "Los nombres de lectores se comparan distinguiendo mayúsculas, aunque PowerShell no las distingue. 'powershell -Command \"get-content evals/verificar-cita/holdout-x/case.yaml\"' no coincide con Get-Content y permite una lectura explícita de holdout.",
+      "sugerencia": "Reconocer los comandos de PowerShell sin distinguir mayúsculas y aplicar la misma normalización en ambas comprobaciones."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: calificar, conversión de numero",
+      "problema": "La cobertura convierte los números mediante int(), aceptando identificadores que no son enteros válidos: true se convierte en 1 y 1.9 también en 1. Ollama solo exige JSON y no aplica ESQUEMAS, por lo que estos veredictos pueden aprobar en lugar de quedar BLOCKED.",
+      "sugerencia": "Exigir que numero sea un entero JSON, excluyendo booleanos, sin conversiones truncadas."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: calificar, cálculo de puntaje y aprobado",
+      "problema": "La aprobación depende del puntaje redondeado. Con 2500 criterios aplicables, 2499 cumplidos y uno incumplido, el puntaje 9.996 se redondea a 10 y aprobado queda true. Un criterio fallido puede producir PASS.",
+      "sugerencia": "Calcular aprobado mediante igualdad de conteos, cobertura completa y ausencia de fallos críticos; usar el redondeo solo para presentar el puntaje."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/guardias/lint_itosturre.py: revisar_diff, lectura de archivos sin rastrear",
+      "problema": "Los archivos que no se pueden decodificar como UTF-8 se omiten silenciosamente. Un archivo Python válido con declaración coding: cp1252 y caracteres no ASCII queda sin revisar. Si también existe otro archivo UTF-8 limpio, el lint puede salir con 0 pese a esa omisión.",
+      "sugerencia": "Informar los archivos no examinados y devolver un resultado incompleto; para Python, respetar su declaración de codificación."
+    }
+  ],
+  "veredicto": "rechazar",
+  "juez": {
+    "familia": "openai",
+    "herramienta": "codex",
+    "modelo": "gpt-6.1-sol",
+    "esfuerzo": "high",
+    "version": "codex-cli 0.167.0-alpha.3.2",
+    "rol": "adversarial"
+  },
+  "material": {
+    "sha256_artefactos": [
+      "0cf71b2db47350765b30af300ab913233bc4b26eb972500b893eb336f4d1f171"
+    ]
+  }
+}

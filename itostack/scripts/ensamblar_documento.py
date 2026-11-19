@@ -74,8 +74,9 @@ def ensamblar(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[str
     return resultado, pendientes, notas
 
 
-def citas_a_mano(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[str, ...]) -> list[str]:
-    """Registros o claves escritos fuera de marcadores, sin evidencia vigente y sin marca ⚠/❌."""
+def citas_a_mano(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[str, ...], ignorar_acentos: bool = True) -> list[str]:
+    """Registros o claves escritos fuera de marcadores sin evidencia vigente (y sin marca ⚠/❌), o con un rubro
+    explícito que no es el de su evidencia (N-01)."""
     problemas = []
     for cita in citas.extraer(texto):
         if cita.tipo == "marcador" or cita.marcada_no_verificada:
@@ -86,6 +87,14 @@ def citas_a_mano(texto: str, almacen: AlmacenEvidencia, dias: int, modos: tuple[
         )
         if not vigente:
             problemas.append(f"línea {cita.linea}: {cita.tipo} «{cita.valor}» escrito a mano sin evidencia vigente")
+
+    def oficial_de(registro: str | None, clave: str | None) -> dict | None:
+        fila = (almacen.vigente("tesis", registro, dias, modos) if registro else None) or (
+            almacen.vigente_por_clave(clave, dias, modos) if clave else None
+        )
+        return json.loads(fila["datos_oficiales"]) if fila else None
+
+    problemas.extend(citas.rubros_discrepantes(texto, oficial_de, ignorar_acentos))
     return problemas
 
 
@@ -102,7 +111,7 @@ def principal() -> int:
     dias, modos = config["evidencia"]["vigencia_dias"], modos_validos(config)
     texto = args.borrador.read_text(encoding="utf-8")
 
-    manuales = citas_a_mano(texto, almacen, dias, modos)
+    manuales = citas_a_mano(texto, almacen, dias, modos, config["comparacion"]["ignorar_acentos"])
     cuerpo, pendientes, notas = ensamblar(texto, almacen, dias, modos)
     if (manuales or pendientes) and not args.permitir_pendientes:
         for problema in manuales:

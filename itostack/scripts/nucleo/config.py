@@ -20,6 +20,9 @@ DIR_ITOSTACK = ".itostack"
 CONFIG_DEFECTO: dict = {
     "version": 1,
     "modo": "real",
+    # Principio privacidad-local: en "produccion" los datos no salen de la máquina. Solo con "desarrollo" se
+    # permiten revisores en la nube (revisar_codex.py). Sin declararlo se asume producción: falla cerrado.
+    "entorno": "produccion",
     "sjf": {
         "base": "https://sjf2.scjn.gob.mx",
         "ruta_detalle": "/detalle/tesis/{registro}",
@@ -42,6 +45,9 @@ CONFIG_DEFECTO: dict = {
     },
     "comparacion": {"ignorar_acentos": True},
     "salidas_juridicas": ["salidas/**", "escritos/**", "dictamenes/**", "**/*.juridico.md"],
+    # Herramientas MCP que salen de la máquina sin pasar por la compuerta humana (patrones fnmatch sobre el nombre,
+    # p. ej. "mcp__plugin_telegram_telegram__reply"). Vacío por omisión: toda salida pasa por la compuerta.
+    "acciones_externas_permitidas": [],
     "modo_estricto_md": False,
     "navegador": {"ejecutable": None, "canal": None, "timeout_ms": 45000},
     "app": {"fallar_con_errores_consola": True, "timeout_ms": 8000},

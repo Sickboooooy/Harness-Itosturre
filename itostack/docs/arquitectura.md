@@ -30,7 +30,7 @@ flowchart LR
 | `/create-verification-skill` + Feature Map | `crear-skill-verificacion`, `mantener-skill-verificacion`, `mapa_rutas_flask.py` | Autoprueba de seis pasos antes de entregar la skill |
 | Veredictos PASS / FAIL / BLOCKED | `nucleo/veredicto.py` | Mapeados a ✅ / ❌ / ⚠ y a VVCA (Verificado, Validado, Contextualizado, Auditable) |
 | Benny (triaje → reproducción doble → TDD → PR en borrador) | `reproducir-y-corregir` + subagente `reproductor` | `gh pr merge` bloqueado por hook; PR sin `--draft` bloqueado |
-| Agent Evals, juez de otra familia, holdout | `claude plugin eval` + `autoprueba.py` + `compuerta_holdout.py` + `revisar_ollama.py --rol juez` | Juez local con Ollama (privacidad); holdout protegido contra edición del agente |
+| Agent Evals, juez de otra familia, holdout | `claude plugin eval` + `autoprueba.py` + `compuerta_holdout.py` + `revisar_codex.py --rol juez` | La compuerta exige el visto bueno del juez de otra familia (Codex en desarrollo; Ollama local en producción) y no deja cambiarlo tras congelar; el puntaje lo calcula `nucleo/juez.py`, no el modelo; holdout protegido contra edición y lectura del agente |
 | TLA+ / Lean / Bombadil | `tests/test_propiedades.py` (Hypothesis + exploración exhaustiva del contrato) | Proporcional al dominio: el invariante crítico es «no hay PASS sin evidencia» |
 | `/correct`, transcript-healthcheck, routine-healthcheck | `captura_correcciones.py`, `/corregir`, `salud_transcripciones.py`, `salud_rutinas.py` | Silenciosos sin hallazgos; proponen y esperan selección |
 | *Build the Lever* | `construir-palanca` | Ejemplo vivo: el verificador es la palanca que sustituye scripts ad hoc |
@@ -38,7 +38,7 @@ flowchart LR
 | dr eggbot: un trabajo + anti-trabajos | 6 subagentes con `tools` restringidas y anti-trabajos explícitos | Los roles no son fronteras de credenciales: un worktree por escritor |
 | `show-me-your-work` (TSV) | `muestra-tu-trabajo` + `bitacora.py` | Decisión irreversible → código 3 y detención |
 | `/unslop` | `sin-relleno` + `detectar_relleno.py` | Respeta fórmulas forenses legítimas |
-| `/interrogate`, `/arena` | `interrogar` + `revisor-adversarial` + revisor Ollama | Coincide con el flujo multimodelo del operador (revisión adversarial) |
+| `/interrogate`, `/arena` | `interrogar` + `revisor-adversarial` + `revisar_codex.py` (u Ollama local) | Coincide con el flujo multimodelo del operador (revisión adversarial) |
 | `models.md` (`/setup-pstack`) | `plantillas/modelos.json` + `model:` de cada subagente | |
 
 ## Flujo de una cita

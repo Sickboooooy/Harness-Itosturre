@@ -29,6 +29,12 @@
         ]
       },
       {
+        "matcher": "Read|Grep|Glob",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_lectura.py cerrado PreToolUse", "timeout": 20 }
+        ]
+      },
+      {
         "matcher": "mcp__.*",
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lanzar.mjs\" guardia_externo.py cerrado PreToolUse", "timeout": 20 }

@@ -10,7 +10,7 @@ Raíz del plugin: `R=$(cat .itostack/raiz_plugin)`. Detalle del protocolo: `$R/d
 1. **Describe el defecto** con evidencia: qué pidió el usuario, qué hizo el agente, qué debió hacer (traza o transcripción).
 2. **Caso que falla**: crea un caso de desarrollo con /crear-eval que reproduzca el defecto. Corre la autoprueba para confirmar que la solución de referencia pasa y la rota falla.
 3. **Corrige en el nivel más fuerte**: un script que haga la mecánica (/construir-palanca) o una guardia antes que más texto en la skill. Si editas la skill, mantén la descripción con los disparadores reales.
-4. **Itera** con /correr-evals sobre los casos de desarrollo de esa skill hasta 1.0 en todos (usa `/loop` si está disponible). No mires ni edites los casos `holdout-*`: el hook lo impide.
+4. **Itera** con /correr-evals sobre los casos de desarrollo de esa skill hasta 1.0 en todos (usa `/loop` si está disponible). No mires ni edites los casos `holdout-*`: los guardias de escritura, lectura y Bash lo deniegan (una búsqueda amplia sobre todo el repositorio todavía puede tocarlos: no la dirijas a `evals/`).
 5. **Congela y corre el holdout una vez**:
 
    ```bash

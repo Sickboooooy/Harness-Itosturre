@@ -1,0 +1,114 @@
+{
+  "hallazgos": [
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: calificar; itostack/evals/compuerta_holdout.py: _rubricas_congeladas",
+      "problema": "La cobertura «exacta» solo compara cantidades. Una rúbrica de cinco criterios aprueba con cinco repeticiones del mismo criterio, omitiendo los otros cuatro. Las propias pruebas construyen criterios idénticos llamados «c» y esperan aprobación.",
+      "sugerencia": "Asignar identificadores a los criterios congelados y comprobar correspondencia, unicidad y cobertura completa."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: calificar; itostack/tests/test_auditoria_codex.py: TestRevisarCodex",
+      "problema": "Una evidencia no vacía cuenta como sustento aunque no exista en el artefacto. La prueba de integración aprueba «cita textual» como evidencia de un documento cuyo contenido es «contenido del informe». Una cita inventada por el juez sigue produciendo PASS.",
+      "sugerencia": "Contrastar cada evidencia afirmativa con el contenido efectivamente enviado y rechazar las citas inexistentes; conservar además su asociación con el criterio."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: congelar, veredictos_juez y holdout",
+      "problema": "Los hashes del veredicto no se cotejan con los artefactos de los resultados evaluados. Basta presentar un informe distinto aprobado después de reservar, junto con resultados completos del holdout. Tampoco se exige juicio sobre cada caso ni la rúbrica correspondiente a la skill: cualquier rúbrica de rubricas/ sirve.",
+      "sugerencia": "Exigir una relación verificable entre caso, salida, hash, rúbrica y veredicto, y comprobar cobertura de todos los casos requeridos. Esto puede hacerse sin esperar al manifiesto firmado pendiente."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/revisar_codex.py y revisar_ollama.py: principal; itostack/scripts/nucleo/juez.py: leer_artefactos y material",
+      "problema": "El texto se lee antes de consultar al modelo, pero los archivos se vuelven a abrir para calcular sus hashes después de la respuesta. Si alguien corrige el documento mientras corre el juez, el veredicto sobre la versión anterior queda asociado a la nueva, que nunca fue revisada.",
+      "sugerencia": "Leer cada archivo una sola vez y obtener de esa misma instantánea tanto el mensaje como sus hashes."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: RE_RUBRO_DECLARADO, RE_RUBRO_ENTRECOMILLADO y rubros_discrepantes",
+      "problema": "Persisten declaraciones explícitas que pasan sin cotejo. «RUBRO: LA VERIFICACIÓN ES OPCIONAL.» no coincide con [Rr]ubro. También «rubro: \"FALSO\"» al final del párrafo queda fuera por tener menos de diez caracteres y desaparecer al borrar las comillas. Con evidencia vigente del registro, ambos rubros falsos pueden admitirse.",
+      "sugerencia": "Reconocer la declaración sin distinguir mayúsculas y sin longitud mínima que la vuelva invisible; una declaración no interpretable debe quedar pendiente."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: extraer",
+      "problema": "La marca todavía exime referencias ajenas dentro de una oración. En «Registro digital FICT-0404 ❌, pero se aplica el registro digital FICT-0009», ambos registros quedan marcados porque comparten segmento. El segundo puede salir sin evidencia aunque el texto lo presente como aplicable.",
+      "sugerencia": "Asociar la marca con su referencia concreta y exigir una indicación inequívoca cuando deba abarcar varias."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/hooks/guardia_bash.py: REGLAS; itostack/hooks/hooks.json",
+      "problema": "La búsqueda dirigida a evals/ sigue permitida mediante Bash. «rg -n . evals/verificar-cita» recorre el holdout sin contener «holdout-», por lo que no activa la regla. El guardia que inspecciona los directorios solo se ejecuta para Read, Grep y Glob. Es una búsqueda ordinaria dirigida a evals/, distinta del límite declarado sobre búsquedas de todo el repositorio.",
+      "sugerencia": "Aplicar también a las búsquedas de Bash la comprobación de directorios que contienen reserva, o limitar sus búsquedas a rutas de desarrollo permitidas."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: _candidata_vigente y holdout",
+      "problema": "La creación exclusiva protege reservar, pero no registrar el resultado. Dos procesos holdout con la misma reserva pueden comprobar simultáneamente que no existe decisión final y luego registrar decisiones distintas. Una aceptación puede quedar escrita después de un rechazo para la misma candidata.",
+      "sugerencia": "Serializar la validación y el registro final mediante un bloqueo por candidata y una transición de estado atómica."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/revisar_ollama.py: consultar",
+      "problema": "build_opener conserva el ProxyHandler predeterminado. Con http_proxy apuntando a un proxy remoto y sin exclusión en no_proxy, el cuerpo puede salir de la máquina aunque el endpoint validado sea 127.0.0.1. El parser de URL y el bloqueo de redirecciones no garantizan la privacidad local anunciada.",
+      "sugerencia": "Construir el cliente con urllib.request.ProxyHandler({}) para desactivar explícitamente los proxies."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: material; itostack/evals/compuerta_holdout.py: _rubricas_congeladas",
+      "problema": "El revisor calcula el hash de la rúbrica leída como texto, mientras la compuerta calcula el de sus bytes. En archivos CRLF, read_text normaliza los saltos a LF y los hashes difieren. Una rúbrica legítima puede rechazarse sistemáticamente en Windows. El helper veredicto de las pruebas usa bytes y oculta esta incompatibilidad.",
+      "sugerencia": "Usar la misma representación para ambos hashes y probar el flujo real con una rúbrica CRLF."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: veredictos_juez",
+      "problema": "La búsqueda de rechazos anteriores compara la concatenación ordenada de hashes. Un rechazo de [A, B] no se reconoce al presentar [B, A], aunque sean los mismos artefactos, rúbrica y juez. Reordenar los argumentos --archivo permite perder el antecedente.",
+      "sugerencia": "Canonicalizar los conjuntos de artefactos y definir cómo se conservan los rechazos cuando cambia su agrupación."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: veredictos_juez; itostack/scripts/nucleo/juez.py: anotar_bitacora",
+      "problema": "El veto por rechazo previo no compara la identidad del juez, ni siquiera el campo modelo disponible. Un rechazo de Qwen impide aceptar después el juicio favorable del Codex designado, contradiciendo la regla declarada sobre antecedentes «del mismo juez».",
+      "sugerencia": "Registrar la identidad completa del juez y exigir su coincidencia al consultar antecedentes."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: agrupar_referencias, rama total > 1",
+      "problema": "Para varias referencias en una línea, RE_RUBRO_ENTRECOMILLADO.search devuelve siempre el primer rubro y lo asigna a todas. Dos registros correctamente citados con rubros oficiales distintos en la misma línea provocan una discrepancia falsa en el segundo.",
+      "sugerencia": "Delimitar cada referencia por posiciones y buscar su rubro dentro de ese intervalo."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: extraer, cálculo de cortes",
+      "problema": "Los cortes se calculan sobre el texto original, incluyendo la puntuación entre comillas. En «Registro digital FICT-0404, rubro: “CRITERIO AJENO. SU TEXTO ES ÉSTE.” ❌», el punto interior separa el registro de su marca exterior. Una cita correctamente marcada vuelve a exigirse como verificada.",
+      "sugerencia": "Excluir los signos interiores de las comillas al calcular segmentos, conservando las posiciones originales."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: congelar",
+      "problema": "La prohibición de recongelar solo consulta el archivo actual de la skill. Congelar A, modificar y congelar B, y después restaurar A permite recongelar A con otro juez si todavía no se había reservado su intento. La identidad de una huella previamente congelada no queda inmutable.",
+      "sugerencia": "Consultar un registro persistente por huella antes de congelar y conservar su juez o exención originales."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/guardias/lint_itosturre.py: revisar_diff, lectura de git ls-files",
+      "problema": "git ls-files puede devolver nombres con caracteres no ASCII entrecomillados y escapados. El código los trata como rutas literales y omite el archivo por FileNotFoundError. Con un cambio limpio en app.py y un nuevo archivo «nuevo_ñ.py» que importe FastAPI, el lint puede terminar en 0 sin examinar el archivo infractor.",
+      "sugerencia": "Solicitar nombres mediante -z y separar por NUL, evitando el formato de rutas entrecomilladas de Git."
+    }
+  ],
+  "veredicto": "rechazar",
+  "juez": {
+    "familia": "openai",
+    "herramienta": "codex",
+    "modelo": "gpt-6.1-sol",
+    "esfuerzo": "high",
+    "version": "codex-cli 0.167.0-alpha.3.2",
+    "rol": "adversarial"
+  },
+  "material": {
+    "sha256_artefactos": [
+      "204622b76e5ace5c3626e69ee931aa8c6ace578b265232a5a211add23a24b13c"
+    ]
+  }
+}

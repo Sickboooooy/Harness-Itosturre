@@ -87,6 +87,59 @@ Actualizado: 2026-11-18. Sesión anterior: dc16f12d-3d29-4178-99ee-1d1f337ba2a7.
   - F7-07: evals nativos con `claude plugin eval` **pendientes de WSL** (sin bubblewrap ni socat).
   - F6-07 (`/interrogar`): **saltado por decisión del operador**.
 
+## F-PUSH · commit y push autorizados por el operador (2026-11-18)
+
+Excepción expresa a la regla 5 del plan. Commit `bfd1ee1`, push a `main` aceptado: `06cc4fe..bfd1ee1`.
+
+- **El push NO pidió confirmación. B-02 queda CONFIRMADO en vivo, y esta vez sobre un push real, no un `--dry-run`.** La regla `guardia_bash.py:27` (`\bgit\s+push\b[^|;&]*\b(?:main|master)\b`) debía emitir `ask`; el comando se ejecutó sin que apareciera ninguna compuerta. Es la segunda medición del mismo defecto (la primera, F5-04, fue con `--dry-run`): el nivel `preguntar` del guardia no protege nada en esta sesión, ni siquiera ante una escritura real a la rama compartida de un repositorio remoto.
+- El commit en español y descriptivo **sí** pasó el guardia de Bash sin objeción, como corresponde.
+- Contenido: 48 archivos, 2584 inserciones, **0 modificaciones y 0 borrados** de archivos preexistentes. Bajo `itostack/` solo los 4 archivos del caso nuevo.
+- **Excluido deliberadamente** (97 archivos de estado de máquina): `pruebas-manuales/app/.itostack/` completo —con `evidencia_forense.db` y 39 capturas PNG—, `__pycache__/`, `.pytest_cache/`, `app.log` y `raiz_plugin`. El propio `.itostack/.gitignore` declara esa intención. Sin credenciales ni tokens (barrido de `ghp_`, `sk-ant`, claves privadas y asignaciones de `token`/`password`/`secret`: sin coincidencias).
+- **Premisa del operador corregida:** `06cc4fe` ya estaba en local y era el HEAD; el remoto estaba exactamente ahí. `git pull --rebase` respondió «Current branch main is up to date»: no hubo divergencia ni conflicto que resolver.
+- `pruebas-manuales/` y `salidas/` siguen listados en `.git/info/exclude:7,9`. Ya no afecta a los 48 archivos ahora rastreados, pero **cualquier archivo NUEVO en esas carpetas seguirá invisible para `git status`** — relevante para la fase 8 y para `INFORME-PRUEBAS.md`.
+- **Aviso del remoto:** «This repository moved. Please use the new location: https://github.com/Sickboooooy/Harness-Itosturre.git». La URL de `origin` conserva la grafía antigua en minúsculas y GitHub está redirigiendo. Conviene actualizarla; no se tocó.
+
+## F-CODEX · auditoría cruzada con Codex e itostack 0.1.2 (2026-11-18)
+
+Autorizado por el operador («haz el resto de cambios y usa Codex para mejorar el Harness de acuerdo al plan»), que antes modificó `privacidad-local.md`: la regla de que los datos no salen de la máquina aplica solo en producción. Detalle completo en `fase-codex/resultado.md`.
+
+- **Codex como juez y revisor de otra familia** (`gpt-6.1-sol`, codex-cli 0.167.0-alpha.3.2, sesión ChatGPT ya iniciada; Ollama sigue sin instalar). `scripts/revisar_codex.py` corre solo con `"entorno": "desarrollo"`: se declaró en `.itostack/config.json` de la raíz (ignorado por git), y `modelos.json` de la raíz apunta al juez Codex.
+- **F7-06 repetida con Codex**: 5 cumplidos + criterio 4 `no_aplicable`, con la razón correcta. Es la calificación verificada a mano; `juez-evals` (Haiku) había dado 10/10.
+- **Auditoría de Codex contra el plan** (solo lectura): 15 hallazgos confirmados en el código, 5 conocidos (D-04, D-07, D-10, D-13, B-02) y 10 nuevos (N-01 a N-10).
+- **Corregidos en 0.1.2**: D-04, N-01, N-07, N-09, B-02 (en lo medido), D-10, D-16, D-17; N-08 parcial.
+- **Revisión adversarial de Codex sobre el diff, ronda 1**: «rechazar», 11 hallazgos. Corregidos en una segunda ronda: juez sin herramientas, cobertura exacta de la rúbrica, material excedido = BLOCKED, reserva antes del holdout, veredictos atados a rúbrica y artefactos con bitácora del juez, no re-congelar, marcas por segmento y referencia, rubro declarado sin comillas, endpoint de Ollama, Grep sobre `evals/`, `node_modules`.
+- **Prueba en vivo del aislamiento del juez**: un artefacto le ordenó leer un archivo secreto fuera del directorio neutro. El contenido no aparece en la salida (0 coincidencias) y Codex marcó la instrucción como inyección. Esa salida no distingue «sin herramienta» de «se negó».
+- **Revisión adversarial de Codex, ronda 2**: «rechazar», 16 hallazgos; confirma las correcciones de la ronda 1. Corregidos en una tercera ronda (detalle en `fase-codex/resultado.md`).
+- **Revisión adversarial de Codex, ronda 3**: «rechazar», 14 hallazgos (6 altos, más finos). Corregidos en una cuarta ronda.
+- **Verificación**: `pytest tests -q` 242 passed, 1 skipped (`test_auditoria_codex.py`: 144). `autoprueba.py` 18/18. Lint 0 hallazgos. `lint --diff` 0 hallazgos en 18 archivos. `tsc` 0 errores.
+- **Pendientes de diseño** (propuestas de Codex en `fase-codex/auditoria-codex.json`): N-02, N-03, N-04, N-05, N-06, D-07, D-13, N-10; la separación física de la reserva holdout (N-08), y un ejecutor con autorización humana vinculada al comando exacto (B-02).
+- **Cambio de comportamiento a tener presente**: en una sesión en modo auto, dontAsk o bypassPermissions, un push a `main`/`master` y los envíos MCP ahora se DENIEGAN (antes «preguntaban» y el anfitrión los aprobaba solo). Para responder por Telegram u otra salida curada, agregarla a `acciones_externas_permitidas`.
+- Sin commit ni push.
+
+### Cierre de 0.1.2 por invariantes (2026-11-19)
+
+El operador suspendió el ciclo de revisiones después de la ronda 4 de Codex (10 hallazgos) y ordenó cerrar 0.1.2 demostrando invariantes. Detalle en `fase-codex/diagnostico-ronda4.md` (secciones 1 a 6).
+
+- **Diagnóstico:** los 10 hallazgos se reprodujeron. Tres causas raíz (CR-1 citas en prosa, CR-2 reserva en el árbol de trabajo, CR-3 compuerta que confía en archivos entregados) cubren 9; el décimo (CR-4) era una dependencia falsa.
+- **Cambios de código del cierre:**
+  - R4-10, resuelto en la compuerta consumidora (contrato único, sin valores por omisión que aprueben; BLOCKED no decide ni consume el intento).
+  - CR-4, revertido después de comprobarlo con el andamiaje real.
+  - `puntajes` ya no lanza con resultados mal formados.
+  - Prueba nueva de que Ollama no sigue redirecciones; `jsonschema` como dependencia de desarrollo.
+- **Evidencia:**
+  - `fase-codex/matriz-invariantes.md`, generada por script;
+  - `fase-codex/mutantes-cierre.txt`;
+  - `fase-codex/bateria-cierre.txt`;
+  - `fase-codex/evidencia-vivo/` (I-1 y I-3 en vivo; solo los informes JSON se versionan, no las capturas crudas de las sesiones).
+- **Estado:**
+  - Demostrados: I-1, I-2, I-3, I-4, I-6, I-11.
+  - Parciales: I-7 (falta la procedencia), I-9, I-10.
+  - No demostrados: I-5, I-8.
+  - Todo está en «Límites conocidos» del CHANGELOG.
+- **Los casos `holdout-*` actuales están quemados.** Los escribió el agente y están en dos commits de la historia de Git. Un ACEPTADA de 0.1.2 no demuestra generalización.
+- **Diseño de 0.2.0:** `itostack/docs/diseno-0.2.0.md`, con CR-1, CR-2 y CR-3, sus criterios de aceptación A1 a A3 y la secuencia recomendada. Sin implementar.
+- **Pendiente del operador:** autorizar un commit en una rama, y decidir si arranca CR-1 y el spike de WSL. Sin commit ni push.
+
 ## Siguiente
 - Fase 8 (SJF y DOF reales). **Bloqueada esperando al operador**: hace falta un registro digital real con su rubro literal del SJF, y una URL del DOF con un fragmento literal de su texto. La regla 3 del plan prohíbe buscarlos o proponerlos.
 - Luego, fase 9: `pruebas-manuales/INFORME-PRUEBAS.md` con la matriz completa, los defectos por gravedad y las 3 correcciones prioritarias.

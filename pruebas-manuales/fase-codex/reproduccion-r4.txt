@@ -1,0 +1,43 @@
+# Versión revisada en la ronda 4 (reconstruida: git archive bfd1ee1 + version-revisada-r4.patch)
+DEFECTO  R4-1 segundo rubro sin cotejar []
+DEFECTO  R4-2 la marca del registro exime a la clave []
+DEFECTO  R4-3 marca dentro de comillas multilínea exime {'1999999': True}
+DEFECTO  R4-8 falso rechazo con comillas interiores ['línea 1: el rubro escrito para «FICT-0001» no es el de su evidencia (primera diferencia — citado: «∅» / ofic
+DEFECTO  R4-9 falso rechazo de rubro declarado con puntos ['línea 1: el rubro declarado para «FICT-0002» no empieza con el rubro oficial de su evidencia; escríbelo comp
+DEFECTO  R4-10a sin fallos_criticos aprueba {'aprobado': True}
+DEFECTO  R4-10b respuesta [] lanza excepción AttributeError
+DEFECTO  R4-4 acciones_externas_permitidas no cambia la huella 
+DEFECTO  R4-5 rúbrica de otra skill aceptada para verificar-cita []
+DEFECTO  R4-6 ruta entrecomillada con espacios permite leer la reserva None
+DEFECTO  R4-7a Read con HOLDOUT- en mayúsculas None
+DEFECTO  R4-7b Get-Content EVALS/… en mayúsculas None
+
+# Versión actual (con los parches de la ronda 5)
+OK       R4-1 segundo rubro sin cotejar ['línea 1: hay rubros que no se pueden asociar a una sola cita; pon cada rubro junto a su registro o usa marca
+OK       R4-2 la marca del registro exime a la clave ['línea 1: el rubro escrito para «1a./J. 45/2019 (10a.)» no es el de su evidencia (primera diferencia — citado
+OK       R4-3 marca dentro de comillas multilínea exime {'1999999': False}
+OK       R4-8 falso rechazo con comillas interiores []
+OK       R4-9 falso rechazo de rubro declarado con puntos []
+DEFECTO  R4-10a sin fallos_criticos aprueba {'aprobado': True}
+DEFECTO  R4-10b respuesta [] lanza excepción AttributeError
+OK       R4-4 acciones_externas_permitidas no cambia la huella 
+OK       R4-5 rúbrica de otra skill aceptada para verificar-cita ['C:\\Users\\licjo\\AppData\\Local\\Temp\\tmp03sl0y8m\\v.json: la rúbrica no es la asignada a verificar-cita e
+OK       R4-6 ruta entrecomillada con espacios permite leer la reserva deny
+OK       R4-7a Read con HOLDOUT- en mayúsculas deny
+OK       R4-7b Get-Content EVALS/… en mayúsculas deny
+
+
+# Versión de cierre (2026-11-19: R4-10 en la compuerta consumidora, CR-4 revertido)
+OK            R4-1 segundo rubro sin cotejar ['línea 1: hay rubros que no se pueden asociar a una sola cita; pon cada rubro junto a su registro o usa marca
+OK            R4-2 la marca del registro exime a la clave ['línea 1: el rubro escrito para «1a./J. 45/2019 (10a.)» no es el de su evidencia (primera diferencia — citado
+OK            R4-3 marca dentro de comillas multilínea exime {'1999999': False}
+OK            R4-8 falso rechazo con comillas interiores []
+OK            R4-9 falso rechazo de rubro declarado con puntos []
+OK            R4-10a sin fallos_criticos aprueba {'aprobado': False}
+OK            R4-10b respuesta [] no es BLOCKED {'puntaje': None, 'aprobado': False}
+NO ES DEFECTO R4-4 acciones_externas_permitidas no cambia la huella la huella no depende de la configuración del operador
+OK            R4-5 rúbrica de otra skill aceptada para verificar-cita ['C:\\Users\\licjo\\AppData\\Local\\Temp\\tmpghb25kw2\\v.json: la rúbrica no es la asignada a verificar-cita e
+OK            R4-10c la compuerta acepta un veredicto sin fallos_criticos ['C:\\Users\\licjo\\AppData\\Local\\Temp\\tmpghb25kw2\\v.json: BLOCKED, fuera del contrato del juez: respuesta
+OK            R4-6 ruta entrecomillada con espacios permite leer la reserva deny
+OK            R4-7a Read con HOLDOUT- en mayúsculas deny
+OK            R4-7b Get-Content EVALS/… en mayúsculas deny

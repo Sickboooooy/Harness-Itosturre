@@ -1,0 +1,79 @@
+{
+  "hallazgos": [
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: holdout(); itostack/docs/evals.md: paso 5",
+      "problema": "Con juez externo, el evaluador debe ejecutarse y sus artefactos calificarse antes de invocar holdout(). La marca de consumo se crea después de recibir ambos resultados. Se pueden repetir evaluaciones hasta obtener una favorable y registrar únicamente esa; una interrupción durante esas evaluaciones tampoco consume el intento. N-07 sigue abierto en el flujo documentado.",
+      "sugerencia": "Reservar atómicamente el intento antes de ejecutar el evaluador y orquestar evaluación, juicio y registro dentro de esa misma corrida."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: veredictos_juez(), congelar() y holdout()",
+      "problema": "Los veredictos no están vinculados al artefacto, rúbrica, caso, fase ni corrida. El mismo JSON aprobado de desarrollo puede presentarse como veredicto del holdout. También basta fabricar criterios afirmativos y metadatos de juez: recalcular el puntaje no acredita que el juez haya intervenido.",
+      "sugerencia": "Generar los veredictos mediante una ejecución controlada y comprobar su procedencia, las huellas de artefactos y rúbrica, la corrida y la cobertura de todos los casos esperados."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: calificar(); itostack/tests/test_auditoria_codex.py: TestContratoJuez",
+      "problema": "El cálculo desconoce los criterios esperados de la rúbrica y no valida evidencia. {\"criterios\":[{\"cumple\":\"si\"}],\"fallos_criticos\":[]} obtiene 10 y aprobado, aunque omita todos los demás criterios y no incluya criterio ni evidencia. Las pruebas incluso admiten criterios sin esos campos. D-17 sustituye el diez declarado por otro calculado sobre una selección incompleta.",
+      "sugerencia": "Exigir identificadores únicos y cobertura exacta de una rúbrica estructurada; rechazar omisiones, duplicados y evidencia ausente, y controlar qué criterios admiten no_aplicable."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py: congelar()",
+      "problema": "congelar() sobrescribe la candidata sin comprobar un congelamiento previo. Antes de registrar el consumo puede congelarse nuevamente la misma huella con otro juez o con --sin-juez-externo. Después, holdout() compara contra ese registro reemplazado y admite el cambio. La identidad congelada no es inmutable y una justificación libre permite eliminar el requisito del juez.",
+      "sugerencia": "Impedir reemplazar el juez o retirar su requisito para una candidata ya congelada. Separar las ejecuciones excepcionales sin juez y evitar que obtengan la misma aceptación."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/hooks/guardia_lectura.py: apunta_a_holdout(); itostack/hooks/guardia_bash.py: REGLAS",
+      "problema": "La reserva sigue siendo legible. Grep con path='evals' y pattern='.' no contiene holdout- en los campos inspeccionados y permite buscar su contenido. Bash también permite leerla con Python porque la regla solo reconoce una lista de comandos. Las pruebas cubren rutas explícitas, pero no estos accesos.",
+      "sugerencia": "Mantener la reserva fuera del sistema de archivos accesible al agente de desarrollo y entregarla únicamente al evaluador aislado. Añadir pruebas de búsquedas amplias y lectura mediante intérpretes."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/revisar_codex.py: principal(), construcción del comando",
+      "problema": "El directorio vacío y el sandbox read-only no establecen una frontera de lectura: impiden escrituras, pero no ocultan las rutas absolutas de soluciones, reserva o documentos. No se deshabilitan herramientas de lectura o ejecución. Un artefacto que induzca al juez a consultar una ruta accesible puede contaminar la evaluación pese al aislamiento anunciado.",
+      "sugerencia": "Ejecutar el juez sin herramientas de archivos o dentro de un aislamiento que exponga únicamente los insumos autorizados; comprobar que una lectura externa al directorio aislado realmente falla."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/juez.py: armar_prompt()",
+      "problema": "artefactos[:limite] recorta silenciosamente el material. Un defecto después de 150000 caracteres en Codex, o de 60000 en Ollama, queda fuera de revisión y aun así puede emitirse aprobación del conjunto. Con varios archivos, los últimos pueden desaparecer íntegramente del mensaje.",
+      "sugerencia": "Devolver BLOCKED cuando se exceda el límite o revisar fragmentos con cobertura comprobada antes de emitir un veredicto global."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: rubros_discrepantes(); itostack/tests/test_auditoria_codex.py: test_sin_rubro_explicito_no_se_coteja",
+      "problema": "El cotejo omite deliberadamente todo rubro que no lleve el formato entrecomillado reconocido. Con evidencia vigente de FICT-0001, escribir 'Registro digital FICT-0001. Rubro: LA VERIFICACIÓN FORENSE ES OPCIONAL.' evita la comparación y conserva un registro respaldado con un rubro falso. La prueba citada consolida este bypass de N-01.",
+      "sugerencia": "Exigir una referencia estructurada para afirmar rubros o bloquear los rubros declarados que el analizador no pueda asociar y cotejar; no tratarlos como verificados por omisión."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py: extraer() y agrupar_referencias()",
+      "problema": "La excepción sigue teniendo un alcance mayor que la cita. extraer() marca todas las referencias de una línea si encuentra una sola advertencia; agrupar_referencias() propaga cualquier marca a todo el párrafo. 'Cita ajena: registro digital FICT-0404 ❌; es aplicable el registro digital FICT-0009' exime también a FICT-0009 de evidencia. Una referencia marcada en el párrafo también puede desactivar el cotejo de otros rubros.",
+      "sugerencia": "Asociar cada advertencia a una referencia concreta mediante límites o campos estructurados y probar citas mezcladas, tanto en una línea como en un párrafo."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/revisar_ollama.py: principal(), validación de --endpoint",
+      "problema": "startswith(('http://127.0.0.1', 'http://localhost')) acepta hosts remotos como http://localhost.atacante.example/api/generate. El prompt se envía a ese endpoint pese a que esta ruta se presenta como la alternativa exclusivamente local para producción.",
+      "sugerencia": "Analizar la URL y validar exactamente esquema, hostname y puerto; rechazar credenciales y evitar redirecciones hacia destinos no locales. Añadir pruebas con dominios que solo comparten el prefijo."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/guardias/lint_itosturre.py: revisar_diff(), recorrido de archivos sin rastrear",
+      "problema": "La exclusión 'node_modules' in relativo descarta cualquier archivo cuyo nombre contenga esa cadena, aunque no pertenezca a esa carpeta. Un archivo nuevo app_node_modules_extra.py con 'from fastapi import FastAPI' queda sin revisar; acompañado de una modificación limpia en un archivo rastreado, el lint puede devolver 0. D-10 conserva una vía de aprobación con cobertura incompleta.",
+      "sugerencia": "Excluir únicamente componentes de ruta exactamente iguales a node_modules y añadir una prueba con ese nombre de archivo junto con un cambio rastreado limpio."
+    }
+  ],
+  "veredicto": "rechazar",
+  "juez": {
+    "familia": "openai",
+    "herramienta": "codex",
+    "modelo": "gpt-6.1-sol",
+    "esfuerzo": "high",
+    "version": "codex-cli 0.167.0-alpha.3.2",
+    "rol": "adversarial"
+  }
+}

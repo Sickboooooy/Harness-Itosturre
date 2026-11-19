@@ -94,10 +94,13 @@ def test_compuerta_holdout_un_solo_intento(tmp_path, monkeypatch):
 
     desarrollo = {"cases": [{"name": n, "aggregates": {"score": 1.0}} for n in compuerta._casos("verificar-cita", "desarrollo")]}
     (tmp_path / "dev.json").write_text(json.dumps(desarrollo), encoding="utf-8")
-    assert compuerta.congelar("verificar-cita", tmp_path / "dev.json") == 0
+    assert compuerta.congelar("verificar-cita", tmp_path / "dev.json") == 1  # sin juez de otra familia no se congela
+    assert compuerta.congelar("verificar-cita", tmp_path / "dev.json", sin_juez_externo="prueba sin juez") == 0
 
+    assert compuerta.reservar("verificar-cita") == 0  # el intento se consume antes de correr
     holdout = {"cases": [{"name": n, "aggregates": {"score": 0.5}} for n in compuerta._casos("verificar-cita", "holdout")]}
     (tmp_path / "h.json").write_text(json.dumps(holdout), encoding="utf-8")
     assert compuerta.holdout("verificar-cita", tmp_path / "h.json", []) == 1
     assert compuerta.holdout("verificar-cita", tmp_path / "h.json", []) == 1
+    assert compuerta.reservar("verificar-cita") == 1
     assert "RECHAZADA" in (tmp_path / "historial.tsv").read_text(encoding="utf-8")

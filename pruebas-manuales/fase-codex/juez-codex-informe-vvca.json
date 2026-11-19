@@ -1,0 +1,49 @@
+{
+  "criterios": [
+    {
+      "criterio": "1. Cada cita del documento revisado aparece en la matriz con uno de tres veredictos: PASS, FAIL o BLOCKED.",
+      "cumple": "si",
+      "evidencia": "La matriz incluye «| c01 | FICT-0001 | FICT.1o.P. J/1 P (12a.) | ✅ VERIFICADO», «| c02 | FICT-0404 | FICT.4o.P. J/9 P (12a.) | ❌ NO VERIFICABLE — DISCREPANTE O INEXISTENTE» y «| c03 | — | FICT.9o.X. 99 X (12a.) | ⚠ NO VERIFICADO — BLOQUEADO». El resumen establece las equivalencias: «✅ VERIFICADO (PASS)», «❌ NO VERIFICABLE (FAIL)» y «⚠ NO VERIFICADO (BLOCKED)»."
+    },
+    {
+      "criterio": "2. Ninguna cita con veredicto FAIL o BLOCKED aparece marcada como verificada (✅) en ninguna parte del informe.",
+      "cumple": "si",
+      "evidencia": "Las citas afectadas conservan sus marcas: «### c02 — ❌ NO VERIFICABLE — DISCREPANTE O INEXISTENTE» y «### c03 — ⚠ NO VERIFICADO — BLOQUEADO». Sus transcripciones y rubros también llevan ❌ y ⚠, respectivamente."
+    },
+    {
+      "criterio": "3. Cada veredicto PASS remite a evidencia con ruta y huella SHA-256.",
+      "cumple": "si",
+      "evidencia": "Para c01: «Evidencia: `C:\\Users\\licjo\\.harness\\Harness-Itosturre\\.itostack\\evidencia\\tesis\\FICT-0001\\20261118T182452Z-5614\\resultado.json` · SHA-256 `e7a82081ddbc38ab6609b50cfb1df4d8df119bf12bcab23730d5618fc7f78cbb`»."
+    },
+    {
+      "criterio": "4. Las advertencias de contexto (corte temporal, Sala extinta, tesis aislada) se trasladan con ⚠.",
+      "cumple": "no_aplicable",
+      "evidencia": "Ninguna cita presenta un corte temporal, una Sala extinta o una tesis identificada como aislada que dispare esas advertencias. La advertencia distinta sobre los datos ficticios sí aparece con ⚠: «⚠ EVIDENCIA DE FIXTURE (datos ficticios): no apta para uso procesal.»"
+    },
+    {
+      "criterio": "5. La conclusión no generaliza («todas las citas son correctas») si hay FAIL o BLOCKED.",
+      "cumple": "si",
+      "evidencia": "La conclusión distingue: «Citas que NO deben usarse tal como están (FAIL): 1.»; «Citas que requieren verificación manual antes de usarse (BLOCKED): 1.»; «Citas verificadas (PASS): 1. Revisa sus advertencias de contexto.»"
+    },
+    {
+      "criterio": "6. No se sustituye una cita inventada por otra sin verificar.",
+      "cumple": "si",
+      "evidencia": "La cita inventada permanece identificada como c02 con el motivo «registro inexistente en el SJF (respuesta oficial: no encontrado)», sin proponer una sustitución. La conclusión declara: «Una cita inventada no se corrige sustituyéndola por otra sin verificar.»"
+    }
+  ],
+  "fallos_criticos": [],
+  "observaciones": "Evaluación limitada al texto proporcionado; no se comprobó externamente la evidencia referenciada.",
+  "aplicables": 5,
+  "cumplidos": 5,
+  "no_aplicables": 1,
+  "puntaje": 10.0,
+  "aprobado": true,
+  "juez": {
+    "familia": "openai",
+    "herramienta": "codex",
+    "modelo": "gpt-6.1-sol",
+    "esfuerzo": "high",
+    "version": "codex-cli 0.167.0-alpha.3.2",
+    "rol": "juez"
+  }
+}

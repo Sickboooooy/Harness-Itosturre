@@ -82,7 +82,10 @@ class TestGuardiaBash:
 
     def test_push_forzado(self):
         assert self._decision("git push --force origin rama") == "deny"
-        assert self._decision("git push origin main") == "ask"
+        # B-02: sin un modo de permisos que de verdad pregunte, la compuerta humana deniega.
+        assert self._decision("git push origin main") == "deny"
+        entrada = {"tool_name": "Bash", "tool_input": {"command": "git push origin main"}, "permission_mode": "default"}
+        assert decision(correr_hook("guardia_bash.py", entrada)) == "ask"
 
     def test_stack(self):
         assert self._decision("pip install fastapi") == "deny"
@@ -151,8 +154,9 @@ class TestGuardiaExterno:
         assert decision(correr_hook("guardia_externo.py", {"tool_name": "mcp__Gmail__search_threads", "tool_input": {}, "cwd": str(tmp_path)})) is None
 
     def test_envio_pregunta(self, tmp_path):
-        salida = correr_hook("guardia_externo.py", {"tool_name": "mcp__Gmail__send_message", "tool_input": {"body": "hola"}, "cwd": str(tmp_path)})
-        assert decision(salida) == "ask"
+        entrada = {"tool_name": "mcp__Gmail__send_message", "tool_input": {"body": "hola"}, "cwd": str(tmp_path)}
+        assert decision(correr_hook("guardia_externo.py", {**entrada, "permission_mode": "default"})) == "ask"
+        assert decision(correr_hook("guardia_externo.py", entrada)) == "deny"
 
     def test_envio_con_cita_sin_evidencia_se_deniega(self, proyecto):
         salida = correr_hook("guardia_externo.py", {

@@ -1,0 +1,78 @@
+{
+  "hallazgos": [
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py — agrupar_referencias, rama de una sola referencia",
+      "problema": "Con un solo registro se coteja únicamente el primer rubro entrecomillado y no se cuentan los restantes como ambiguos. Si existe evidencia del registro, «registro digital 1999999, rubro: «OFICIAL»; rubro: «FALSO»» pasa cuando el primer rubro coincide. La segunda atribución queda sin revisar.",
+      "sugerencia": "Procesar todas las declaraciones también en esta rama y rechazar los rubros adicionales que no tengan una asociación inequívoca."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py — agrupar_referencias y rubros_discrepantes",
+      "problema": "La rama con hasta un registro y una clave los fusiona aunque estén en segmentos distintos. En «registro digital 1999999 ❌; 1a./J. 45/2019 (10a.), rubro: «FALSO»», la marca del registro exime también el cotejo del rubro de la clave. Si esta tiene evidencia vigente, la comprobación individual de existencia tampoco lo detiene.",
+      "sugerencia": "Aplicar la agrupación por segmento y proximidad incluso cuando haya únicamente un registro y una clave; conservar la exención por cita."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/scripts/nucleo/citas.py — extraer y _sin_comillas",
+      "problema": "extraer elimina las comillas línea por línea. Una cita entre guillemets que abarque varias líneas deja visibles sus líneas interiores: en «Texto citado:\\nregistro digital 1999999 ❌\\nfin», la marca interior se interpreta como exención. Sigue siendo posible eximir una cita mediante una marca situada dentro de las comillas.",
+      "sugerencia": "Calcular los intervalos entrecomillados sobre el texto completo y trasladar sus posiciones a cada línea antes de asociar marcas."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py — _configuracion_evaluada",
+      "problema": "La huella omite acciones_externas_permitidas, aunque guardia_externo.py utiliza ese valor para saltar la compuerta humana. Añadir una herramienta permitida después de congelar cambia el comportamiento evaluado sin invalidar la candidata.",
+      "sugerencia": "Incluir esta lista y los demás parámetros que gobiernan los controles evaluados en la configuración congelada."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/evals/compuerta_holdout.py — veredictos_juez, congelar y holdout",
+      "problema": "Se acepta cualquier rúbrica presente en evals/rubricas, sin comprobar que corresponda al caso ni conservar la asociación aprobada en desarrollo. Una invocación cooperativa con --caso correcto pero --rubrica de otra skill puede aprobar el holdout si ese juez da el visto bueno bajo los criterios equivocados. La cobertura exacta solo acredita cobertura de esa otra rúbrica.",
+      "sugerencia": "Congelar y verificar una asociación explícita entre cada caso y su rúbrica autorizada."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/hooks/guardia_bash.py — recorre_reserva",
+      "problema": "La extracción de rutas rompe los argumentos entrecomillados con espacios. Desde fuera de la reserva, cat \"/tmp/mi proyecto/evals/verificar-cita/*/case.yaml\" hace comprobar la ruta relativa proyecto/evals/verificar-cita/, en lugar de la ruta real. Si esa ruta relativa no existe, el comando queda permitido y lee los holdout.",
+      "sugerencia": "Preservar los argumentos entrecomillados con un analizador adecuado al intérprete y comprobar la ruta completa antes de resolver el glob."
+    },
+    {
+      "gravedad": "alta",
+      "ubicacion": "itostack/hooks/guardia_lectura.py — apunta_a_holdout; itostack/hooks/guardia_bash.py — recorre_reserva",
+      "problema": "La corrección de mayúsculas cubre los comandos de PowerShell, pero no las rutas. En Windows, Read sobre una ruta con HOLDOUT- en mayúsculas abre el mismo archivo y evita la comparación sensible a mayúsculas. Asimismo, Get-Content EVALS/verificar-cita/*/case.yaml evita la extracción que busca literalmente evals y puede leer la reserva.",
+      "sugerencia": "Normalizar las rutas conforme al sistema de archivos y aplicar la misma política a los nombres de componentes y a la detección de evals."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/citas.py — RE_RUBRO_ENTRECOMILLADO",
+      "problema": "La expresión permite cerrar con cualquier tipo de comilla, sin respetar la apertura. Un rubro válido como rubro: «DERECHO A LA \"VERDAD\". ALCANCE.» se captura únicamente hasta la primera comilla interior y se rechaza aunque coincida íntegramente con la evidencia.",
+      "sugerencia": "Emparejar cada delimitador con su cierre y admitir comillas de otro tipo dentro del rubro."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/nucleo/citas.py — _referencias_del_parrafo, asignación de rubros declarados",
+      "problema": "En párrafos con varias referencias, el primer fin de oración corta un rubro declarado sin comillas. Para un rubro oficial «LEGALIDAD. SU ALCANCE.», la declaración Rubro: LEGALIDAD. SU ALCANCE. queda reducida a LEGALIDAD. y falla el requisito de comenzar con el rubro oficial completo. El mismo formato funciona en la rama de una sola referencia.",
+      "sugerencia": "Delimitar el rubro completo antes de aplicar los cortes de oración o exigir de forma uniforme un formato inequívoco."
+    },
+    {
+      "gravedad": "media",
+      "ubicacion": "itostack/scripts/revisar_ollama.py — consultar y principal; itostack/scripts/nucleo/juez.py — calificar",
+      "problema": "Ollama recibe format: \"json\", pero su respuesta no se valida contra el esquema. Un objeto con criterios aprobados que omita fallos_criticos puede aprobar porque se sustituye la ausencia por una lista vacía. Un JSON válido como [] o null provoca una excepción sin controlar, en vez del BLOCKED anunciado.",
+      "sugerencia": "Validar estructura, campos obligatorios y tipos antes de calificar; devolver BLOCKED cuando el contrato esté incompleto o sea inválido."
+    }
+  ],
+  "veredicto": "rechazar",
+  "juez": {
+    "familia": "openai",
+    "herramienta": "codex",
+    "modelo": "gpt-6.1-sol",
+    "esfuerzo": "high",
+    "version": "codex-cli 0.167.0-alpha.3.2",
+    "rol": "adversarial"
+  },
+  "material": {
+    "sha256_artefactos": [
+      "00569046e3cadc842a98ef1bea097a81d8967f6a3863dc6bc1450e40b82cc268"
+    ]
+  }
+}
