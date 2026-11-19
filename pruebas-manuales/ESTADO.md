@@ -3,7 +3,7 @@
 Actualizado: 2026-11-18. Sesión anterior: dc16f12d-3d29-4178-99ee-1d1f337ba2a7.
 
 ## Entorno (Windows 11 nativo, sin WSL)
-- Repo: `c:\Users\licjo\.harness\Harness-Itosturre`, en 56c2920 (itostack 0.1.1), árbol limpio, `core.fileMode=false`.
+- Repo: `%USERPROFILE%\.harness\Harness-Itosturre`, en 56c2920 (itostack 0.1.1), árbol limpio, `core.fileMode=false`.
 - Python: usar `python` (3.14.0). `python3` es el alias de Microsoft Store (sale con 49). Usar el intérprete que anuncie el hook de inicio.
 - Node v24.10.0. En Git Bash usar `npm.cmd` / `npx.cmd`.
 - Donde el plan dice `/tmp`, usar `$TEMP`.
@@ -167,6 +167,23 @@ Autorizado por el operador: cerrar 0.1.2 en una rama de release, crear `dev/itos
 - **Laboratorio WSL:** `itostack-lab` instalado y detenido, sin credenciales; procedimiento y hallazgos en `fase-0.2.0/laboratorio-wsl.md`. La corrida exitosa necesita una credencial (decisión del operador).
 - **Por error leí con `grep` líneas de un caso `holdout-*`** (`validar-documento`). Ya estaba clasificado como contaminado, así que su estado no cambia. Desde entonces las búsquedas excluyen `holdout-*`.
 - **Sin commit de CR-1.2**: falta autorización.
+
+### Decisión del operador sobre 0.2.0 (2026-11-19, tercera parte)
+
+- **CR-1.2 cerrado:** commit local `a8b0853` en `dev/itostack-0.2.0`. Sin push, merge ni release.
+- **Laboratorio** `itostack-lab`: conservado y detenido, sin credenciales. Sirve solo para pruebas sintéticas; no certifica.
+- **CR-3.2a (núcleo del orquestador): PASS**, sintético. 60 pruebas y 26/26 mutantes (`fase-0.2.0/mutantes-cr3.txt`).
+- **CR-2: plantilla preparada** en `itostack/ejecutor-ci/`, sin aprovisionar.
+  - 92 pruebas y 30/30 mutantes (`fase-0.2.0/mutantes-cr2.txt`).
+  - Faltan cinco verificaciones. `instanciar.py` se niega mientras alguna siga pendiente:
+    - node y codex;
+    - el SHA de `upload-artifact`;
+    - el orquestador fijado;
+    - `known_hosts`.
+  - **Riesgo abierto:** la candidata corre en el mismo ejecutor que el orquestador, el almacén y los tokens. Control propuesto (usuario separado) y criterio de aceptación (candidata canario) en `itostack/ejecutor-ci/README.md`.
+- **Hooks sin node, en vivo:** PASS (`fase-0.2.0/evidencia-vivo/hooks-sin-node-vivo.json`). Residuales y diseño de la compuerta de entrega (CR-5) en `itostack/docs/compuerta-entrega.md`.
+- **Prueba intermitente** de la compuerta, causada por la granularidad del mtime de NTFS: corregida. Los mutantes de cierre 16/16 siguen en verde tras el cambio de `huella()` (`fase-0.2.0/mutantes-cierre-tras-cr2.txt`).
+- **Commit e integración en `main`, con push,** de CR-3.2a, la plantilla de CR-2 y el diseño de CR-5: autorizados por el operador el 2026-11-19. Integración por fast-forward, sin release. No es apta para producción jurídica.
 
 ## Siguiente
 - Fase 8 (SJF y DOF reales). **Bloqueada esperando al operador**: hace falta un registro digital real con su rubro literal del SJF, y una URL del DOF con un fragmento literal de su texto. La regla 3 del plan prohíbe buscarlos o proponerlos.

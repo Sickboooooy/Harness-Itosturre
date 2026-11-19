@@ -1,0 +1,34 @@
+DETECTADO       I-7 · R4-10: la compuerta no valida el contrato del veredicto guardado
+                limpio: 22 passed, 235 deselected in 7.00s · mutante: 8 failed, 14 passed, 235 deselected in 7.17s
+DETECTADO       I-7 · R4-10a: fallos_criticos ausente se supone vacío
+                limpio: 29 passed, 228 deselected in 2.03s · mutante: 2 failed, 27 passed, 228 deselected in 3.69s
+DETECTADO       I-7 · un booleano o «sí» se lee como «si»
+                limpio: 8 passed, 249 deselected in 0.84s · mutante: 4 failed, 4 passed, 249 deselected in 3.16s
+DETECTADO       I-7 · «si» sin evidencia_verificada cuenta en la compuerta
+                limpio: 1 passed, 256 deselected in 0.79s · mutante: 1 failed, 256 deselected in 3.00s
+DETECTADO       I-7 · un veredicto incompleto se trata como reprobado y decide
+                limpio: 1 passed, 256 deselected in 0.84s · mutante: 1 failed, 256 deselected in 3.04s
+DETECTADO       I-7 · resultados con forma inesperada lanzan excepción después de escribir la decisión
+                limpio: 5 passed, 252 deselected in 3.41s · mutante: 2 failed, 3 passed, 252 deselected in 5.25s
+DETECTADO       I-4 · la reserva no es exclusiva
+                limpio: 2 passed, 255 deselected in 1.16s · mutante: 2 failed, 255 deselected in 3.55s
+DETECTADO       I-4 · la decisión no es exclusiva
+                limpio: 2 passed, 255 deselected in 1.22s · mutante: 2 failed, 255 deselected in 3.66s
+DETECTADO       CR-4 · la configuración del operador vuelve a la huella
+                limpio: 1 passed, 256 deselected in 0.84s · mutante: 1 failed, 256 deselected in 3.17s
+DETECTADO       I-6 · la huella omite el andamiaje común de los casos
+                limpio: 9 passed, 248 deselected in 3.87s · mutante: 1 failed, 8 passed, 248 deselected in 5.91s
+DETECTADO       I-1 · la compuerta humana pregunta en cualquier modo (el anfitrión auto-aprobaría)
+                limpio: 10 passed, 247 deselected in 2.13s · mutante: 6 failed, 4 passed, 247 deselected in 4.63s
+DETECTADO       I-2 · revisar_codex.py corre sin «entorno»: «desarrollo»
+                limpio: 1 passed, 256 deselected in 1.10s · mutante: 1 failed, 256 deselected in 3.44s
+DETECTADO       I-2 · Ollama sigue redirecciones
+                limpio: 1 passed, 256 deselected in 1.38s · mutante: 1 failed, 256 deselected in 4.17s
+DETECTADO       I-2 · Ollama usa el proxy del entorno
+                limpio: 1 passed, 256 deselected in 1.47s · mutante: 1 failed, 256 deselected in 13.34s
+DETECTADO       I-3 · el juez Codex conserva la terminal
+                limpio: 1 passed, 256 deselected in 1.17s · mutante: 1 failed, 256 deselected in 3.45s
+DETECTADO       I-11 · lint --diff aprueba sin examinar nada
+                limpio: 6 passed, 251 deselected in 2.39s · mutante: 1 failed, 5 passed, 251 deselected in 4.48s
+
+16/16 mutantes detectados

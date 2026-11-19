@@ -1,0 +1,62 @@
+DETECTADO       CR-2 · instanciar: un PENDIENTE-DE-VERIFICAR no impide
+                limpio: 9 passed, 83 deselected in 3.87s · mutante: 2 failed, 7 passed, 83 deselected in 3.89s
+DETECTADO       CR-2 · instanciar: una acción por etiqueta pasa por fijada
+                limpio: 8 passed, 84 deselected in 3.65s · mutante: 2 failed, 6 passed, 84 deselected in 3.87s
+DETECTADO       CR-2 · instanciar: las versiones pendientes no impiden
+                limpio: 9 passed, 83 deselected in 1.60s · mutante: 2 failed, 7 passed, 83 deselected in 3.94s
+DETECTADO       CR-2 · instanciar: sin herramientas verificadas se instancia
+                limpio: 8 passed, 84 deselected in 1.58s · mutante: 1 failed, 7 passed, 84 deselected in 3.79s
+DETECTADO       CR-2 · instanciar: un orquestador fijado sin archivos se acepta
+                limpio: 8 passed, 84 deselected in 1.57s · mutante: 1 failed, 7 passed, 84 deselected in 3.79s
+DETECTADO       CR-2 · instanciar: un known_hosts con solo comentarios se acepta
+                limpio: 8 passed, 84 deselected in 1.55s · mutante: 1 failed, 7 passed, 84 deselected in 4.60s
+DETECTADO       CR-2 · instanciar: se acepta un destino dentro del constructor
+                limpio: 1 passed, 91 deselected in 0.98s · mutante: 1 failed, 91 deselected in 3.20s
+DETECTADO       CR-2 · X9: autor y aprobador iguales salvo mayúsculas pasan
+                limpio: 13 passed, 79 deselected in 1.04s · mutante: 1 failed, 12 passed, 79 deselected in 3.43s
+DETECTADO       CR-2 · X8: «datos_sinteticos» se lee por veracidad
+                limpio: 13 passed, 79 deselected in 0.97s · mutante: 1 failed, 12 passed, 79 deselected in 3.63s
+DETECTADO       CR-2 · X9: la huella aprobada no se coteja
+                limpio: 17 passed, 75 deselected in 1.05s · mutante: 5 failed, 12 passed, 75 deselected in 3.46s
+DETECTADO       CR-2 · X9: la huella del caso ignora los nombres de archivo
+                limpio: 4 passed, 88 deselected in 0.91s · mutante: 1 failed, 3 passed, 88 deselected in 3.24s
+DETECTADO       CR-2 · X9: las aprobaciones repetidas pasan
+                limpio: 13 passed, 79 deselected in 1.00s · mutante: 1 failed, 12 passed, 79 deselected in 3.44s
+DETECTADO       CR-2 · X9: la aprobación de un caso inexistente pasa
+                limpio: 13 passed, 79 deselected in 1.01s · mutante: 1 failed, 12 passed, 79 deselected in 3.36s
+DETECTADO       CR-2 · versiones: basta una subcadena («2.1.32» en «2.1.327»)
+                limpio: 4 passed, 88 deselected in 0.89s · mutante: 2 failed, 2 passed, 88 deselected in 3.20s
+DETECTADO       CR-2 · copia fijada: un archivo de más pasa
+                limpio: 3 passed, 89 deselected in 0.87s · mutante: 1 failed, 2 passed, 89 deselected in 3.25s
+DETECTADO       CR-2 · copia fijada: el contenido no se coteja
+                limpio: 3 passed, 89 deselected in 0.91s · mutante: 1 failed, 2 passed, 89 deselected in 3.11s
+DETECTADO       CR-2 · atestación: una firma inválida se acepta
+                limpio: 13 passed, 79 deselected in 2.22s · mutante: 4 failed, 9 passed, 79 deselected in 17.85s
+DETECTADO       CR-2 · X10: la atestación de reserva no exige firma
+                limpio: 1 passed, 91 deselected in 0.97s · mutante: 1 failed, 91 deselected in 3.33s
+DETECTADO       CR-2 · X10: una reserva no aislada se atesta
+                limpio: 7 passed, 85 deselected in 1.33s · mutante: 1 failed, 6 passed, 85 deselected in 3.88s
+DETECTADO       CR-2 · X10: la atestación de otra reserva vale
+                limpio: 7 passed, 85 deselected in 1.36s · mutante: 1 failed, 6 passed, 85 deselected in 3.92s
+DETECTADO       CR-2 · humo: el respaldo «falla cerrado» cuenta como guardia que evalúa
+                limpio: 12 passed, 80 deselected in 1.79s · mutante: 1 failed, 11 passed, 80 deselected in 4.00s
+DETECTADO       CR-2 · humo: una guardia que deniega todo pasa
+                limpio: 12 passed, 80 deselected in 1.72s · mutante: 1 failed, 11 passed, 80 deselected in 4.17s
+DETECTADO       CR-2 · huella: --plugin se ignora (se mide el constructor, no la candidata)
+                limpio: 3 passed, 89 deselected in 1.69s · mutante: 1 failed, 2 passed, 89 deselected in 3.65s
+DETECTADO       CR-2 · workflow: permisos amplios
+                limpio: 1 passed, 91 deselected in 0.81s · mutante: 1 failed, 91 deselected in 3.23s
+DETECTADO       CR-2 · workflow: se dispara también con push
+                limpio: 1 passed, 91 deselected in 0.82s · mutante: 1 failed, 91 deselected in 3.14s
+DETECTADO       CR-2 · workflow: ejecutor propio (no efímero)
+                limpio: 1 passed, 91 deselected in 0.83s · mutante: 1 failed, 91 deselected in 3.25s
+DETECTADO       CR-2 · workflow: un secreto interpolado en el script
+                limpio: 2 passed, 90 deselected in 0.91s · mutante: 2 failed, 90 deselected in 3.97s
+DETECTADO       CR-2 · workflow: la clave de firma llega también al paso de la candidata
+                limpio: 1 passed, 91 deselected in 0.94s · mutante: 1 failed, 91 deselected in 3.41s
+DETECTADO       CR-2 · firmar.sh: la clave se escribe antes de restringir permisos
+                limpio: 2 passed, 90 deselected in 0.93s · mutante: 1 failed, 1 passed, 90 deselected in 3.30s
+DETECTADO       CR-2 · firmar.sh: la clave temporal sobrevive al paso
+                limpio: 2 passed, 90 deselected in 1.10s · mutante: 1 failed, 1 passed, 90 deselected in 3.51s
+
+30/30 mutantes detectados

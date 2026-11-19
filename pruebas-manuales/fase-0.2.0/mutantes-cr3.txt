@@ -1,0 +1,54 @@
+DETECTADO       CR-3 · R6: un error de infraestructura no se ve
+                limpio: 3 passed, 57 deselected in 4.42s · mutante: 2 failed, 1 passed, 57 deselected in 7.45s
+DETECTADO       CR-3 · R6: una corrida sin turnos no se ve
+                limpio: 3 passed, 57 deselected in 2.89s · mutante: 1 failed, 2 passed, 57 deselected in 5.05s
+DETECTADO       CR-3 · R6: un calificador que lanzó no se ve
+                limpio: 3 passed, 57 deselected in 1.03s · mutante: 1 failed, 2 passed, 57 deselected in 4.99s
+DETECTADO       CR-3 · R6: calificadores omitidos por costo no se ven
+                limpio: 3 passed, 57 deselected in 0.99s · mutante: 1 failed, 2 passed, 57 deselected in 4.52s
+DETECTADO       CR-3 · R4: una corrida parcial no se ve
+                limpio: 5 passed, 55 deselected in 1.03s · mutante: 1 failed, 4 passed, 55 deselected in 4.88s
+DETECTADO       CR-3 · la infraestructura no tiene precedencia sobre el puntaje
+                limpio: 5 passed, 55 deselected in 1.01s · mutante: 5 failed, 55 deselected in 5.62s
+DETECTADO       CR-3 · R1: no se valida el esquema de resultados
+                limpio: 18 passed, 42 deselected in 0.81s · mutante: 3 failed, 15 passed, 42 deselected in 3.17s
+DETECTADO       CR-3 · R2: otra versión de claude pasa
+                limpio: 18 passed, 42 deselected in 0.88s · mutante: 2 failed, 16 passed, 42 deselected in 3.16s
+DETECTADO       CR-3 · R3: la configuración de la corrida no se coteja
+                limpio: 18 passed, 42 deselected in 0.89s · mutante: 5 failed, 13 passed, 42 deselected in 3.41s
+DETECTADO       CR-3 · R5: los casos no se cotejan con la reserva
+                limpio: 18 passed, 42 deselected in 0.87s · mutante: 3 failed, 15 passed, 42 deselected in 2.98s
+DETECTADO       CR-3 · R7: el puntaje no se recalcula
+                limpio: 19 passed, 41 deselected in 1.03s · mutante: 2 failed, 17 passed, 41 deselected in 4.88s
+DETECTADO       CR-3 · E2: una variable prohibida puede pasar
+                limpio: 7 passed, 53 deselected in 0.81s · mutante: 7 failed, 53 deselected in 3.13s
+DETECTADO       CR-3 · E1: el entorno se hereda en vez de construirse
+                limpio: 1 passed, 59 deselected in 0.98s · mutante: 1 failed, 59 deselected in 4.56s
+DETECTADO       CR-3 · V1: la evaluación publica el informe
+                limpio: 1 passed, 59 deselected in 0.81s · mutante: 1 failed, 59 deselected in 3.06s
+DETECTADO       CR-3 · M1: el diario no comprueba el encadenamiento
+                limpio: 4 passed, 56 deselected in 0.87s · mutante: 3 failed, 1 passed, 56 deselected in 3.04s
+DETECTADO       CR-3 · M1: el diario no comprueba las huellas
+                limpio: 4 passed, 56 deselected in 0.82s · mutante: 1 failed, 3 passed, 56 deselected in 3.03s
+DETECTADO       CR-3 · M5: el veredicto no se ata al evaluador
+                limpio: 7 passed, 53 deselected in 0.93s · mutante: 1 failed, 6 passed, 53 deselected in 3.14s
+DETECTADO       CR-3 · M5: el veredicto no se ata a la rúbrica autorizada
+                limpio: 7 passed, 53 deselected in 0.90s · mutante: 1 failed, 6 passed, 53 deselected in 3.21s
+DETECTADO       CR-3 · un caso ACEPTA sin juicio que apruebe
+                limpio: 7 passed, 53 deselected in 0.92s · mutante: 1 failed, 6 passed, 53 deselected in 3.11s
+DETECTADO       CR-3 · ACEPTADA con casos que no aceptan
+                limpio: 7 passed, 53 deselected in 0.93s · mutante: 1 failed, 6 passed, 53 deselected in 3.22s
+DETECTADO       CR-3 · se consume una reserva no aislada
+                limpio: 4 passed, 56 deselected in 0.88s · mutante: 4 failed, 56 deselected in 3.46s
+DETECTADO       CR-3 · el intento no es exclusivo
+                limpio: 1 passed, 59 deselected in 0.84s · mutante: 1 failed, 59 deselected in 3.02s
+DETECTADO       CR-3 · una respuesta del juez fuera de contrato cuenta como aprobación
+                limpio: 1 passed, 59 deselected in 0.81s · mutante: 1 failed, 59 deselected in 2.98s
+DETECTADO       CR-3 · una falla de infraestructura no impide decidir
+                limpio: 2 passed, 58 deselected in 0.91s · mutante: 2 failed, 58 deselected in 3.10s
+DETECTADO       CR-3 · el juez no se reintenta
+                limpio: 2 passed, 58 deselected in 0.83s · mutante: 2 failed, 58 deselected in 3.07s
+DETECTADO       CR-3 · el juez no recibe exactamente la rúbrica autorizada
+                limpio: 1 passed, 59 deselected in 0.80s · mutante: 1 failed, 59 deselected in 3.00s
+
+26/26 mutantes detectados

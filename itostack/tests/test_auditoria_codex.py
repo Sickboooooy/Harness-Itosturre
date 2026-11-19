@@ -468,7 +468,9 @@ class TestCompuertaConJuez:
         compuerta.congelar("verificar-cita", tmp_path / "dev.json", sin_juez_externo="prueba")
         compuerta.reservar("verificar-cita")
         (tmp_path / "roto.json").write_text("{no es json", encoding="utf-8")
-        assert compuerta.holdout("verificar-cita", tmp_path / "roto.json", []) == 1
+        # refrescar: en Windows el mtime de NTFS usa un reloj más grueso que time.time(); sin esto, a veces el archivo
+        # parecía anterior a la reserva, se rechazaba SIN consumir y la segunda llamada aceptaba (prueba intermitente).
+        assert compuerta.holdout("verificar-cita", refrescar(tmp_path / "roto.json"), []) == 1
         assert compuerta.holdout("verificar-cita", refrescar(tmp_path / "h.json"), []) == 1  # ya consumido
 
     def test_sin_juez_la_aceptacion_lo_dice(self, compuerta, tmp_path):

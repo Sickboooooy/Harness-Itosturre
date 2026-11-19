@@ -1,0 +1,97 @@
+# Ejecutor aislado de itostack (CR-2). Esta plantilla va en un repositorio PRIVADO y SEPARADO del constructor; desde el
+# repositorio del constructor no se ejecuta (vive en una carpeta anidada). La instancia el operador con instanciar.py.
+#
+# Propiedades (las comprueba tests/test_ejecutor_ci.py):
+# - solo se dispara a mano (workflow_dispatch) y cada corrida la aprueba una persona (environment «holdout» con
+#   revisores obligatorios, configurado por el operador);
+# - permisos mínimos: ninguno a nivel de workflow y solo lectura de este repositorio en el trabajo;
+# - ejecutor efímero de GitHub (ubuntu-24.04); una corrida a la vez; tiempo máximo;
+# - ninguna entrada ni secreto se interpola en un script (todo pasa por env); cada secreto llega solo al paso que lo usa;
+# - toda dependencia externa fijada a un SHA de 40 hex verificado (PENDIENTE-DE-VERIFICAR impide instanciar);
+# - sin publicación: la evaluación corre con --no-publish y solo sale el manifiesto firmado (sin trazas ni casos).
+name: holdout
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidata:
+        description: commit del repositorio del constructor a evaluar (40 hex)
+        required: true
+      huella:
+        description: huella congelada de la candidata (64 hex)
+        required: true
+      skill:
+        description: skill a evaluar
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: holdout
+  cancel-in-progress: false
+
+jobs:
+  holdout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    environment: holdout
+    permissions:
+      contents: read
+    steps:
+      - name: Validar entradas
+        env:
+          CANDIDATA: ${{ inputs.candidata }}
+          HUELLA: ${{ inputs.huella }}
+          SKILL: ${{ inputs.skill }}
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATA" =~ ^[0-9a-f]{40}$ ]] || { echo "candidata inválida"; exit 1; }
+          [[ "$HUELLA" =~ ^[0-9a-f]{64}$ ]] || { echo "huella inválida"; exit 1; }
+          [[ "$SKILL" =~ ^[a-z0-9-]+$ ]] || { echo "skill inválida"; exit 1; }
+
+      - name: Obtener el ejecutor y la reserva (este repositorio, solo lectura)
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git init -q ejecutor
+          git -C ejecutor -c "http.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)" fetch -q --depth 1 "https://github.com/$REPO" "$SHA"
+          git -C ejecutor checkout -q FETCH_HEAD
+
+      - name: Obtener la candidata (clave de despliegue de solo lectura)
+        env:
+          CLAVE_DESPLIEGUE: ${{ secrets.CONSTRUCTOR_DEPLOY_KEY }}
+          REPO_CONSTRUCTOR: ${{ vars.REPO_CONSTRUCTOR }}
+          CANDIDATA: ${{ inputs.candidata }}
+        run: bash ejecutor/ejecutor/obtener_candidata.sh
+
+      - name: Verificar herramientas, reserva y guardias (E4, X8, X9)
+        env:
+          HUELLA: ${{ inputs.huella }}
+          SKILL: ${{ inputs.skill }}
+        run: bash ejecutor/ejecutor/verificar.sh
+
+      - name: Correr el holdout con el orquestador fijado (CR-3)
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+          HUELLA: ${{ inputs.huella }}
+          SKILL: ${{ inputs.skill }}
+        run: bash ejecutor/ejecutor/correr.sh
+
+      - name: Firmar el manifiesto
+        env:
+          CLAVE_FIRMA: ${{ secrets.CLAVE_FIRMA_EJECUTOR }}
+        run: bash ejecutor/ejecutor/firmar.sh
+
+      - name: Entregar solo el manifiesto firmado
+        uses: actions/upload-artifact@PENDIENTE-DE-VERIFICAR
+        with:
+          name: manifiesto
+          path: |
+            salida/manifiesto.json
+            salida/manifiesto.json.sig
+          retention-days: 7
+          if-no-files-found: error

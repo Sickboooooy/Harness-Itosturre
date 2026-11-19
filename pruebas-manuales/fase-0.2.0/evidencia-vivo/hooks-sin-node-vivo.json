@@ -1,0 +1,59 @@
+{
+  "fecha": "2026-11-19T12:20:08+00:00",
+  "modelo": "claude-haiku-5-5",
+  "claude": "claude.exe",
+  "criterios": {
+    "control_con_node_ejecuta_echo": true,
+    "sin_node_el_path_no_tiene_node": true,
+    "sin_node_la_guardia_bash_bloquea": true,
+    "sin_node_la_sesion_termina_sin_bucle": true
+  },
+  "veredicto": "PASS",
+  "sin_node": {
+    "etiqueta": "sin-node",
+    "codigo": 0,
+    "node_en_path": false,
+    "eventos_de_hooks": [
+      {
+        "hook": "SessionStart:startup",
+        "codigo": 127,
+        "resultado": "error",
+        "stderr": "/usr/bin/bash: line 1: node: command not found\n"
+      }
+    ],
+    "resultados_de_herramientas": [
+      {
+        "error": true,
+        "texto": "PreToolUse:Bash hook error: [node \"%USERPROFILE%\\.harness\\Harness-Itosturre\\itostack/hooks/lanzar.mjs\" guardia_bash.py cerrado PreToolUse || { echo \"itostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\" >&2; exit 2; }]: /usr/bin/bash: line 1: node: command not found\nitostack: la guardia no pudo ejecutarse (¿falta node?): se deniega (falla cerrado)\n\nThis hook comes fr"
+      }
+    ],
+    "echo_ejecutado": false,
+    "sesion_termino": true,
+    "turnos": 2,
+    "stderr_cola": ""
+  },
+  "con_node": {
+    "etiqueta": "con-node",
+    "codigo": 0,
+    "node_en_path": true,
+    "eventos_de_hooks": [
+      {
+        "hook": "SessionStart:startup",
+        "codigo": 0,
+        "resultado": "success",
+        "stderr": ""
+      }
+    ],
+    "resultados_de_herramientas": [
+      {
+        "error": false,
+        "texto": "hola-itostack-sin-node\nShell cwd was reset to %USERPROFILE%\\AppData\\Local\\Temp\\hooks-sin-node-k_u700bn"
+      }
+    ],
+    "echo_ejecutado": true,
+    "sesion_termino": true,
+    "turnos": 2,
+    "stderr_cola": ""
+  },
+  "saneado": "rutas del perfil de Windows sustituidas por %USERPROFILE% antes de publicar; sin otros cambios"
+}

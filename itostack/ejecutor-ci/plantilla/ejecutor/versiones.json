@@ -1,0 +1,18 @@
+{
+  "_nota": "Versiones VERIFICADAS (observadas en una corrida real); comprobar_versiones.py exige exactamente estas. Lo que esté en pendientes_de_verificar impide instanciar la plantilla (instanciar.py) y evaluar (verificar.sh). Al fijar el orquestador se agrega «fijados»: {\"directorio\": \"orquestador\", \"archivos\": {\"<ruta relativa>\": \"<sha256>\"}}, con TODOS los archivos de la copia.",
+  "fuente": "laboratorio itostack-lab, Ubuntu 24.04.5, 2026-11-19 (pruebas-manuales/fase-0.2.0/laboratorio-wsl.md)",
+  "verificadas": {
+    "claude": "2.1.327",
+    "bwrap": "0.9.0",
+    "socat": "1.8.0.0",
+    "python3": "3.12.3",
+    "git": "2.43.0"
+  },
+  "pendientes_de_verificar": [
+    "node",
+    "codex",
+    "actions/upload-artifact (SHA de 40 hex)",
+    "orquestador fijado (commit y huella de cada archivo, en «fijados»)",
+    "known_hosts de github.com (huellas publicadas por GitHub, cotejadas fuera de banda)"
+  ]
+}

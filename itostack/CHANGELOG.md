@@ -1,6 +1,6 @@
 # Cambios
 
-## 0.2.0 · en desarrollo (rama `dev/itostack-0.2.0`, sin publicar)
+## 0.2.0 · en desarrollo (integrada en `main` sin release; no es estable ni apta para producción jurídica)
 
 Objetivo: reducir clases de fallos con garantías estructurales. Plan e incrementos en `docs/diseno-0.2.0.md`.
 
@@ -39,6 +39,43 @@ Objetivo: reducir clases de fallos con garantías estructurales. Plan e incremen
 - **Laboratorio WSL** (`pruebas-manuales/fase-0.2.0/laboratorio-wsl.md`): distribución desechable `itostack-lab`, sin unidades de Windows, sin interoperabilidad y sin credenciales. Ni el código de salida ni `partial` identifican una falla de infraestructura, y así lo recoge el contrato de CR-3 (R4, R6, P3, E4 y V4).
 - **Contrato de CR-3:** el manifiesto ata cada veredicto a un identificador opaco del caso y a las huellas de su definición, su rúbrica autorizada, su evaluador y sus artefactos (M5).
 - **Diseño del ejecutor aislado de CR-2** (`docs/cr2-ejecutor-aislado.md`): VM o CI Linux, canal angosto, manifiesto firmado y «aislada» solo con atestación firmada. Sin aprovisionar.
+- **CR-3.2a · núcleo del orquestador del holdout** (`evals/orquestador.py`, con `scripts/nucleo/esquema.py` como validador de esquemas sin dependencias). Probado solo con datos sintéticos: todavía no corre una evaluación real (CR-3.2b).
+  - **Contrato de resultados estricto** (R1–R8): esquema, versión de claude, configuración de la corrida, casos exactos de la reserva y puntaje recalculado desde los calificadores. Cualquier desviación es FUERA_DE_CONTRATO.
+  - **Tres causas distintas:**
+    - una falla del candidato rechaza;
+    - una falla de infraestructura (error, cero turnos, calificador que lanzó o calificadores omitidos) nunca acepta y no se juzga;
+    - un resultado fuera de contrato deja la decisión INCONCLUSA.
+  - **Entorno por lista de permitidas**: ninguna variable `ITOSTACK_*`, `PYTHON*`, `NODE_OPTIONS` ni de sesión de Claude llega a la evaluación. La invocación lleva `--no-publish`.
+  - **Transacción de un solo intento**: una reserva no «aislada» no se toca.
+  - **Juez** solo sobre los casos que aceptan, con los bytes exactos de la rúbrica y reintentos acotados.
+  - **Manifiesto** que ata cada caso a sus huellas (caso, rúbrica, evaluador, artefacto). Lleva la cabeza de un diario encadenado y se valida contra el esquema y la semántica antes de escribirse.
+  - Pruebas: `tests/test_orquestador.py` (60, con propiedades y `jsonschema` como oráculo independiente). Mutantes: 26/26.
+- **CR-2 · plantilla del ejecutor aislado** (`ejecutor-ci/`), según la decisión del operador: CI privada y separada, Linux, ejecutores efímeros. **Sin aprovisionar**: sin repositorio, credenciales ni claves.
+  - **Workflow:**
+    - disparo manual y aprobación humana (environment);
+    - permisos mínimos y ningún secreto interpolado en un script; cada secreto llega a un solo paso;
+    - dependencias fijadas a SHA;
+    - solo sale el manifiesto firmado.
+  - **Scripts:**
+    - `obtener_candidata.sh` trae el commit exacto y descarta las reservas `holdout-*` de la candidata;
+    - `verificar.sh` comprueba versiones exactas, la copia fijada del orquestador, la reserva aprobada por personas, la huella y la prueba de humo de las guardias;
+    - `correr.sh` usa el orquestador fijado, nunca el de la candidata;
+    - `firmar.sh` firma con OpenSSH.
+  - **`instanciar.py` falla cerrado** mientras quede cualquier dependencia sin verificar, el orquestador sin fijar o `known_hosts` vacío, o si el destino está dentro de este repositorio.
+  - **Piezas nuevas del plugin:**
+    - `scripts/nucleo/atestacion.py`: firma y verificación OpenSSH. «Aislada» solo vale con una atestación firmada sobre esa reserva (X10).
+    - `evals/humo_guardias.py`: exige que la guardia **evalúe**. Debe denegar lo prohibido y dejar pasar lo inocuo. El respaldo «falla cerrado» sin node no cuenta, porque deniega todo.
+    - `compuerta_holdout.py huella --plugin` calcula la huella de otra copia.
+  - Pruebas: `tests/test_ejecutor_ci.py` (92, con claves efímeras y sin credenciales). Mutantes: 30/30.
+- **Riesgo residual de hooks, revisado en vivo** (`pruebas-manuales/fase-0.2.0/hooks_sin_node_vivo.py`, Claude Code nativo en Windows, PATH sin node):
+  - la guardia previa de Bash deniega;
+  - SessionStart sale con 127, sin bloquear;
+  - la sesión termina en 2 turnos, sin bucle.
+
+  El cierre sin node no comprueba la entrega, y el respaldo depende de que los hooks corran en un shell POSIX. Ningún hook puede ser la compuerta previa a enviar. Diseño de una **compuerta de entrega independiente** (CR-5, `docs/compuerta-entrega.md`): una CLI solo en Python, fuera de la sesión, con confirmación humana, entrega solo desde `entregas/` y un registro encadenado. Sin implementar.
+- **Prueba intermitente corregida** (`test_resultados_ilegibles_rechazan_y_consumen`):
+  - *Causa:* en Windows, el mtime de NTFS usa un reloj más grueso que `time.time()`. Un archivo escrito justo después de la reserva parecía anterior a ella (192 de 400 en una reproducción aislada), y la compuerta lo rechazaba sin consumir el intento.
+  - *Alcance:* el defecto estaba en la prueba. La compuerta falla cerrado, con un rechazo falso y nunca una aceptación falsa.
 - **Incompatibilidades de CR-1.2** (cambios de comportamiento deliberados):
   1. Ya no se escribe ni edita a mano en `salidas/`, `escritos/`, `dictamenes/` ni `*.juridico.md`: se redacta en `borradores/` y se ensambla. Para corregir un entregable, se corrige el borrador y se vuelve a ensamblar.
   2. Una marca ⚠/❌/✅ escrita a mano ya no exime a una cita en un archivo (en el chat, sí se usan). Hay que usar `[[CITA_AJENA:…|…]]` o `[[NO_VERIFICADO:…]]`.

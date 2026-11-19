@@ -70,8 +70,11 @@ def _archivos(raiz: Path) -> list[Path]:
     return sorted(p for p in raiz.rglob("*") if p.is_file()) if raiz.exists() else []
 
 
-def huella(skill: str) -> str:
+def huella(skill: str, plugin: Path | None = None) -> str:
     """Huella de la candidata: la skill y todo lo que la evaluación usa (N-08), sin la reserva holdout.
+
+    `plugin` permite calcularla sobre OTRA copia (CR-2: el orquestador fijado del ejecutor calcula la huella de la
+    candidata obtenida, sin ejecutar el código de la candidata para ello). Sin él, la del propio plugin.
 
     Incluye scripts, hooks, guardias y agentes (el juez), las rúbricas, los fixtures, el andamiaje común de los casos
     y los propios instrumentos (autoprueba y compuerta): cambiar cualquiera invalida lo congelado.
@@ -82,14 +85,17 @@ def huella(skill: str) -> str:
     Condición de la corrida: sin ITOSTACK_PROYECTO ni ITOSTACK_MODO en el entorno (autoprueba.py los quita; con
     `claude plugin eval` lanzado a mano es responsabilidad del operador hasta CR-3).
     """
+    raiz_plugin = PLUGIN if plugin is None else Path(plugin).resolve()
+    evals = EVALS if plugin is None else raiz_plugin / "evals"
+    rubricas = RUBRICAS if plugin is None else evals / "rubricas"
     resumen = hashlib.sha256()
     fuentes = [
-        PLUGIN / "skills" / skill, PLUGIN / "scripts", PLUGIN / "hooks", PLUGIN / "guardias", PLUGIN / "agents",
-        EVALS / skill, RUBRICAS, EVALS / "fixtures", EVALS / "_comun", EVALS / "autoprueba.py", EVALS / "compuerta_holdout.py",
+        raiz_plugin / "skills" / skill, raiz_plugin / "scripts", raiz_plugin / "hooks", raiz_plugin / "guardias", raiz_plugin / "agents",
+        evals / skill, rubricas, evals / "fixtures", evals / "_comun", evals / "autoprueba.py", evals / "compuerta_holdout.py",
     ]
     for raiz in fuentes:
         for archivo in _archivos(raiz):
-            relativo = archivo.relative_to(PLUGIN)
+            relativo = archivo.relative_to(raiz_plugin)
             if any(parte in EXCLUIR for parte in relativo.parts) or any(parte.startswith("holdout-") for parte in relativo.parts):
                 continue
             resumen.update(relativo.as_posix().encode())
@@ -460,6 +466,7 @@ def principal() -> int:
     sub = analizador.add_subparsers(dest="accion", required=True)
     p_h = sub.add_parser("huella")
     p_h.add_argument("--skill", required=True)
+    p_h.add_argument("--plugin", type=Path, help="raíz de otra copia del plugin (p. ej., la candidata en el ejecutor aislado)")
     p_c = sub.add_parser("congelar")
     p_c.add_argument("--skill", required=True)
     p_c.add_argument("--resultados", type=Path, required=True)
@@ -474,7 +481,10 @@ def principal() -> int:
     sub.add_parser("estado")
     args = analizador.parse_args(argv)
     if args.accion == "huella":
-        print(huella(args.skill))
+        if args.plugin is not None and not (args.plugin / "skills" / args.skill).is_dir():
+            print(f"«{args.plugin}» no tiene la skill «{args.skill}»", file=sys.stderr)
+            return 1
+        print(huella(args.skill, args.plugin))
         return 0
     if args.accion == "congelar":
         return congelar(args.skill, args.resultados, args.juez, args.sin_juez_externo)

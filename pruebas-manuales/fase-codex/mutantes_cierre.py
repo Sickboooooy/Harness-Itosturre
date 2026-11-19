@@ -4,7 +4,7 @@ Para cada mutante: copia el plugin (sin node_modules) a un directorio temporal, 
 exacto y corre solo las pruebas del invariante. «Detectado» = las pruebas fallan con el defecto. Un mutante no
 detectado es una prueba que no demuestra su invariante.
 
-Uso: python -I mutantes_cierre.py <raíz del plugin itostack> [cierre-0.1.2|cr1|reserva|cr12]
+Uso: python -I mutantes_cierre.py <raíz del plugin itostack> [cierre-0.1.2|cr1|reserva|cr12|cr3|cr2]
 """
 import os
 import shutil
@@ -52,7 +52,7 @@ MUTANTES = [
        "    resumen = hashlib.sha256()\n    resumen.update(json.dumps(cfg.cargar(cfg.raiz_proyecto()), sort_keys=True, default=str).encode())\n    fuentes = [")],
      "test_la_configuracion_del_operador_no_cambia_la_huella"),
     ("I-6 · la huella omite el andamiaje común de los casos", GATE,
-     [('EVALS / "fixtures", EVALS / "_comun",', 'EVALS / "fixtures",')],
+     [('evals / "fixtures", evals / "_comun",', 'evals / "fixtures",')],
      "test_la_huella_cambia_con_lo_que_determina_el_caso"),
     ("I-1 · la compuerta humana pregunta en cualquier modo (el anfitrión auto-aprobaría)", "hooks/_comun.py",
      [("    if modo in MODOS_QUE_PREGUNTAN:\n", "    if True:\n")],
@@ -195,7 +195,82 @@ MUTANTES_CR12 = [
      "test_sin_node_las_guardias_previas_fallan_cerradas"),
 ]
 
+# CR-3.2a (0.2.0): orquestador del holdout. Pruebas: tests/test_orquestador.py.
+ORQ = "evals/orquestador.py"
+MUTANTES_CR3 = [
+    ("CR-3 · R6: un error de infraestructura no se ve", ORQ, [("        if c[\"error\"]:\n            infra.append(", "        if False:\n            infra.append(")], "test_una_falla_de_infraestructura"),
+    ("CR-3 · R6: una corrida sin turnos no se ve", ORQ, [("        if c[\"turns\"] == 0:\n            infra.append(", "        if False:\n            infra.append(")], "test_una_falla_de_infraestructura"),
+    ("CR-3 · R6: un calificador que lanzó no se ve", ORQ, [("        if lanzaron:\n            infra.append(", "        if False:\n            infra.append(")], "test_una_falla_de_infraestructura"),
+    ("CR-3 · R6: calificadores omitidos por costo no se ven", ORQ, [("        if c[\"skippedPaidGraders\"]:", "        if False:")], "test_una_falla_de_infraestructura"),
+    ("CR-3 · R4: una corrida parcial no se ve", ORQ, [("generales = [f\"R4: corrida parcial ({datos.get('partialReason', 'sin motivo')})\"] if datos[\"partial\"] else []", "generales = []")], "test_una_falla_de_infraestructura or test_las_fallas_reales"),
+    ("CR-3 · la infraestructura no tiene precedencia sobre el puntaje", ORQ, [("    elif INFRAESTRUCTURA in estados or generales:", "    elif False:")], "test_una_falla_de_infraestructura or test_las_fallas_reales"),
+    ("CR-3 · R1: no se valida el esquema de resultados", ORQ, [("    errores = esquema.errores(datos, ESQUEMA_RESULTADOS)", "    errores = []")], "test_un_resultado_fuera_de_contrato"),
+    ("CR-3 · R2: otra versión de claude pasa", ORQ, [("    if datos[\"claudeVersion\"] != solicitud.claude_version:", "    if False:")], "test_un_resultado_fuera_de_contrato"),
+    ("CR-3 · R3: la configuración de la corrida no se coteja", ORQ, [("        if campo not in suite or not esquema._igual(suite[campo], valor):", "        if False:")], "test_un_resultado_fuera_de_contrato"),
+    ("CR-3 · R5: los casos no se cotejan con la reserva", ORQ, [("    if len(nombres) != len(set(nombres)) or set(nombres) != set(solicitud.casos):", "    if False:")], "test_un_resultado_fuera_de_contrato"),
+    ("CR-3 · R7: el puntaje no se recalcula", ORQ, [("        if recalculado is None or abs(recalculado - c[\"score\"]) > TOLERANCIA:", "        if False:")], "test_r7 or test_un_resultado_fuera_de_contrato"),
+    ("CR-3 · E2: una variable prohibida puede pasar", ORQ, [("        if PROHIBIDAS.match(nombre):\n            raise", "        if False:\n            raise")], "test_una_prohibida"),
+    ("CR-3 · E1: el entorno se hereda en vez de construirse", ORQ, [("    entorno = {n: base[n] for n in permitidas if n in base}", "    entorno = dict(base)")], "test_solo_pasa_lo_permitido"),
+    ("CR-3 · V1: la evaluación publica el informe", ORQ, [("\"--no-publish\", ", "")], "test_la_invocacion_no_publica"),
+    ("CR-3 · M1: el diario no comprueba el encadenamiento", ORQ, [("        if not isinstance(entrada, dict) or entrada.get(\"n\") != i or entrada.get(\"anterior\") != anterior:", "        if False:")], "test_cualquier_alteracion_se_detecta"),
+    ("CR-3 · M1: el diario no comprueba las huellas", ORQ, [("        if not isinstance(entrada, dict) or sha256(canonico(cuerpo)) != entrada.get(\"huella\"):", "        if False:")], "test_cualquier_alteracion_se_detecta"),
+    ("CR-3 · M5: el veredicto no se ata al evaluador", ORQ, [("        if c[\"sha256_evaluador\"] != evaluador:", "        if False:")], "test_cualquier_alteracion_posterior"),
+    ("CR-3 · M5: el veredicto no se ata a la rúbrica autorizada", ORQ, [("        if c[\"sha256_rubrica\"] != m[\"rubrica\"][\"sha256\"]:", "        if False:")], "test_cualquier_alteracion_posterior"),
+    ("CR-3 · un caso ACEPTA sin juicio que apruebe", ORQ, [("        if c[\"estado\"] == ACEPTA and not (validas and all(r[\"score\"] == 1 for r in c[\"corridas\"]) and ultimo == \"APRUEBA\"):", "        if False:")], "test_cualquier_alteracion_posterior"),
+    ("CR-3 · ACEPTADA con casos que no aceptan", ORQ, [("    if decision == \"ACEPTADA\" and set(estados) != {ACEPTA}:", "    if False:")], "test_cualquier_alteracion_posterior"),
+    ("CR-3 · se consume una reserva no aislada", ORQ, [("    if not _reserva_aislada(o.estado_reserva):", "    if False:")], "test_una_reserva_no_aislada or test_la_reserva_real"),
+    ("CR-3 · el intento no es exclusivo", ORQ, [("[:16]}.reservado\", \"x\", encoding=\"utf-8\")", "[:16]}.reservado\", \"a\", encoding=\"utf-8\")")], "test_un_solo_intento"),
+    ("CR-3 · una respuesta del juez fuera de contrato cuenta como aprobación", ORQ, [("        return {\"sha256_respuesta\": sha256(canonico(respuesta)), \"estado\": \"BLOCKED\", \"puntaje\": None}", "        return {\"sha256_respuesta\": sha256(canonico(respuesta)), \"estado\": \"APRUEBA\", \"puntaje\": 10.0}")], "test_un_juez_fuera_de_contrato"),
+    ("CR-3 · una falla de infraestructura no impide decidir", ORQ, [("    if clasificacion.estado == INFRAESTRUCTURA:", "    if False:")], "test_una_falla_de_infraestructura_no_se_juzga"),
+    ("CR-3 · el juez no se reintenta", ORQ, [("            for _ in range(1 + o.reintentos_juez):", "            for _ in range(1):")], "test_un_juez_fuera_de_contrato or test_un_juez_blocked"),
+    ("CR-3 · el juez no recibe exactamente la rúbrica autorizada", ORQ, [("_juicio(juzgar(artefacto, rubrica), artefacto, esperados)", "_juicio(juzgar(artefacto, rubrica + b\" \"), artefacto, esperados)")], "test_aceptada_y_verificable"),
+]
+
+# CR-2 (preparación, 0.2.0): plantilla del ejecutor aislado y piezas locales. Pruebas: tests/test_ejecutor_ci.py.
+INST = "ejecutor-ci/instanciar.py"
+VRES = "ejecutor-ci/plantilla/ejecutor/validar_reserva.py"
+CVER = "ejecutor-ci/plantilla/ejecutor/comprobar_versiones.py"
+ATES = "scripts/nucleo/atestacion.py"
+HUMO = "evals/humo_guardias.py"
+FLUJO = "ejecutor-ci/plantilla/.github/workflows/holdout.yml"
+FIRMA = "ejecutor-ci/plantilla/ejecutor/firmar.sh"
+MUTANTES_CR2 = [
+    ("CR-2 · instanciar: un PENDIENTE-DE-VERIFICAR no impide", INST, [('        if "PENDIENTE-DE-VERIFICAR" in texto:', "        if False:")], "test_cualquier_pendiente_impide_instanciar or test_la_plantilla_actual"),
+    ("CR-2 · instanciar: una acción por etiqueta pasa por fijada", INST, [('_SHA = re.compile(r"^[^@\\s]+@[0-9a-f]{40}$")', '_SHA = re.compile(r"^[^@\\s]+@\\S+$")')], "test_cualquier_pendiente_impide_instanciar"),
+    ("CR-2 · instanciar: las versiones pendientes no impiden", INST, [('    problemas += [f"versiones.json: pendiente de verificar «{p}»" for p in versiones.get("pendientes_de_verificar", [])]', "    problemas += []")], "test_cualquier_pendiente_impide_instanciar or test_la_plantilla_actual"),
+    ("CR-2 · instanciar: sin herramientas verificadas se instancia", INST, [('    if not versiones.get("verificadas"):', "    if False:")], "test_cualquier_pendiente_impide_instanciar"),
+    ("CR-2 · instanciar: un orquestador fijado sin archivos se acepta", INST, [('    if not isinstance(fijados, dict) or not fijados.get("directorio") or not fijados.get("archivos"):', "    if fijados is None:")], "test_cualquier_pendiente_impide_instanciar"),
+    ("CR-2 · instanciar: un known_hosts con solo comentarios se acepta", INST, [('    if not any(linea.strip() and not linea.lstrip().startswith("#") for linea in hosts.splitlines()):', "    if not hosts:")], "test_cualquier_pendiente_impide_instanciar"),
+    ("CR-2 · instanciar: se acepta un destino dentro del constructor", INST, [("    elif destino_git == raiz_git(constructor):", "    elif False:")], "test_un_destino_dentro_del_constructor"),
+    ("CR-2 · X9: autor y aprobador iguales salvo mayúsculas pasan", VRES, [("        elif autor.strip().casefold() == aprueba.strip().casefold():", "        elif autor == aprueba:")], "test_cualquier_aprobacion_irregular"),
+    ("CR-2 · X8: «datos_sinteticos» se lee por veracidad", VRES, [('        if a.get("datos_sinteticos") is not True:', '        if not a.get("datos_sinteticos"):')], "test_cualquier_aprobacion_irregular"),
+    ("CR-2 · X9: la huella aprobada no se coteja", VRES, [('        if a.get("sha256_caso") != huella_caso(directorio):', '        if not a.get("sha256_caso"):')], "test_un_caso_cambiado or test_cualquier_aprobacion_irregular"),
+    ("CR-2 · X9: la huella del caso ignora los nombres de archivo", VRES, [("        resumen.update(archivo.relative_to(directorio).as_posix().encode())\n", "")], "test_un_caso_cambiado"),
+    ("CR-2 · X9: las aprobaciones repetidas pasan", VRES, [("        if len(registros) != 1:", "        if not registros:")], "test_cualquier_aprobacion_irregular"),
+    ("CR-2 · X9: la aprobación de un caso inexistente pasa", VRES, [('    problemas += [f"{c}: aprobación de un caso que no existe" for c in sobrantes]', "    problemas += []")], "test_cualquier_aprobacion_irregular"),
+    ("CR-2 · versiones: basta una subcadena («2.1.32» en «2.1.327»)", CVER, [('        if esperada not in palabras and f"v{esperada}" not in palabras:', '        if esperada not in " ".join(palabras):')], "test_otra_version_se_bloquea"),
+    ("CR-2 · copia fijada: un archivo de más pasa", CVER, [("    salida = [f\"{fijados['directorio']}/{r}: no está en la lista fijada\" for r in sorted(set(presentes) - set(esperados))]", "    salida = []")], "test_cualquier_diferencia_en_la_copia_fijada"),
+    ("CR-2 · copia fijada: el contenido no se coteja", CVER, [("               if hashlib.sha256(presentes[r].read_bytes()).hexdigest() != esperados[r]]", "               if False]")], "test_cualquier_diferencia_en_la_copia_fijada"),
+    ("CR-2 · atestación: una firma inválida se acepta", ATES, [("    if salida.returncode != 0:", "    if False:")], "TestAtestacion"),
+    ("CR-2 · X10: la atestación de reserva no exige firma", ATES, [("    problemas = verificar(atestacion, firma, firmantes, identidad)\n    if problemas:\n        return problemas\n", "")], "test_atestacion_valida_con_firma_de_otra"),
+    ("CR-2 · X10: una reserva no aislada se atesta", ATES, [('datos.get("estado") != "aislada"', 'datos.get("estado") is None')], "test_atestacion_firmada_pero_irregular"),
+    ("CR-2 · X10: la atestación de otra reserva vale", ATES, [(' or datos["huella_reserva"] != huella_reserva:', ":")], "test_atestacion_firmada_pero_irregular"),
+    ("CR-2 · humo: el respaldo «falla cerrado» cuenta como guardia que evalúa", HUMO,
+     [('    if codigo == 2:\n        problemas.append(f"la guardia no evaluó: denegó por el respaldo «falla cerrado» (¿falta node o python?): {detalle}")\n    elif decision != "deny":',
+       '    if codigo != 2 and decision != "deny":')], "TestHumoGuardias"),
+    ("CR-2 · humo: una guardia que deniega todo pasa", HUMO, [('    if codigo != 0 or decision in ("deny", "ilegible"):', "    if False:")], "TestHumoGuardias"),
+    ("CR-2 · huella: --plugin se ignora (se mide el constructor, no la candidata)", GATE, [("    raiz_plugin = PLUGIN if plugin is None else Path(plugin).resolve()", "    raiz_plugin = PLUGIN")], "TestHuellaDeOtraCopia"),
+    ("CR-2 · workflow: permisos amplios", FLUJO, [("permissions: {}", "permissions: write-all")], "test_permisos_minimos"),
+    ("CR-2 · workflow: se dispara también con push", FLUJO, [("on:\n  workflow_dispatch:", "on:\n  push:\n  workflow_dispatch:")], "test_solo_se_dispara_a_mano"),
+    ("CR-2 · workflow: ejecutor propio (no efímero)", FLUJO, [("    runs-on: ubuntu-24.04", "    runs-on: self-hosted")], "test_ejecutor_efimero"),
+    ("CR-2 · workflow: un secreto interpolado en el script", FLUJO, [("        run: bash ejecutor/ejecutor/firmar.sh", '        run: CLAVE_FIRMA="${{ secrets.CLAVE_FIRMA_EJECUTOR }}" bash ejecutor/ejecutor/firmar.sh')], "test_ninguna_expresion or test_cada_secreto"),
+    ("CR-2 · workflow: la clave de firma llega también al paso de la candidata", FLUJO, [("          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}\n", "          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}\n          CLAVE_FIRMA: ${{ secrets.CLAVE_FIRMA_EJECUTOR }}\n")], "test_cada_secreto"),
+    ("CR-2 · firmar.sh: la clave se escribe antes de restringir permisos", FIRMA, [("chmod 600 \"$clave\"\nprintf '%s\\n' \"$CLAVE_FIRMA\" > \"$clave\"", "printf '%s\\n' \"$CLAVE_FIRMA\" > \"$clave\"\nchmod 600 \"$clave\"")], "test_las_claves_solo_viven"),
+    ("CR-2 · firmar.sh: la clave temporal sobrevive al paso", FIRMA, [("trap 'rm -f \"$clave\"' EXIT\n", "")], "test_firmar_sh"),
+]
+
 CONJUNTOS = {"cierre-0.1.2": ("tests/test_auditoria_codex.py", MUTANTES), "cr1": ("tests/test_procedencia.py", MUTANTES_CR1),
+             "cr3": ("tests/test_orquestador.py", MUTANTES_CR3), "cr2": ("tests/test_ejecutor_ci.py", MUTANTES_CR2),
              "reserva": ("tests/test_auditoria_codex.py", MUTANTES_RESERVA),
              "cr12": (["tests/test_entrega.py", "tests/test_procedencia.py", "tests/test_plataforma.py"], MUTANTES_CR12)}
 

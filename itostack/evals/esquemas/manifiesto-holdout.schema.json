@@ -66,7 +66,7 @@
           "sha256_rubrica": {"$ref": "#/$defs/sha256", "description": "rúbrica autorizada para la skill del caso (por_skill.json de la copia congelada)"},
           "sha256_evaluador": {"$ref": "#/$defs/sha256", "description": "huella JSON canónica de {evaluador, juez}: ata el veredicto a quién lo dio"},
           "corridas": {
-            "type": "array", "minItems": 1,
+            "type": "array", "minItems": 0, "description": "vacío solo si la evaluación no produjo resultados reconocibles (el caso es BLOCKED)",
             "items": {
               "type": "object", "additionalProperties": false, "required": ["score", "turns", "error", "sha256_traza"],
               "properties": {"score": {"type": "number", "minimum": 0, "maximum": 1}, "turns": {"type": "integer", "minimum": 0},
@@ -75,7 +75,7 @@
           },
           "sha256_artefacto": {"$ref": "#/$defs/sha256"},
           "juicios": {
-            "type": "array", "minItems": 1, "description": "cada llamada al juez, incluidas las BLOCKED reintentadas",
+            "type": "array", "minItems": 0, "description": "cada llamada al juez, incluidas las BLOCKED reintentadas; vacío solo si el caso no llegó a juzgarse (RECHAZA por la evaluación, o falla de infraestructura o fuera de contrato: BLOCKED)",
             "items": {
               "type": "object", "additionalProperties": false, "required": ["sha256_respuesta", "estado", "puntaje"],
               "properties": {"sha256_respuesta": {"$ref": "#/$defs/sha256"}, "estado": {"enum": ["APRUEBA", "REPRUEBA", "BLOCKED"]},

@@ -228,7 +228,7 @@ Spike WSL de claude plugin eval ─► CR-3 (orquestador) ─► CR-2 (cuenta, A
 - **CR-1 primero.** No tiene prerrequisitos y protege lo que el despacho entrega: los escritos. Además elimina la familia más grande.
 - **En paralelo, el spike de WSL**, porque bloquea el paso 5 de CR-3.
 - **CR-3 antes que CR-2.** La cuenta de servicio de CR-2 ejecuta el orquestador de CR-3; sin orquestador, aislar la reserva obligaría al operador a manejar archivos a mano como cuenta de servicio.
-- **CR-2 al final.** Requiere configuración del sistema que hace el operador (cuenta, contraseña, ACL) y casos holdout nuevos escritos por él.
+- **CR-2 al final.** El operador eligió el 2026-11-19 una CI privada y separada, en Linux y con ejecutores efímeros; descartó la cuenta de servicio en Windows. La CI requiere aprovisionamiento que hace el operador: repositorio, environment con revisores, secretos y claves. También requiere casos holdout nuevos, escritos por un revisor humano independiente y aprobados por el operador. La plantilla está en `ejecutor-ci/`.
 
 ## Incrementos
 
@@ -241,8 +241,11 @@ Cada incremento tiene una propiedad verificable y un criterio de terminación. N
 | **CR-3.0** · Contrato técnico de CR-3 | Las salidas reales de `claude plugin eval` cumplen el esquema; faltar, sobrar o cambiar el tipo de un campo lo incumple | `tests/test_contrato_cr3.py` (18) | **PASS** |
 | **CR-1.2** · Comprobación de entrega conectada a los hooks; skills y evals migrados | Una cita sin evidencia suficiente no obtiene PASS. Un manifiesto ausente, incompleto o inconsistente es BLOCKED, y la comprobación nunca lanza una excepción. Las citas ajenas y el informe VVCA conservan procedencia literal verificable. Ningún marcador llega al entregable. Sin `node`, las guardias previas fallan cerradas | `test_entrega.py` (integración), propiedades nuevas en `test_procedencia.py`, `test_plataforma.py` + 21/21 mutantes + evals migrados coherentes + batería | **PASS** |
 | **CR-3.1** · Laboratorio WSL | Comportamiento real en Linux: fallas de infraestructura, códigos de salida, sellado, enlaces, limpieza segura | `pruebas-manuales/fase-0.2.0/laboratorio-wsl.md` | **Parcial:** dos modos de falla observados, contrato actualizado. La corrida exitosa necesita una credencial en el laboratorio (decisión del operador) |
-| **CR-3.2** · Orquestador | De A3-1 a A3-9 | Ídem | Después de CR-3.1 |
-| **CR-2** · Ejecutor aislado (VM o CI, Linux) | De X1 a X10 (`docs/cr2-ejecutor-aislado.md`) | Ídem + un holdout completo con una reserva nueva aprobada por personas | **Diseño para aprobación**; sin aprovisionar |
+| **CR-3.2a** · Núcleo del orquestador (`evals/orquestador.py`, `nucleo/esquema.py`) | Contrato de resultados R1–R8. Falla del candidato, falla de infraestructura y fuera de contrato son estados distintos, y la infraestructura nunca acepta. Entorno por lista de permitidas (E1, E2). `--no-publish` (V1). Diario encadenado (M1). Cada caso atado a su huella, rúbrica, evaluador y artefacto (M5). El manifiesto se valida contra el esquema y la semántica. Una reserva no aislada no se consume | `tests/test_orquestador.py` (60, con propiedades y `jsonschema` como oráculo independiente) + 26/26 mutantes | **PASS** (sintético; sin evaluación real) |
+| **CR-3.2b** · CLI del orquestador con evaluación y juez reales | De A3-1 a A3-9 de punta a punta | Ídem, más una corrida real en el ejecutor | Pendiente. Necesita una credencial en un entorno aislado (decisión del operador) |
+| **CR-2** · Ejecutor aislado: CI privada, Linux, ejecutores efímeros (decisión del operador, 2026-11-19) | De X1 a X10 (`docs/cr2-ejecutor-aislado.md`). Plantilla con disparo manual y aprobación humana, permisos mínimos, secretos por paso, dependencias fijadas, orquestador fijado y atestación OpenSSH | Plantilla: `tests/test_ejecutor_ci.py` (92) + 30/30 mutantes. Ejecutor real: un holdout completo con una reserva nueva aprobada por personas | **Plantilla preparada** (`ejecutor-ci/`); sin aprovisionar |
+| **Riesgo residual de hooks** | Sin node, las guardias previas deniegan y el cierre no queda en bucle | `hooks_sin_node_vivo.py` en vivo (PASS) + `test_plataforma.py` | **PASS**. Límites en `docs/compuerta-entrega.md` |
+| **CR-5** · Compuerta de entrega independiente | E-1 (`docs/compuerta-entrega.md`) | Criterios de esa página | **Diseño**; sin implementar |
 
 La incoherencia transitoria entre el guardia de escritura de 0.1.x y el ensamblador de CR-1.1 quedó cerrada en CR-1.2: ya no se escribe a mano en `salidas/**`. Las incompatibilidades están en el CHANGELOG.
 
